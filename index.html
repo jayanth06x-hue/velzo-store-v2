@@ -435,341 +435,395 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    /*
-      STARTER SETTINGS:
-      - Replace the sample products and prices below with your actual catalogue.
-      - Set your WhatsApp business number before using WhatsApp checkout.
-      - Use the full country code and number, with digits only.
-      - This starter stores the cart in the visitor's browser. Orders are not saved
-        to a server yet. We'll add a secure database and admin panel separately.
-    */
-    const WHATSAPP_NUMBER = "918500716966";
+<script>
+/*
+ * VELZO COLLECTIONS — SUPABASE STOREFRONT
+ * Uses the public publishable key, never a secret/service-role key.
+ */
 
-    const PRODUCTS = [
-      {
-        id: "VC101",
-        name: "Everyday Classic Shirt",
-        category: "Clothing",
-        price: 899,
-        tag: "POPULAR",
-        description: "A versatile look for everyday wear.",
-        image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC102",
-        name: "Minimal Everyday Bag",
-        category: "Accessories",
-        price: 1199,
-        tag: "NEW",
-        description: "An understated companion for daily use.",
-        image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC103",
-        name: "Modern Timepiece",
-        category: "Accessories",
-        price: 1499,
-        tag: "EDITORS' PICK",
-        description: "A clean finishing touch to your look.",
-        image: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC104",
-        name: "Essential Sneakers",
-        category: "Footwear",
-        price: 1799,
-        tag: "",
-        description: "An easy pair for everyday styling.",
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC105",
-        name: "Classic Sunglasses",
-        category: "Accessories",
-        price: 599,
-        tag: "",
-        description: "A timeless detail for sunny days.",
-        image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC106",
-        name: "Premium Casual Jacket",
-        category: "Clothing",
-        price: 2199,
-        tag: "FEATURED",
-        description: "Layer up with an easy, refined style.",
-        image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC107",
-        name: "Daily Carry Backpack",
-        category: "Bags",
-        price: 1299,
-        tag: "",
-        description: "A practical carry-all for busy days.",
-        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=700&q=85"
-      },
-      {
-        id: "VC108",
-        name: "Minimal Bracelet",
-        category: "Accessories",
-        price: 399,
-        tag: "",
-        description: "A subtle accent that goes with everything.",
-        image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=85"
-      }
-    ];
+const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+const SUPABASE_PUBLISHABLE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+const WHATSAPP_NUMBER = "91XXXXXXXXXX";
 
-    let cart = loadCart();
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
-    function escapeHTML(value) {
-      return String(value ?? "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[char]);
+let PRODUCTS = [];
+let cart = readCart();
+
+function readCart() {
+  try {
+    const items = JSON.parse(
+      localStorage.getItem("velzo-v2-cart") || "[]"
+    );
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[ch]);
+}
+
+function money(amount) {
+  return "₹" + Number(amount || 0).toLocaleString("en-IN", {
+    maximumFractionDigits: 2
+  });
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(
+    () => toast.classList.remove("show"),
+    3000
+  );
+}
+
+function saveCart() {
+  localStorage.setItem("velzo-v2-cart", JSON.stringify(cart));
+  document.getElementById("cart-count").textContent =
+    cart.reduce((sum, item) => sum + item.qty, 0);
+}
+
+async function loadProducts() {
+  const target = document.getElementById("products");
+  target.innerHTML = '<div class="empty-state">Loading products…</div>';
+
+  const { data, error } = await db
+    .from("products")
+    .select("id,name,category,price,tag,description,image_url,active")
+    .eq("active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    target.innerHTML =
+      '<div class="empty-state">Could not load products. Please try refreshing.</div>';
+    console.error("Product loading error:", error.message);
+    return;
+  }
+
+  PRODUCTS = data || [];
+
+  // Remove old cart items that no longer exist in the catalogue.
+  cart = cart.filter(item =>
+    PRODUCTS.some(p => p.id === item.id) &&
+    Number.isInteger(item.qty) &&
+    item.qty > 0
+  );
+
+  saveCart();
+  setupCategories();
+  renderProducts();
+}
+
+function setupCategories() {
+  const select = document.getElementById("category");
+  const previous = select.value;
+  const categories = [...new Set(PRODUCTS.map(p => p.category))].sort();
+
+  select.innerHTML =
+    '<option value="">All categories</option>' +
+    categories.map(c =>
+      `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`
+    ).join("");
+
+  select.value = categories.includes(previous) ? previous : "";
+}
+
+function renderProducts() {
+  const query =
+    document.getElementById("search").value.trim().toLowerCase();
+  const category = document.getElementById("category").value;
+  const sorting = document.getElementById("sort").value;
+
+  let items = PRODUCTS.filter(p =>
+    (!category || p.category === category) &&
+    (p.name + " " + p.category + " " + p.description)
+      .toLowerCase().includes(query)
+  );
+
+  if (sorting === "low") items.sort((a, b) => a.price - b.price);
+  if (sorting === "high") items.sort((a, b) => b.price - a.price);
+  if (sorting === "az") {
+    items.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  document.getElementById("result-count").textContent =
+    `${items.length} product${items.length === 1 ? "" : "s"}`;
+
+  const target = document.getElementById("products");
+
+  if (!items.length) {
+    target.innerHTML =
+      '<div class="empty-state">No matching products found.</div>';
+    return;
+  }
+
+  target.innerHTML = items.map(p => `
+    <article class="product">
+      <div class="product-image-wrap">
+        ${p.tag
+          ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
+          : ""}
+        <img
+          class="product-image"
+          src="${escapeHTML(p.image_url)}"
+          alt="${escapeHTML(p.name)}"
+          loading="lazy"
+          onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
+      </div>
+      <div class="product-details">
+        <div class="product-category">${escapeHTML(p.category)}</div>
+        <h3>${escapeHTML(p.name)}</h3>
+        <p class="product-description">${escapeHTML(p.description)}</p>
+        <div class="product-price">${money(p.price)}</div>
+        <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')">
+          ADD TO BAG
+        </button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function addToCart(id) {
+  if (!PRODUCTS.some(p => p.id === id)) return;
+
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    if (existing.qty >= 20) {
+      return showToast("Maximum quantity reached.");
     }
+    existing.qty++;
+  } else {
+    cart.push({ id, qty: 1 });
+  }
 
-    function money(amount) {
-      return "₹" + Number(amount).toLocaleString("en-IN");
-    }
+  saveCart();
+  showToast("Added to your bag.");
+}
 
-    function loadCart() {
-      try {
-        const value = JSON.parse(localStorage.getItem("velzo-v2-cart") || "[]");
-        return Array.isArray(value)
-          ? value.filter(item =>
-              item &&
-              typeof item.id === "string" &&
-              Number.isInteger(item.qty) &&
-              item.qty > 0 &&
-              PRODUCTS.some(p => p.id === item.id)
-            )
-          : [];
-      } catch {
-        return [];
-      }
-    }
+function cartTotal() {
+  return cart.reduce((sum, item) => {
+    const p = PRODUCTS.find(product => product.id === item.id);
+    return sum + (p ? Number(p.price) * item.qty : 0);
+  }, 0);
+}
 
-    function saveCart() {
-      localStorage.setItem("velzo-v2-cart", JSON.stringify(cart));
-      document.getElementById("cart-count").textContent =
-        cart.reduce((sum, item) => sum + item.qty, 0);
-    }
+function openCart() {
+  document.getElementById("cart-overlay").classList.add("open");
+  renderCart();
+}
 
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.add("show");
-      window.clearTimeout(showToast.timer);
-      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
-    }
+function closeCart() {
+  document.getElementById("cart-overlay").classList.remove("open");
+}
 
-    function setupCategories() {
-      const select = document.getElementById("category");
-      const categories = [...new Set(PRODUCTS.map(p => p.category))].sort();
-      select.innerHTML = '<option value="">All categories</option>' +
-        categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
-    }
+function changeQuantity(id, change) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
 
-    function renderProducts() {
-      const query = document.getElementById("search").value.trim().toLowerCase();
-      const category = document.getElementById("category").value;
-      const sorting = document.getElementById("sort").value;
+  item.qty += change;
 
-      let matches = PRODUCTS.filter(p =>
-        (!category || p.category === category) &&
-        (p.name + " " + p.category + " " + p.description).toLowerCase().includes(query)
-      );
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  } else if (item.qty > 20) {
+    item.qty = 20;
+    showToast("Maximum quantity is 20 per product.");
+  }
 
-      if (sorting === "low") matches.sort((a, b) => a.price - b.price);
-      if (sorting === "high") matches.sort((a, b) => b.price - a.price);
-      if (sorting === "az") matches.sort((a, b) => a.name.localeCompare(b.name));
+  saveCart();
+  renderCart();
+}
 
-      document.getElementById("result-count").textContent =
-        `${matches.length} product${matches.length === 1 ? "" : "s"}`;
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  renderCart();
+}
 
-      const target = document.getElementById("products");
-      if (!matches.length) {
-        target.innerHTML = '<div class="empty-state">No matching products. Try another search.</div>';
-        return;
-      }
+function renderCart() {
+  const target = document.getElementById("cart-content");
 
-      target.innerHTML = matches.map(p => `
-        <article class="product">
-          <div class="product-image-wrap">
-            ${p.tag ? `<span class="product-tag">${escapeHTML(p.tag)}</span>` : ""}
-            <img class="product-image"
-              src="${escapeHTML(p.image)}"
-              alt="${escapeHTML(p.name)}"
-              loading="lazy"
-              onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
+  if (!cart.length) {
+    target.innerHTML = `
+      <h2 id="cart-title">Your bag</h2>
+      <div class="empty-state">Your bag is empty.</div>
+      <button class="black-button full-button" onclick="closeCart()">
+        CONTINUE SHOPPING
+      </button>`;
+    return;
+  }
+
+  target.innerHTML = `
+    <h2 id="cart-title">Your bag</h2>
+    ${cart.map(item => {
+      const p = PRODUCTS.find(product => product.id === item.id);
+      if (!p) return "";
+
+      return `
+        <div class="cart-line">
+          <img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}">
+          <div>
+            <strong>${escapeHTML(p.name)}</strong>
+            <p>${money(p.price)} each</p>
+            <button
+              style="border:0;background:none;padding:5px 0;text-decoration:underline"
+              onclick="removeFromCart('${escapeHTML(p.id)}')">
+              Remove
+            </button>
           </div>
-          <div class="product-details">
-            <div class="product-category">${escapeHTML(p.category)}</div>
-            <h3>${escapeHTML(p.name)}</h3>
-            <p class="product-description">${escapeHTML(p.description)}</p>
-            <div class="product-price">${money(p.price)}</div>
-            <button class="add-button" onclick="addToCart('${p.id}')">ADD TO BAG</button>
+          <div class="quantity">
+            <button onclick="changeQuantity('${escapeHTML(p.id)}',-1)">−</button>
+            <span>${item.qty}</span>
+            <button onclick="changeQuantity('${escapeHTML(p.id)}',1)">+</button>
           </div>
-        </article>
-      `).join("");
-    }
+        </div>`;
+    }).join("")}
+    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
+    <p class="subtext">Final availability and delivery charges are confirmed by the store.</p>
+    <button class="black-button full-button" onclick="showCheckout()">
+      CONTINUE TO ORDER
+    </button>
+    <button class="full-button" style="background:white;border:1px solid #ddd"
+      onclick="closeCart()">CONTINUE SHOPPING</button>`;
+}
 
-    function addToCart(id) {
-      const product = PRODUCTS.find(p => p.id === id);
-      if (!product) return;
+function showCheckout() {
+  if (!cart.length) return showToast("Your bag is empty.");
 
-      const existing = cart.find(item => item.id === id);
-      if (existing) existing.qty += 1;
-      else cart.push({ id, qty: 1 });
+  document.getElementById("cart-content").innerHTML = `
+    <h2 id="cart-title">Delivery details</h2>
+    <p class="subtext">Your order will be saved before you notify the store.</p>
+    <form class="checkout-fields" onsubmit="submitOrder(event)">
+      <input id="customer-name" autocomplete="name"
+        placeholder="Full name" maxlength="100" required>
+      <input id="customer-phone" type="tel" autocomplete="tel"
+        placeholder="Mobile number" maxlength="20" required>
+      <textarea id="customer-address" autocomplete="street-address"
+        placeholder="Full delivery address and PIN code"
+        maxlength="500" required></textarea>
+      <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
+      <button class="gold-button full-button" type="submit">
+        PLACE ORDER
+      </button>
+      <button class="full-button" type="button"
+        style="background:white;border:1px solid #ddd"
+        onclick="renderCart()">BACK TO BAG</button>
+    </form>`;
+}
 
-      saveCart();
-      showToast(`${product.name} added to your bag.`);
-    }
+async function submitOrder(event) {
+  event.preventDefault();
 
-    function changeQuantity(id, change) {
-      const item = cart.find(entry => entry.id === id);
-      if (!item) return;
-      item.qty += change;
-      if (item.qty <= 0) cart = cart.filter(entry => entry.id !== id);
-      saveCart();
-      renderCart();
-    }
+  const button = event.submitter;
+  if (button) {
+    button.disabled = true;
+    button.textContent = "SAVING ORDER…";
+  }
 
-    function removeFromCart(id) {
-      cart = cart.filter(item => item.id !== id);
-      saveCart();
-      renderCart();
-    }
+  const name = document.getElementById("customer-name").value.trim();
+  const phone = document.getElementById("customer-phone").value.trim();
+  const address = document.getElementById("customer-address").value.trim();
 
-    function cartTotal() {
-      return cart.reduce((sum, item) => {
-        const p = PRODUCTS.find(product => product.id === item.id);
-        return sum + (p ? p.price * item.qty : 0);
-      }, 0);
-    }
+  try {
+    if (!cart.length) throw new Error("Your bag is empty.");
 
-    function openCart() {
-      document.getElementById("cart-overlay").classList.add("open");
-      renderCart();
-    }
+    const orderItems = cart.map(item => ({
+      id: item.id,
+      qty: item.qty
+    }));
 
-    function closeCart() {
-      document.getElementById("cart-overlay").classList.remove("open");
-    }
+    // The database validates the products and calculates the actual total.
+    const { data, error } = await db.rpc("place_order", {
+      p_customer_name: name,
+      p_customer_phone: phone,
+      p_customer_address: address,
+      p_items: orderItems
+    });
 
-    function renderCart() {
-      const target = document.getElementById("cart-content");
-      if (!cart.length) {
-        target.innerHTML = `
-          <h2 id="cart-title">Your bag</h2>
-          <div class="empty-state">Your bag is empty.</div>
-          <button class="black-button full-button" onclick="closeCart()">CONTINUE SHOPPING</button>
-        `;
-        return;
-      }
+    if (error) throw error;
 
-      target.innerHTML = `
-        <h2 id="cart-title">Your bag</h2>
-        ${cart.map(item => {
-          const p = PRODUCTS.find(product => product.id === item.id);
-          if (!p) return "";
-          return `
-            <div class="cart-line">
-              <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}">
-              <div>
-                <strong>${escapeHTML(p.name)}</strong>
-                <p>${money(p.price)} each</p>
-                <button class="text-button" style="border:0;background:none;padding:5px 0;text-decoration:underline" onclick="removeFromCart('${p.id}')">Remove</button>
-              </div>
-              <div class="quantity">
-                <button onclick="changeQuantity('${p.id}',-1)" aria-label="Decrease quantity">−</button>
-                <span>${item.qty}</span>
-                <button onclick="changeQuantity('${p.id}',1)" aria-label="Increase quantity">+</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
-        <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
-        <p class="subtext">Delivery charges and final availability must be confirmed by the store.</p>
-        <button class="black-button full-button" onclick="showCheckout()">CONTINUE TO ORDER</button>
-        <button class="full-button" style="background:white;border:1px solid #ddd" onclick="closeCart()">CONTINUE SHOPPING</button>
-      `;
-    }
+    const order = data;
+    const savedItems = cart.map(item => {
+      const p = PRODUCTS.find(product => product.id === item.id);
+      return p ? `${p.name} × ${item.qty} — ${money(p.price * item.qty)}` : "";
+    }).filter(Boolean);
 
-    function showCheckout() {
-      if (!cart.length) {
-        showToast("Your bag is empty.");
-        return;
-      }
+    const whatsAppMessage = [
+      "Hello Velzo Collections, I placed an order.",
+      `Order ID: ${order.order_id}`,
+      "",
+      ...savedItems,
+      "",
+      `Total: ${money(order.total)}`,
+      `Name: ${name}`,
+      `Phone: ${phone}`,
+      `Address: ${address}`,
+      "",
+      "Please confirm my order."
+    ].join("\n");
 
-      const target = document.getElementById("cart-content");
-      target.innerHTML = `
-        <h2 id="cart-title">Delivery details</h2>
-        <p class="subtext">Complete these details to prepare your order message.</p>
-        <form class="checkout-fields" onsubmit="sendOrder(event)">
-          <input id="customer-name" autocomplete="name" placeholder="Full name" maxlength="100" required>
-          <input id="customer-phone" type="tel" autocomplete="tel" placeholder="Mobile number" maxlength="20" required>
-          <textarea id="customer-address" autocomplete="street-address" placeholder="Full delivery address and PIN code" maxlength="500" required></textarea>
-          <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
-          <p class="subtext">This starter does not save orders online. It prepares a WhatsApp message for you to send to the store.</p>
-          <button class="gold-button full-button" type="submit">PREPARE WHATSAPP ORDER</button>
-          <button class="full-button" type="button" style="background:white;border:1px solid #ddd" onclick="renderCart()">BACK TO BAG</button>
-        </form>
-      `;
-    }
+    const validWhatsApp = /^\d{10,15}$/.test(WHATSAPP_NUMBER);
+    const waUrl = validWhatsApp
+      ? "https://wa.me/" + WHATSAPP_NUMBER +
+        "?text=" + encodeURIComponent(whatsAppMessage)
+      : "";
 
-    function sendOrder(event) {
-      event.preventDefault();
-
-      if (!/^\d{10,15}$/.test(WHATSAPP_NUMBER)) {
-        alert("Before checkout can be used, update WHATSAPP_NUMBER in the code to your store's country code and WhatsApp number, using digits only.");
-        return;
-      }
-
-      const name = document.getElementById("customer-name").value.trim();
-      const phone = document.getElementById("customer-phone").value.trim();
-      const address = document.getElementById("customer-address").value.trim();
-
-      if (!name || !phone || !address || !cart.length) return;
-
-      const lines = cart.map(item => {
-        const p = PRODUCTS.find(product => product.id === item.id);
-        return p ? `• ${p.name} × ${item.qty} — ${money(p.price * item.qty)}` : "";
-      }).filter(Boolean);
-
-      const message = [
-        "Hello Velzo Collections, I'd like to place an order.",
-        "",
-        ...lines,
-        "",
-        `Subtotal: ${money(cartTotal())}`,
-        `Name: ${name}`,
-        `Phone: ${phone}`,
-        `Address: ${address}`,
-        "",
-        "Please confirm availability and delivery charges."
-      ].join("\n");
-
-      window.open(
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
-    }
-
-    document.getElementById("search").addEventListener("input", renderProducts);
-    document.getElementById("category").addEventListener("change", renderProducts);
-    document.getElementById("sort").addEventListener("change", renderProducts);
-    document.getElementById("year").textContent = new Date().getFullYear();
-
-    setupCategories();
-    renderProducts();
+    cart = [];
     saveCart();
-  </script>
+
+    document.getElementById("cart-content").innerHTML = `
+      <h2 id="cart-title">Order placed successfully</h2>
+      <p>Your order has been saved.</p>
+      <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
+      <p><strong>Total:</strong> ${money(order.total)}</p>
+      <p class="subtext">
+        ${validWhatsApp
+          ? "You can also notify the store through WhatsApp."
+          : "Your order is saved. The store's WhatsApp number has not been configured."}
+      </p>
+      ${validWhatsApp ? `
+        <a class="black-button full-button"
+          style="display:block;text-align:center;text-decoration:none"
+          href="${escapeHTML(waUrl)}"
+          target="_blank" rel="noopener noreferrer">
+          NOTIFY STORE ON WHATSAPP
+        </a>` : ""}
+      <button class="full-button" style="margin-top:12px"
+        onclick="closeCart()">CONTINUE SHOPPING</button>`;
+
+    // Refresh prices and catalogue in case stock or products changed.
+    await loadProducts();
+
+  } catch (error) {
+    console.error("Order placement error:", error);
+    alert("Could not place the order: " + (error.message || "Please try again."));
+    if (button) {
+      button.disabled = false;
+      button.textContent = "PLACE ORDER";
+    }
+  }
+}
+
+document.getElementById("search").addEventListener("input", renderProducts);
+document.getElementById("category").addEventListener("change", renderProducts);
+document.getElementById("sort").addEventListener("change", renderProducts);
+document.getElementById("year").textContent = new Date().getFullYear();
+
+saveCart();
+loadProducts();
+</script>
 </body>
 </html>
