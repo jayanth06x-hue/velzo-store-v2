@@ -340,493 +340,7 @@
       .benefits { grid-template-columns: 1fr; padding: 30px 8%; }
       .footer { align-items: start; flex-direction: column; }
     }
-  </style>
-</head>
-
-<body>
-  <div class="announcement">THOUGHTFULLY SELECTED · MADE FOR EVERYDAY STYLE</div>
-
-  <header class="header">
-    <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-    <nav class="nav" aria-label="Main navigation">
-      <a href="#shop">Shop</a>
-      <a class="optional-link" href="#about">Our story</a>
-      <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
-        Bag (<span id="cart-count">0</span>)
-      </button>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <div class="eyebrow">The everyday edit</div>
-        <h1>Everyday style.<br>Elevated.</h1>
-        <p>Explore considered essentials, timeless details and fresh finds selected for your everyday life.</p>
-        <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-          EXPLORE THE COLLECTION
-        </button>
-      </div>
-    </section>
-
-    <section class="section" id="shop">
-      <div class="section-heading">
-        <div>
-          <h2>Shop the collection</h2>
-          <p>Find your next favourite piece.</p>
-        </div>
-        <p id="result-count" aria-live="polite"></p>
-      </div>
-
-      <div class="tools">
-        <input id="search" type="search" placeholder="Search products…" aria-label="Search products">
-        <select id="category" aria-label="Filter by category">
-          <option value="">All categories</option>
-        </select>
-        <select id="sort" aria-label="Sort products">
-          <option value="featured">Featured</option>
-          <option value="low">Price: low to high</option>
-          <option value="high">Price: high to low</option>
-          <option value="az">Name: A–Z</option>
-        </select>
-      </div>
-
-      <div class="product-grid" id="products" aria-live="polite"></div>
-    </section>
-
-    <section class="benefits" aria-label="Our promises">
-      <div class="benefit">
-        <strong>Thoughtfully selected</strong>
-        <p>Everyday finds chosen with care.</p>
-      </div>
-      <div class="benefit">
-        <strong>A considered experience</strong>
-        <p>Simple browsing and easy cart management.</p>
-      </div>
-      <div class="benefit">
-        <strong>Here to help</strong>
-        <p>Contact our store for order and product questions.</p>
-      </div>
-    </section>
-
-    <section class="section" id="about">
-      <div class="about">
-        <div class="eyebrow">Our point of view</div>
-        <h2>Less ordinary. More you.</h2>
-        <p>Velzo Collections is built around a simple idea: great everyday pieces should feel considered, versatile and easy to make your own. Discover the collection and find something that fits your style.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div>
-      <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-      <p>Everyday essentials, thoughtfully selected.</p>
-    </div>
-    <div>
-      <small>© <span id="year"></span> Velzo Collections</small>
-      <p>Product prices and availability shown are sample content until you update the catalogue.</p>
-    </div>
-  </footer>
-
-  <div class="overlay" id="cart-overlay" onclick="if(event.target===this) closeCart()">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-      <button class="modal-close" onclick="closeCart()" aria-label="Close cart">×</button>
-      <div id="cart-content"></div>
-    </section>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<script>
-/*
- * VELZO COLLECTIONS — SUPABASE STOREFRONT
- * Uses the public publishable key, never a secret/service-role key.
- */
-
-const SUPABASE_URL = "https://csaihfchrupsdpqwvwbh.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f94lFoGclyXB6rmVtNNy8w_PorwUcU9";
-const WHATSAPP_NUMBER = "918500716966";
-
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
-let PRODUCTS = [];
-let cart = readCart();
-
-function readCart() {
-  try {
-    const items = JSON.parse(
-      localStorage.getItem("velzo-v2-cart") || "[]"
-    );
-    return Array.isArray(items) ? items : [];
-  } catch {
-    return [];
-  }
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[ch]);
-}
-
-function money(amount) {
-  return "₹" + Number(amount || 0).toLocaleString("en-IN", {
-    maximumFractionDigits: 2
-  });
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(
-    () => toast.classList.remove("show"),
-    3000
-  );
-}
-
-function saveCart() {
-  localStorage.setItem("velzo-v2-cart", JSON.stringify(cart));
-  document.getElementById("cart-count").textContent =
-    cart.reduce((sum, item) => sum + item.qty, 0);
-}
-
-async function loadProducts() {
-  const target = document.getElementById("products");
-  target.innerHTML = '<div class="empty-state">Loading products…</div>';
-
-  const { data, error } = await db
-    .from("products")
-    .select("id,name,category,price,tag,description,image_url,active")
-    .eq("active", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    target.innerHTML =
-      '<div class="empty-state">Could not load products. Please try refreshing.</div>';
-    console.error("Product loading error:", error.message);
-    return;
-  }
-
-  PRODUCTS = data || [];
-
-  // Remove old cart items that no longer exist in the catalogue.
-  cart = cart.filter(item =>
-    PRODUCTS.some(p => p.id === item.id) &&
-    Number.isInteger(item.qty) &&
-    item.qty > 0
-  );
-
-  saveCart();
-  setupCategories();
-  renderProducts();
-}
-
-function setupCategories() {
-  const select = document.getElementById("category");
-  const previous = select.value;
-  const categories = [...new Set(PRODUCTS.map(p => p.category))].sort();
-
-  select.innerHTML =
-    '<option value="">All categories</option>' +
-    categories.map(c =>
-      `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`
-    ).join("");
-
-  select.value = categories.includes(previous) ? previous : "";
-}
-
-function renderProducts() {
-  const query =
-    document.getElementById("search").value.trim().toLowerCase();
-  const category = document.getElementById("category").value;
-  const sorting = document.getElementById("sort").value;
-
-  let items = PRODUCTS.filter(p =>
-    (!category || p.category === category) &&
-    (p.name + " " + p.category + " " + p.description)
-      .toLowerCase().includes(query)
-  );
-
-  if (sorting === "low") items.sort((a, b) => a.price - b.price);
-  if (sorting === "high") items.sort((a, b) => b.price - a.price);
-  if (sorting === "az") {
-    items.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  document.getElementById("result-count").textContent =
-    `${items.length} product${items.length === 1 ? "" : "s"}`;
-
-  const target = document.getElementById("products");
-
-  if (!items.length) {
-    target.innerHTML =
-      '<div class="empty-state">No matching products found.</div>';
-    return;
-  }
-
-  target.innerHTML = items.map(p => `
-    <article class="product">
-      <div class="product-image-wrap">
-        ${p.tag
-          ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
-          : ""}
-        <img
-          class="product-image"
-          src="${escapeHTML(p.image_url)}"
-          alt="${escapeHTML(p.name)}"
-          loading="lazy"
-          onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
-      </div>
-      <div class="product-details">
-        <div class="product-category">${escapeHTML(p.category)}</div>
-        <h3>${escapeHTML(p.name)}</h3>
-        <p class="product-description">${escapeHTML(p.description)}</p>
-        <div class="product-price">${money(p.price)}</div>
-        <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')">
-          ADD TO BAG
-        </button>
-      </div>
-    </article>
-  `).join("");
-}
-
-function addToCart(id) {
-  if (!PRODUCTS.some(p => p.id === id)) return;
-
-  const existing = cart.find(i => i.id === id);
-  if (existing) {
-    if (existing.qty >= 20) {
-      return showToast("Maximum quantity reached.");
-    }
-    existing.qty++;
-  } else {
-    cart.push({ id, qty: 1 });
-  }
-
-  saveCart();
-  showToast("Added to your bag.");
-}
-
-function cartTotal() {
-  return cart.reduce((sum, item) => {
-    const p = PRODUCTS.find(product => product.id === item.id);
-    return sum + (p ? Number(p.price) * item.qty : 0);
-  }, 0);
-}
-
-function openCart() {
-  document.getElementById("cart-overlay").classList.add("open");
-  renderCart();
-}
-
-function closeCart() {
-  document.getElementById("cart-overlay").classList.remove("open");
-}
-
-function changeQuantity(id, change) {
-  const item = cart.find(i => i.id === id);
-  if (!item) return;
-
-  item.qty += change;
-
-  if (item.qty <= 0) {
-    cart = cart.filter(i => i.id !== id);
-  } else if (item.qty > 20) {
-    item.qty = 20;
-    showToast("Maximum quantity is 20 per product.");
-  }
-
-  saveCart();
-  renderCart();
-}
-
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
-  saveCart();
-  renderCart();
-}
-
-function renderCart() {
-  const target = document.getElementById("cart-content");
-
-  if (!cart.length) {
-    target.innerHTML = `
-      <h2 id="cart-title">Your bag</h2>
-      <div class="empty-state">Your bag is empty.</div>
-      <button class="black-button full-button" onclick="closeCart()">
-        CONTINUE SHOPPING
-      </button>`;
-    return;
-  }
-
-  target.innerHTML = `
-    <h2 id="cart-title">Your bag</h2>
-    ${cart.map(item => {
-      const p = PRODUCTS.find(product => product.id === item.id);
-      if (!p) return "";
-
-      return `
-        <div class="cart-line">
-          <img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}">
-          <div>
-            <strong>${escapeHTML(p.name)}</strong>
-            <p>${money(p.price)} each</p>
-            <button
-              style="border:0;background:none;padding:5px 0;text-decoration:underline"
-              onclick="removeFromCart('${escapeHTML(p.id)}')">
-              Remove
-            </button>
-          </div>
-          <div class="quantity">
-            <button onclick="changeQuantity('${escapeHTML(p.id)}',-1)">−</button>
-            <span>${item.qty}</span>
-            <button onclick="changeQuantity('${escapeHTML(p.id)}',1)">+</button>
-          </div>
-        </div>`;
-    }).join("")}
-    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
-    <p class="subtext">Final availability and delivery charges are confirmed by the store.</p>
-    <button class="black-button full-button" onclick="showCheckout()">
-      CONTINUE TO ORDER
-    </button>
-    <button class="full-button" style="background:white;border:1px solid #ddd"
-      onclick="closeCart()">CONTINUE SHOPPING</button>`;
-}
-
-function showCheckout() {
-  if (!cart.length) return showToast("Your bag is empty.");
-
-  document.getElementById("cart-content").innerHTML = `
-    <h2 id="cart-title">Delivery details</h2>
-    <p class="subtext">Your order will be saved before you notify the store.</p>
-    <form class="checkout-fields" onsubmit="submitOrder(event)">
-      <input id="customer-name" autocomplete="name"
-        placeholder="Full name" maxlength="100" required>
-      <input id="customer-phone" type="tel" autocomplete="tel"
-        placeholder="Mobile number" maxlength="20" required>
-      <textarea id="customer-address" autocomplete="street-address"
-        placeholder="Full delivery address and PIN code"
-        maxlength="500" required></textarea>
-      <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
-      <button class="gold-button full-button" type="submit">
-        PLACE ORDER
-      </button>
-      <button class="full-button" type="button"
-        style="background:white;border:1px solid #ddd"
-        onclick="renderCart()">BACK TO BAG</button>
-    </form>`;
-}
-
-async function submitOrder(event) {
-  event.preventDefault();
-
-  const button = event.submitter;
-  if (button) {
-    button.disabled = true;
-    button.textContent = "SAVING ORDER…";
-  }
-
-  const name = document.getElementById("customer-name").value.trim();
-  const phone = document.getElementById("customer-phone").value.trim();
-  const address = document.getElementById("customer-address").value.trim();
-
-  try {
-    if (!cart.length) throw new Error("Your bag is empty.");
-
-    const orderItems = cart.map(item => ({
-      id: item.id,
-      qty: item.qty
-    }));
-
-    // The database validates the products and calculates the actual total.
-    const { data, error } = await db.rpc("place_order", {
-      p_customer_name: name,
-      p_customer_phone: phone,
-      p_customer_address: address,
-      p_items: orderItems
-    });
-
-    if (error) throw error;
-
-    const order = data;
-    const savedItems = cart.map(item => {
-      const p = PRODUCTS.find(product => product.id === item.id);
-      return p ? `${p.name} × ${item.qty} — ${money(p.price * item.qty)}` : "";
-    }).filter(Boolean);
-
-    const whatsAppMessage = [
-      "Hello Velzo Collections, I placed an order.",
-      `Order ID: ${order.order_id}`,
-      "",
-      ...savedItems,
-      "",
-      `Total: ${money(order.total)}`,
-      `Name: ${name}`,
-      `Phone: ${phone}`,
-      `Address: ${address}`,
-      "",
-      "Please confirm my order."
-    ].join("\n");
-
-    const validWhatsApp = /^\d{10,15}$/.test(WHATSAPP_NUMBER);
-    const waUrl = validWhatsApp
-      ? "https://wa.me/" + WHATSAPP_NUMBER +
-        "?text=" + encodeURIComponent(whatsAppMessage)
-      : "";
-
-    cart = [];
-    saveCart();
-
-    document.getElementById("cart-content").innerHTML = `
-      <h2 id="cart-title">Order placed successfully</h2>
-      <p>Your order has been saved.</p>
-      <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
-      <p><strong>Total:</strong> ${money(order.total)}</p>
-      <p class="subtext">
-        ${validWhatsApp
-          ? "You can also notify the store through WhatsApp."
-          : "Your order is saved. The store's WhatsApp number has not been configured."}
-      </p>
-      ${validWhatsApp ? `
-        <a class="black-button full-button"
-          style="display:block;text-align:center;text-decoration:none"
-          href="${escapeHTML(waUrl)}"
-          target="_blank" rel="noopener noreferrer">
-          NOTIFY STORE ON WHATSAPP
-        </a>` : ""}
-      <button class="full-button" style="margin-top:12px"
-        onclick="closeCart()">CONTINUE SHOPPING</button>`;
-
-    // Refresh prices and catalogue in case stock or products changed.
-    await loadProducts();
-
-  } catch (error) {
-    console.error("Order placement error:", error);
-    alert("Could not place the order: " + (error.message || "Please try again."));
-    if (button) {
-      button.disabled = false;
-      button.textContent = "PLACE ORDER";
-    }
-  }
-}
-
-document.getElementById("search").addEventListener("input", renderProducts);
-document.getElementById("category").addEventListener("change", renderProducts);
-document.getElementById("sort").addEventListener("change", renderProducts);
-document.getElementById("year").textContent = new Date().getFullYear();
-
-saveCart();
-loadProducts();
-/* =========================================
+  /* =========================================
    VELZO COLLECTIONS — MINIMAL DESIGN UPDATE
    CSS only: keeps the existing store logic.
    ========================================= */
@@ -1319,6 +833,493 @@ h1 {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
-}</script>
+}
+  </style>
+</head>
+
+<body>
+  <div class="announcement">THOUGHTFULLY SELECTED · MADE FOR EVERYDAY STYLE</div>
+
+  <header class="header">
+    <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#shop">Shop</a>
+      <a class="optional-link" href="#about">Our story</a>
+      <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
+        Bag (<span id="cart-count">0</span>)
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">The everyday edit</div>
+        <h1>Everyday style.<br>Elevated.</h1>
+        <p>Explore considered essentials, timeless details and fresh finds selected for your everyday life.</p>
+        <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
+          EXPLORE THE COLLECTION
+        </button>
+      </div>
+    </section>
+
+    <section class="section" id="shop">
+      <div class="section-heading">
+        <div>
+          <h2>Shop the collection</h2>
+          <p>Find your next favourite piece.</p>
+        </div>
+        <p id="result-count" aria-live="polite"></p>
+      </div>
+
+      <div class="tools">
+        <input id="search" type="search" placeholder="Search products…" aria-label="Search products">
+        <select id="category" aria-label="Filter by category">
+          <option value="">All categories</option>
+        </select>
+        <select id="sort" aria-label="Sort products">
+          <option value="featured">Featured</option>
+          <option value="low">Price: low to high</option>
+          <option value="high">Price: high to low</option>
+          <option value="az">Name: A–Z</option>
+        </select>
+      </div>
+
+      <div class="product-grid" id="products" aria-live="polite"></div>
+    </section>
+
+    <section class="benefits" aria-label="Our promises">
+      <div class="benefit">
+        <strong>Thoughtfully selected</strong>
+        <p>Everyday finds chosen with care.</p>
+      </div>
+      <div class="benefit">
+        <strong>A considered experience</strong>
+        <p>Simple browsing and easy cart management.</p>
+      </div>
+      <div class="benefit">
+        <strong>Here to help</strong>
+        <p>Contact our store for order and product questions.</p>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="about">
+        <div class="eyebrow">Our point of view</div>
+        <h2>Less ordinary. More you.</h2>
+        <p>Velzo Collections is built around a simple idea: great everyday pieces should feel considered, versatile and easy to make your own. Discover the collection and find something that fits your style.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
+      <p>Everyday essentials, thoughtfully selected.</p>
+    </div>
+    <div>
+      <small>© <span id="year"></span> Velzo Collections</small>
+      <p>Product prices and availability shown are sample content until you update the catalogue.</p>
+    </div>
+  </footer>
+
+  <div class="overlay" id="cart-overlay" onclick="if(event.target===this) closeCart()">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+      <button class="modal-close" onclick="closeCart()" aria-label="Close cart">×</button>
+      <div id="cart-content"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/*
+ * VELZO COLLECTIONS — SUPABASE STOREFRONT
+ * Uses the public publishable key, never a secret/service-role key.
+ */
+
+const SUPABASE_URL = "https://csaihfchrupsdpqwvwbh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f94lFoGclyXB6rmVtNNy8w_PorwUcU9";
+const WHATSAPP_NUMBER = "918500716966";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+let PRODUCTS = [];
+let cart = readCart();
+
+function readCart() {
+  try {
+    const items = JSON.parse(
+      localStorage.getItem("velzo-v2-cart") || "[]"
+    );
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[ch]);
+}
+
+function money(amount) {
+  return "₹" + Number(amount || 0).toLocaleString("en-IN", {
+    maximumFractionDigits: 2
+  });
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(
+    () => toast.classList.remove("show"),
+    3000
+  );
+}
+
+function saveCart() {
+  localStorage.setItem("velzo-v2-cart", JSON.stringify(cart));
+  document.getElementById("cart-count").textContent =
+    cart.reduce((sum, item) => sum + item.qty, 0);
+}
+
+async function loadProducts() {
+  const target = document.getElementById("products");
+  target.innerHTML = '<div class="empty-state">Loading products…</div>';
+
+  const { data, error } = await db
+    .from("products")
+    .select("id,name,category,price,tag,description,image_url,active")
+    .eq("active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    target.innerHTML =
+      '<div class="empty-state">Could not load products. Please try refreshing.</div>';
+    console.error("Product loading error:", error.message);
+    return;
+  }
+
+  PRODUCTS = data || [];
+
+  // Remove old cart items that no longer exist in the catalogue.
+  cart = cart.filter(item =>
+    PRODUCTS.some(p => p.id === item.id) &&
+    Number.isInteger(item.qty) &&
+    item.qty > 0
+  );
+
+  saveCart();
+  setupCategories();
+  renderProducts();
+}
+
+function setupCategories() {
+  const select = document.getElementById("category");
+  const previous = select.value;
+  const categories = [...new Set(PRODUCTS.map(p => p.category))].sort();
+
+  select.innerHTML =
+    '<option value="">All categories</option>' +
+    categories.map(c =>
+      `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`
+    ).join("");
+
+  select.value = categories.includes(previous) ? previous : "";
+}
+
+function renderProducts() {
+  const query =
+    document.getElementById("search").value.trim().toLowerCase();
+  const category = document.getElementById("category").value;
+  const sorting = document.getElementById("sort").value;
+
+  let items = PRODUCTS.filter(p =>
+    (!category || p.category === category) &&
+    (p.name + " " + p.category + " " + p.description)
+      .toLowerCase().includes(query)
+  );
+
+  if (sorting === "low") items.sort((a, b) => a.price - b.price);
+  if (sorting === "high") items.sort((a, b) => b.price - a.price);
+  if (sorting === "az") {
+    items.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  document.getElementById("result-count").textContent =
+    `${items.length} product${items.length === 1 ? "" : "s"}`;
+
+  const target = document.getElementById("products");
+
+  if (!items.length) {
+    target.innerHTML =
+      '<div class="empty-state">No matching products found.</div>';
+    return;
+  }
+
+  target.innerHTML = items.map(p => `
+    <article class="product">
+      <div class="product-image-wrap">
+        ${p.tag
+          ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
+          : ""}
+        <img
+          class="product-image"
+          src="${escapeHTML(p.image_url)}"
+          alt="${escapeHTML(p.name)}"
+          loading="lazy"
+          onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
+      </div>
+      <div class="product-details">
+        <div class="product-category">${escapeHTML(p.category)}</div>
+        <h3>${escapeHTML(p.name)}</h3>
+        <p class="product-description">${escapeHTML(p.description)}</p>
+        <div class="product-price">${money(p.price)}</div>
+        <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')">
+          ADD TO BAG
+        </button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function addToCart(id) {
+  if (!PRODUCTS.some(p => p.id === id)) return;
+
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    if (existing.qty >= 20) {
+      return showToast("Maximum quantity reached.");
+    }
+    existing.qty++;
+  } else {
+    cart.push({ id, qty: 1 });
+  }
+
+  saveCart();
+  showToast("Added to your bag.");
+}
+
+function cartTotal() {
+  return cart.reduce((sum, item) => {
+    const p = PRODUCTS.find(product => product.id === item.id);
+    return sum + (p ? Number(p.price) * item.qty : 0);
+  }, 0);
+}
+
+function openCart() {
+  document.getElementById("cart-overlay").classList.add("open");
+  renderCart();
+}
+
+function closeCart() {
+  document.getElementById("cart-overlay").classList.remove("open");
+}
+
+function changeQuantity(id, change) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+
+  item.qty += change;
+
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  } else if (item.qty > 20) {
+    item.qty = 20;
+    showToast("Maximum quantity is 20 per product.");
+  }
+
+  saveCart();
+  renderCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  renderCart();
+}
+
+function renderCart() {
+  const target = document.getElementById("cart-content");
+
+  if (!cart.length) {
+    target.innerHTML = `
+      <h2 id="cart-title">Your bag</h2>
+      <div class="empty-state">Your bag is empty.</div>
+      <button class="black-button full-button" onclick="closeCart()">
+        CONTINUE SHOPPING
+      </button>`;
+    return;
+  }
+
+  target.innerHTML = `
+    <h2 id="cart-title">Your bag</h2>
+    ${cart.map(item => {
+      const p = PRODUCTS.find(product => product.id === item.id);
+      if (!p) return "";
+
+      return `
+        <div class="cart-line">
+          <img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}">
+          <div>
+            <strong>${escapeHTML(p.name)}</strong>
+            <p>${money(p.price)} each</p>
+            <button
+              style="border:0;background:none;padding:5px 0;text-decoration:underline"
+              onclick="removeFromCart('${escapeHTML(p.id)}')">
+              Remove
+            </button>
+          </div>
+          <div class="quantity">
+            <button onclick="changeQuantity('${escapeHTML(p.id)}',-1)">−</button>
+            <span>${item.qty}</span>
+            <button onclick="changeQuantity('${escapeHTML(p.id)}',1)">+</button>
+          </div>
+        </div>`;
+    }).join("")}
+    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
+    <p class="subtext">Final availability and delivery charges are confirmed by the store.</p>
+    <button class="black-button full-button" onclick="showCheckout()">
+      CONTINUE TO ORDER
+    </button>
+    <button class="full-button" style="background:white;border:1px solid #ddd"
+      onclick="closeCart()">CONTINUE SHOPPING</button>`;
+}
+
+function showCheckout() {
+  if (!cart.length) return showToast("Your bag is empty.");
+
+  document.getElementById("cart-content").innerHTML = `
+    <h2 id="cart-title">Delivery details</h2>
+    <p class="subtext">Your order will be saved before you notify the store.</p>
+    <form class="checkout-fields" onsubmit="submitOrder(event)">
+      <input id="customer-name" autocomplete="name"
+        placeholder="Full name" maxlength="100" required>
+      <input id="customer-phone" type="tel" autocomplete="tel"
+        placeholder="Mobile number" maxlength="20" required>
+      <textarea id="customer-address" autocomplete="street-address"
+        placeholder="Full delivery address and PIN code"
+        maxlength="500" required></textarea>
+      <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
+      <button class="gold-button full-button" type="submit">
+        PLACE ORDER
+      </button>
+      <button class="full-button" type="button"
+        style="background:white;border:1px solid #ddd"
+        onclick="renderCart()">BACK TO BAG</button>
+    </form>`;
+}
+
+async function submitOrder(event) {
+  event.preventDefault();
+
+  const button = event.submitter;
+  if (button) {
+    button.disabled = true;
+    button.textContent = "SAVING ORDER…";
+  }
+
+  const name = document.getElementById("customer-name").value.trim();
+  const phone = document.getElementById("customer-phone").value.trim();
+  const address = document.getElementById("customer-address").value.trim();
+
+  try {
+    if (!cart.length) throw new Error("Your bag is empty.");
+
+    const orderItems = cart.map(item => ({
+      id: item.id,
+      qty: item.qty
+    }));
+
+    // The database validates the products and calculates the actual total.
+    const { data, error } = await db.rpc("place_order", {
+      p_customer_name: name,
+      p_customer_phone: phone,
+      p_customer_address: address,
+      p_items: orderItems
+    });
+
+    if (error) throw error;
+
+    const order = data;
+    const savedItems = cart.map(item => {
+      const p = PRODUCTS.find(product => product.id === item.id);
+      return p ? `${p.name} × ${item.qty} — ${money(p.price * item.qty)}` : "";
+    }).filter(Boolean);
+
+    const whatsAppMessage = [
+      "Hello Velzo Collections, I placed an order.",
+      `Order ID: ${order.order_id}`,
+      "",
+      ...savedItems,
+      "",
+      `Total: ${money(order.total)}`,
+      `Name: ${name}`,
+      `Phone: ${phone}`,
+      `Address: ${address}`,
+      "",
+      "Please confirm my order."
+    ].join("\n");
+
+    const validWhatsApp = /^\d{10,15}$/.test(WHATSAPP_NUMBER);
+    const waUrl = validWhatsApp
+      ? "https://wa.me/" + WHATSAPP_NUMBER +
+        "?text=" + encodeURIComponent(whatsAppMessage)
+      : "";
+
+    cart = [];
+    saveCart();
+
+    document.getElementById("cart-content").innerHTML = `
+      <h2 id="cart-title">Order placed successfully</h2>
+      <p>Your order has been saved.</p>
+      <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
+      <p><strong>Total:</strong> ${money(order.total)}</p>
+      <p class="subtext">
+        ${validWhatsApp
+          ? "You can also notify the store through WhatsApp."
+          : "Your order is saved. The store's WhatsApp number has not been configured."}
+      </p>
+      ${validWhatsApp ? `
+        <a class="black-button full-button"
+          style="display:block;text-align:center;text-decoration:none"
+          href="${escapeHTML(waUrl)}"
+          target="_blank" rel="noopener noreferrer">
+          NOTIFY STORE ON WHATSAPP
+        </a>` : ""}
+      <button class="full-button" style="margin-top:12px"
+        onclick="closeCart()">CONTINUE SHOPPING</button>`;
+
+    // Refresh prices and catalogue in case stock or products changed.
+    await loadProducts();
+
+  } catch (error) {
+    console.error("Order placement error:", error);
+    alert("Could not place the order: " + (error.message || "Please try again."));
+    if (button) {
+      button.disabled = false;
+      button.textContent = "PLACE ORDER";
+    }
+  }
+}
+
+document.getElementById("search").addEventListener("input", renderProducts);
+document.getElementById("category").addEventListener("change", renderProducts);
+document.getElementById("sort").addEventListener("change", renderProducts);
+document.getElementById("year").textContent = new Date().getFullYear();
+
+saveCart();
+loadProducts();
+</script>
 </body>
 </html>
