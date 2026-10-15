@@ -1291,8 +1291,120 @@ h1 {
   }
 }
 
+/* AnimatedContent-style scroll reveals */
+body.ac-enabled [data-ac-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0) scale(.985);
+  filter: blur(5px);
+  transition:
+    opacity .8s cubic-bezier(.2,.7,.2,1),
+    transform .8s cubic-bezier(.2,.7,.2,1),
+    filter .8s ease;
+  transition-delay: var(--ac-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+body.ac-enabled [data-ac-reveal].ac-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+/* Keep text readable and avoid horizontal overflow */
+.product-grid {
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ac-enabled [data-ac-reveal],
+  body.ac-enabled [data-ac-reveal].ac-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
   </style>
 </head>
+
+<script>
+(() => {
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    return;
+  }
+
+  const selector = [
+    ".section-heading",
+    ".product",
+    ".benefit",
+    ".about"
+  ].join(",");
+
+  document.body.classList.add("ac-enabled");
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+
+      const element = entry.target;
+      element.classList.add("ac-visible");
+      revealObserver.unobserve(element);
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: "0px 0px -35px 0px"
+  });
+
+  function prepareElement(element, index) {
+    if (element.dataset.acReveal) return;
+
+    element.dataset.acReveal = "true";
+
+    if (element.classList.contains("product")) {
+      element.style.setProperty(
+        "--ac-delay",
+        `${Math.min(index % 4, 3) * 90}ms`
+      );
+    }
+
+    revealObserver.observe(element);
+  }
+
+  function collectElements(root = document) {
+    if (root instanceof Element && root.matches(selector)) {
+      prepareElement(root, 0);
+    }
+
+    if (root.querySelectorAll) {
+      root.querySelectorAll(selector).forEach((element, index) => {
+        prepareElement(element, index);
+      });
+    }
+  }
+
+  collectElements();
+
+  // Product cards are recreated when a shopper filters or searches.
+  // This observes new cards without changing the store's product logic.
+  const productGrid = document.getElementById("products");
+
+  if (productGrid) {
+    const gridObserver = new MutationObserver(() => {
+      collectElements(productGrid);
+    });
+
+    gridObserver.observe(productGrid, {
+      childList: true
+    });
+  }
+})();
+</script>
 
 <body>
   <div class="announcement">THOUGHTFULLY SELECTED · MADE FOR EVERYDAY STYLE</div>
