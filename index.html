@@ -834,6 +834,463 @@ h1 {
     animation-duration: 0.01ms !important;
   }
 }
+    
+/* =============================================
+   VELZO 2.0 — ANIMATED PREMIUM HOMEPAGE
+   Visual changes only. Keep existing JavaScript.
+   ============================================= */
+
+:root {
+  --gold: #0071e3;
+  --black: #1d1d1f;
+  --cream: #f5f5f7;
+  --muted: #6e6e73;
+  --line: #e5e5e7;
+}
+
+/* Announcement bar */
+.announcement {
+  background: #111 !important;
+  color: #fff !important;
+  border: 0;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 12px;
+  animation: announcementIn .7s ease both;
+}
+
+/* Floating glass-style navigation */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 17px 6%;
+  background: rgba(255,255,255,.84);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.05);
+}
+
+.logo {
+  font-size: 25px;
+  letter-spacing: 2.5px;
+  transition: letter-spacing .3s ease;
+}
+
+.logo:hover {
+  letter-spacing: 3.5px;
+}
+
+.nav a {
+  position: relative;
+}
+
+.nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width .25s ease;
+}
+
+.nav a:hover::after {
+  width: 100%;
+}
+
+/* Cinematic animated hero */
+.hero {
+  position: relative;
+  min-height: min(76vh, 680px);
+  overflow: hidden;
+  isolation: isolate;
+  background-image:
+    linear-gradient(
+      105deg,
+      rgba(8,10,15,.86) 0%,
+      rgba(8,10,15,.54) 48%,
+      rgba(8,10,15,.12) 100%
+    ),
+    url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=85");
+  background-position: center, 48% center;
+  background-size: cover, cover;
+  animation: heroDrift 22s ease-in-out infinite alternate;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    0deg,
+    rgba(0,0,0,.18),
+    transparent 50%
+  );
+}
+
+.hero-content {
+  max-width: 650px;
+}
+
+.hero-content .eyebrow {
+  animation: revealUp .7s .1s both;
+}
+
+.hero-content h1 {
+  font-family: inherit;
+  font-size: clamp(48px, 7.4vw, 86px);
+  font-weight: 650;
+  letter-spacing: -.065em;
+  line-height: .99;
+  text-wrap: balance;
+  animation: revealUp .8s .25s both;
+}
+
+.hero-content p {
+  max-width: 440px;
+  font-size: 16px;
+  line-height: 1.85;
+  animation: revealUp .8s .4s both;
+}
+
+.hero-content .gold-button {
+  animation: revealUp .8s .55s both, buttonBreath 4s 2s infinite;
+}
+
+/* Buttons with a moving light sweep */
+.gold-button,
+.cart-button,
+.add-button {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease;
+}
+
+.gold-button::after,
+.cart-button::after,
+.add-button::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: -100%;
+  width: 55%;
+  transform: skewX(-20deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.36),
+    transparent
+  );
+  transition: left .6s ease;
+  pointer-events: none;
+}
+
+.gold-button:hover::after,
+.cart-button:hover::after,
+.add-button:hover::after {
+  left: 145%;
+}
+
+.gold-button:hover,
+.cart-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 25px rgba(0,113,227,.24);
+}
+
+/* Store section and typography */
+.section {
+  padding-top: 85px;
+  padding-bottom: 85px;
+}
+
+.section-heading h2,
+.about h2 {
+  font-size: clamp(34px, 4.4vw, 49px);
+  font-weight: 650;
+  letter-spacing: -.055em;
+}
+
+.section-heading > div {
+  animation: revealUp .7s ease both;
+}
+
+.tools input,
+.tools select {
+  border-radius: 999px;
+  padding: 14px 18px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.tools input:focus,
+.tools select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(0,113,227,.09);
+  outline: none;
+}
+
+/* Raised product cards with staggered entrances */
+.product-grid {
+  gap: 30px 22px;
+}
+
+.product {
+  position: relative;
+  border: 1px solid rgba(0,0,0,.055);
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0,0,0,.025);
+  animation: cardEnter .7s cubic-bezier(.2,.75,.25,1) both;
+  transition:
+    transform .35s cubic-bezier(.2,.75,.25,1),
+    box-shadow .35s ease,
+    border-color .35s ease;
+}
+
+.product:nth-child(4n + 1) { animation-delay: .04s; }
+.product:nth-child(4n + 2) { animation-delay: .12s; }
+.product:nth-child(4n + 3) { animation-delay: .20s; }
+.product:nth-child(4n + 4) { animation-delay: .28s; }
+
+.product:hover {
+  transform: translateY(-9px);
+  border-color: rgba(0,113,227,.2);
+  box-shadow: 0 20px 45px rgba(0,0,0,.09);
+}
+
+.product-image-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  background: #f5f5f7;
+}
+
+.product-image {
+  display: block;
+  transition:
+    transform .7s cubic-bezier(.2,.7,.2,1),
+    filter .5s ease;
+}
+
+.product:hover .product-image {
+  transform: scale(1.075);
+  filter: saturate(1.06);
+}
+
+.product-tag {
+  top: 13px;
+  left: 13px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(10px);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.product-details {
+  padding: 18px 16px 19px;
+}
+
+.product-category {
+  color: #727277;
+  font-size: 10px;
+  letter-spacing: 1.3px;
+}
+
+.product h3 {
+  font-size: 15px;
+  letter-spacing: -.35px;
+  font-weight: 600;
+}
+
+.product-price {
+  font-size: 18px;
+  letter-spacing: -.5px;
+}
+
+.add-button {
+  margin-top: 16px;
+  padding: 13px;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 650;
+}
+
+.add-button:hover {
+  background: #111;
+  border-color: #111;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Gentle movement for the benefit tiles */
+.benefits {
+  padding-top: 55px;
+  padding-bottom: 55px;
+  background: linear-gradient(135deg, #f8f8fa, #eeeeF2);
+}
+
+.benefit {
+  padding: 20px 15px;
+  border-radius: 16px;
+  transition: transform .3s ease, background .3s ease;
+}
+
+.benefit:hover {
+  transform: translateY(-5px);
+  background: rgba(255,255,255,.85);
+}
+
+.benefit strong {
+  letter-spacing: -.3px;
+}
+
+/* Animated entrance for brand story */
+.about {
+  padding: 25px 0;
+  animation: revealUp .8s ease both;
+}
+
+.about h2 {
+  line-height: 1.12;
+}
+
+/* Smoother cart and checkout */
+.overlay {
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.modal {
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 23px;
+  animation: modalEnter .32s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.modal-close {
+  transition: transform .2s ease, background .2s ease;
+}
+
+.modal-close:hover {
+  transform: rotate(90deg);
+}
+
+.toast {
+  animation: toastEnter .3s ease both;
+}
+
+/* Motion system */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(24px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes heroDrift {
+  from { background-position: center, 45% center; }
+  to { background-position: center, 56% center; }
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toastEnter {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes announcementIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes buttonBreath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,113,227,0); }
+  50% { box-shadow: 0 0 0 5px rgba(0,113,227,.10); }
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .product-grid {
+    gap: 22px 14px;
+  }
+
+  .product-details {
+    padding: 14px 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    min-height: 440px;
+    background-position: center, center;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(43px, 11vw, 58px);
+  }
+
+  .hero-content p {
+    font-size: 14px;
+  }
+
+  .section {
+    padding-top: 55px;
+    padding-bottom: 55px;
+  }
+
+  .product-grid {
+    gap: 20px 11px;
+  }
+
+  .product {
+    border-radius: 12px;
+  }
+
+  .product-details {
+    padding: 13px 10px;
+  }
+
+  .product h3 {
+    font-size: 14px;
+  }
+
+  .product-price {
+    font-size: 16px;
+  }
+
+  .product:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* Respect accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
   </style>
 </head>
 
