@@ -1593,18 +1593,6 @@ body { background:#e9e7e2; }
 .product-image-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .product-image-thumb:focus-visible{outline:2px solid #c5a16b;outline-offset:2px}
 </style>
-
-<style id="velzo-account-and-delivery">
-.account-nav-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 15px;border:1px solid #d2d2d7;border-radius:999px;background:#fff;color:#151515;font-size:12px;font-weight:700;cursor:pointer}
-.account-nav-button:hover{background:#f5f5f7}
-.account-modal .account-note{padding:10px 12px;background:#f5f5f7;border-radius:8px;font-size:13px;line-height:1.5;color:#202124}
-.account-modal .account-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
-.account-modal .account-links button{border:0;background:transparent;text-decoration:underline;color:#005fc5;padding:5px 0;cursor:pointer}
-.account-modal .checkout-fields input{color:#151515;background:#fff}
-#cart-content .location-hint{font-size:12px;color:#555;line-height:1.5;margin:0}
-@media(max-width:620px){.account-nav-button{min-height:42px;padding:0 10px;font-size:11px}.header .nav{gap:7px}}
-</style>
-
 </head>
 
 <script>
@@ -1692,7 +1680,6 @@ body { background:#e9e7e2; }
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
       <a class="optional-link" href="#about">Our story</a>
-      <button class="account-nav-button" onclick="openAccount()" aria-label="Open account">Account</button>
       <button class="order-nav-button" onclick="openCart()" aria-label="Open order options">Order</button>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
@@ -1778,12 +1765,6 @@ body { background:#e9e7e2; }
       <div id="cart-content"></div>
     </section>
   </div>
-  <div class="overlay" id="account-overlay" onclick="if(event.target===this) closeAccount()">
-    <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
-      <button class="modal-close" onclick="closeAccount()" aria-label="Close account">×</button>
-      <div id="account-content"></div>
-    </section>
-  </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1804,6 +1785,7 @@ const db = window.supabase.createClient(
 let PRODUCTS = [];
 let cart = readCart();
 const selectedSizes = {};
+const selectedColors = {};
 
 function readCart() {
   try {
@@ -1855,7 +1837,7 @@ async function loadProducts() {
 
   const { data, error } = await db
     .from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,size_chart_url,meesho_url,out_of_stock")
     .eq("active", true)
     .order("created_at", { ascending: false });
 
@@ -1945,6 +1927,13 @@ function renderProducts() {
         <div class="product-price">${money(p.price)}</div>
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
+        ${Array.isArray(p.colors) && p.colors.length ? `
+          <label class="subtext" for="color-${escapeHTML(p.id)}">Select colour</label>
+          <select id="color-${escapeHTML(p.id)}" class="product-color-select" onchange="selectProductColor('${escapeHTML(p.id)}',this.value)" ${p.out_of_stock ? 'disabled' : ''}>
+            <option value="">Choose colour</option>
+            ${p.colors.map(color => `<option value="${escapeHTML(color)}" ${selectedColors[p.id] === color ? 'selected' : ''}>${escapeHTML(color)}</option>`).join('')}
+          </select>
+        ` : ''}
         ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `
           <label class="subtext" for="size-${escapeHTML(p.id)}">Select size</label>
           <div class="size-choice-buttons" aria-label="Choose size">${p.sizes.map(size => `<button type="button" class="size-choice ${selectedSizes[p.id] === size ? 'selected' : ''}" onclick="selectProductSize('${escapeHTML(p.id)}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock ? 'disabled' : ''}>${escapeHTML(size)}</button>`).join('')}</div>
@@ -1976,6 +1965,7 @@ function showProductDetails(id) {
         <h3>${money(p.price)}</h3>
         ${p.out_of_stock ? '<p><strong>Currently out of stock</strong></p>' : '<p class="detail-meta">Available to order</p>'}
         <p>${escapeHTML(p.description || 'Contact us for more product information.')}</p>
+        ${Array.isArray(p.colors) && p.colors.length ? `<label>Choose colour</label><select class="product-color-select" onchange="selectProductColor('${safeId}',this.value)"><option value="">Choose colour</option>${p.colors.map(color=>`<option value="${escapeHTML(color)}" ${selectedColors[p.id]===color?'selected':''}>${escapeHTML(color)}</option>`).join('')}</select>` : ''}
         ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
         <button class="add-button" onclick="addToCart('${safeId}');if(!${Boolean(p.out_of_stock)})closeProductDetails()" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
@@ -2004,30 +1994,33 @@ function selectProductSize(id, size) {
   selectedSizes[id] = size;
 }
 
+function selectProductColor(id, color) {
+  selectedColors[id] = color;
+  document.querySelectorAll(`[id="color-${CSS.escape(String(id))}"]`).forEach(el => { if (el.value !== color) el.value = color; });
+}
+
+function cartKey(item) {
+  return `${item.id}::${item.size || ""}::${item.color || ""}`;
+}
+
 function addToCart(id) {
   const product = PRODUCTS.find(p => p.id === id);
   if (!product) return;
   if (product.out_of_stock) return showToast("This product is currently out of stock.");
 
   const size = product.has_sizes ? (selectedSizes[id] || "") : "";
+  const color = Array.isArray(product.colors) && product.colors.length ? (selectedColors[id] || "") : "";
   if (product.has_sizes && !size) return showToast("Please select a size first.");
+  if (Array.isArray(product.colors) && product.colors.length && !color) return showToast("Please select a colour first.");
 
-  // This simple cart keeps one size per product at a time.
-  const existing = cart.find(i => i.id === id);
+  const variant = { id, size, color };
+  const existing = cart.find(i => cartKey(i) === cartKey(variant));
   if (existing) {
-    if ((existing.size || "") !== size) {
-      existing.size = size;
-      existing.qty = 1;
-      showToast("Size updated in your bag.");
-    } else if (existing.qty >= 20) {
-      return showToast("Maximum quantity reached.");
-    } else {
-      existing.qty++;
-    }
+    if (existing.qty >= 20) return showToast("Maximum quantity reached.");
+    existing.qty++;
   } else {
-    cart.push({ id, qty: 1, size });
+    cart.push({ id, qty: 1, size, color });
   }
-
   saveCart();
   showToast("Added to your bag.");
 }
@@ -2048,14 +2041,14 @@ function closeCart() {
   document.getElementById("cart-overlay").classList.remove("open");
 }
 
-function changeQuantity(id, change) {
-  const item = cart.find(i => i.id === id);
+function changeQuantity(key, change) {
+  const item = cart.find(i => cartKey(i) === key);
   if (!item) return;
 
   item.qty += change;
 
   if (item.qty <= 0) {
-    cart = cart.filter(i => i.id !== id);
+    cart = cart.filter(i => cartKey(i) !== key);
   } else if (item.qty > 20) {
     item.qty = 20;
     showToast("Maximum quantity is 20 per product.");
@@ -2065,8 +2058,8 @@ function changeQuantity(id, change) {
   renderCart();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+function removeFromCart(key) {
+  cart = cart.filter(i => cartKey(i) !== key);
   saveCart();
   renderCart();
 }
@@ -2090,23 +2083,25 @@ function renderCart() {
       const p = PRODUCTS.find(product => product.id === item.id);
       if (!p) return "";
 
+      const key = escapeHTML(cartKey(item));
       return `
         <div class="cart-line">
           <img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}">
           <div>
             <strong>${escapeHTML(p.name)}</strong>
+            ${item.color ? `<p>Colour: ${escapeHTML(item.color)}</p>` : ''}
             ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
             <p>${money(p.price)} each</p>
             <button
               style="border:0;background:none;padding:5px 0;text-decoration:underline"
-              onclick="removeFromCart('${escapeHTML(p.id)}')">
+              onclick="removeFromCart('${key}')">
               Remove
             </button>
           </div>
           <div class="quantity">
-            <button onclick="changeQuantity('${escapeHTML(p.id)}',-1)">−</button>
+            <button onclick="changeQuantity('${key}',-1)">−</button>
             <span>${item.qty}</span>
-            <button onclick="changeQuantity('${escapeHTML(p.id)}',1)">+</button>
+            <button onclick="changeQuantity('${key}',1)">+</button>
           </div>
         </div>`;
     }).join("")}
@@ -2127,20 +2122,16 @@ function showCheckout() {
     <p class="subtext">Your order will be saved before you notify the store.</p>
     <form class="checkout-fields" onsubmit="submitOrder(event)">
       <input id="customer-name" autocomplete="name"
-        placeholder="Customer name" maxlength="100" required>
-      <input id="customer-email" type="email" autocomplete="email"
-        placeholder="Email ID" maxlength="254" required>
+        placeholder="Full name" maxlength="100" required>
       <input id="customer-phone" type="tel" autocomplete="tel"
         placeholder="Mobile number" maxlength="20" required>
       <button class="location-button" type="button" onclick="useCurrentLocation()">
         ⌖ USE MY CURRENT LOCATION
       </button>
       <p class="location-hint">Use your current location to fill these delivery details, then check them before ordering.</p>
-      <input id="customer-street" autocomplete="address-line1" placeholder="Shipping address line 1 — house / street" maxlength="250" required>
-      <input id="customer-street2" autocomplete="address-line2" placeholder="Shipping address line 2 — area / landmark" maxlength="250">
-      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN / ZIP code" pattern="[0-9]{6}" maxlength="6" required>
-      <input id="customer-city" autocomplete="address-level2" placeholder="City name" maxlength="100" required>
-      <input id="customer-state" autocomplete="address-level1" placeholder="State" maxlength="100" required>
+      <input id="customer-street" autocomplete="street-address" placeholder="Street line / house / area" maxlength="250" required>
+      <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
+      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2156,8 +2147,6 @@ async function useCurrentLocation() {
   const streetField = document.getElementById("customer-street");
   const cityField = document.getElementById("customer-city");
   const pincodeField = document.getElementById("customer-pincode");
-  const street2Field = document.getElementById("customer-street2");
-  const stateField = document.getElementById("customer-state");
   if (!navigator.geolocation) {
     showToast("Location is not supported by this browser. Enter your address manually.");
     return;
@@ -2179,14 +2168,10 @@ async function useCurrentLocation() {
       const a = data.address || {};
       const street = [a.house_number, a.road, a.neighbourhood || a.suburb || a.residential].filter(Boolean).join(", ");
       const city = a.city || a.town || a.village || a.municipality || a.county || "";
-      const area = a.neighbourhood || a.suburb || a.residential || "";
-      const state = a.state || "";
       const pincode = a.postcode || "";
-      if (!street && !city && !pincode && !state) throw new Error("No address details were found.");
-      if (street) streetField.value = [a.house_number, a.road].filter(Boolean).join(", ") || street;
-      if (area) street2Field.value = area;
+      if (!street && !city && !pincode) throw new Error("No address details were found.");
+      if (street) streetField.value = street;
       if (city) cityField.value = city;
-      if (state) stateField.value = state;
       if (pincode) pincodeField.value = pincode.replace(/\D/g, "").slice(0, 6);
       showToast("Address filled. Please check it before ordering.");
     } catch (error) {
@@ -2214,14 +2199,11 @@ async function submitOrder(event) {
   }
 
   const name = document.getElementById("customer-name").value.trim();
-  const email = document.getElementById("customer-email").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const street = document.getElementById("customer-street").value.trim();
-  const street2 = document.getElementById("customer-street2").value.trim();
   const city = document.getElementById("customer-city").value.trim();
-  const state = document.getElementById("customer-state").value.trim();
   const pincode = document.getElementById("customer-pincode").value.trim();
-  const address = `Email: ${email}; Address line 1: ${street}; Address line 2: ${street2 || "N/A"}; City: ${city}; State: ${state}; PIN code: ${pincode}`;
+  const address = `Street line: ${street}, City: ${city}, PIN code: ${pincode}`;
 
   try {
     if (!cart.length) throw new Error("Your bag is empty.");
@@ -2229,7 +2211,8 @@ async function submitOrder(event) {
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
-      ...(item.size ? { size: item.size } : {})
+      ...(item.size ? { size: item.size } : {}),
+      ...(item.color ? { color: item.color } : {})
     }));
 
     // The database validates the products and calculates the actual total.
@@ -2245,7 +2228,7 @@ async function submitOrder(event) {
     const order = data;
     const savedItems = cart.map(item => {
       const p = PRODUCTS.find(product => product.id === item.id);
-      return p ? `${p.name}${item.size ? ` (Size: ${item.size})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
+      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
     }).filter(Boolean);
 
     const whatsAppMessage = [
@@ -2256,7 +2239,6 @@ async function submitOrder(event) {
       "",
       `Total: ${money(order.total)}`,
       `Name: ${name}`,
-      `Email: ${email}`,
       `Phone: ${phone}`,
       `Address: ${address}`,
       "",
@@ -2303,126 +2285,6 @@ async function submitOrder(event) {
       button.textContent = "PLACE ORDER";
     }
   }
-}
-
-
-// Customer account: Supabase Authentication (optional for browsing/checkout).
-let accountView = "login";
-let recoveryMode = false;
-
-function openAccount() {
-  document.getElementById("account-overlay").classList.add("open");
-  renderAccount();
-}
-function closeAccount() {
-  document.getElementById("account-overlay").classList.remove("open");
-}
-function renderAccount(note = "") {
-  const target = document.getElementById("account-content");
-  const title = accountView === "register" ? "Create your account" :
-    accountView === "forgot" ? "Reset your password" :
-    accountView === "update" ? "Choose a new password" : "Welcome back";
-  let fields = "";
-  if (accountView === "register") {
-    fields += '<input id="account-name" type="text" autocomplete="name" placeholder="Full name" maxlength="100" required>';
-  }
-  fields += '<input id="account-email" type="email" autocomplete="email" placeholder="Email address" maxlength="254" required>';
-  if (accountView !== "forgot") {
-    fields += '<input id="account-password" type="password" autocomplete="' +
-      (accountView === "register" ? "new-password" : "current-password") +
-      '" placeholder="' + (accountView === "update" ? "New password (at least 8 characters)" : "Password") +
-      '" minlength="8" required>';
-  }
-  if (accountView === "register" || accountView === "update") {
-    fields += '<input id="account-password-confirm" type="password" autocomplete="new-password" placeholder="Confirm password" minlength="8" required>';
-  }
-  const submitLabel = accountView === "register" ? "CREATE ACCOUNT" :
-    accountView === "forgot" ? "SEND RESET LINK" :
-    accountView === "update" ? "UPDATE PASSWORD" : "SIGN IN";
-  target.innerHTML = `
-    <h2 id="account-title">${title}</h2>
-    <p class="subtext">Use your Velzo account to make future orders easier.</p>
-    ${note ? `<p class="account-note" role="status">${escapeHTML(note)}</p>` : ""}
-    <form id="account-form" class="checkout-fields">${fields}
-      <button class="black-button full-button" type="submit">${submitLabel}</button>
-    </form>
-    <div class="account-links">
-      ${accountView === "login" ? '<button type="button" data-account-view="register">Create account</button><button type="button" data-account-view="forgot">Forgot password?</button>' : ""}
-      ${accountView === "register" ? '<button type="button" data-account-view="login">Already registered? Sign in</button>' : ""}
-      ${accountView === "forgot" ? '<button type="button" data-account-view="login">Back to sign in</button>' : ""}
-    </div>`;
-  document.getElementById("account-form").addEventListener("submit", handleAccountSubmit);
-  target.querySelectorAll("[data-account-view]").forEach(button => {
-    button.addEventListener("click", () => setAccountView(button.dataset.accountView));
-  });
-}
-function setAccountView(view, note = "") {
-  accountView = view;
-  renderAccount(note);
-}
-async function handleAccountSubmit(event) {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const submit = form.querySelector('button[type="submit"]');
-  submit.disabled = true;
-  const email = document.getElementById("account-email")?.value.trim() || "";
-  const password = document.getElementById("account-password")?.value || "";
-  try {
-    if (accountView === "register") {
-      const name = document.getElementById("account-name").value.trim();
-      const confirmPassword = document.getElementById("account-password-confirm").value;
-      if (password !== confirmPassword) throw new Error("Passwords do not match.");
-      const { data, error } = await db.auth.signUp({
-        email, password,
-        options: { data: { full_name: name }, emailRedirectTo: window.location.origin + window.location.pathname }
-      });
-      if (error) throw error;
-      if (data.session) {
-        setAccountView("login", "Account created successfully. You can now sign in.");
-      } else {
-        setAccountView("login", "Check your email to confirm your account, then sign in.");
-      }
-    } else if (accountView === "login") {
-      const { error } = await db.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      const { data } = await db.auth.getUser();
-      const name = data?.user?.user_metadata?.full_name;
-      if (name && document.getElementById("customer-name")) document.getElementById("customer-name").value = name;
-      if (email && document.getElementById("customer-email")) document.getElementById("customer-email").value = email;
-      setAccountView("login", "You are signed in.");
-    } else if (accountView === "forgot") {
-      const { error } = await db.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname
-      });
-      if (error) throw error;
-      setAccountView("login", "If an account exists for that email, a password reset link has been sent. Check your inbox and spam folder.");
-    } else if (accountView === "update") {
-      const confirmPassword = document.getElementById("account-password-confirm").value;
-      if (password !== confirmPassword) throw new Error("Passwords do not match.");
-      const { error } = await db.auth.updateUser({ password });
-      if (error) throw error;
-      recoveryMode = false;
-      setAccountView("login", "Password updated. Please sign in with your new password.");
-    }
-  } catch (error) {
-    console.error("Account action error:", error);
-    renderAccount(error.message || "Something went wrong. Please try again.");
-  } finally {
-    const activeSubmit = document.querySelector("#account-form button[type='submit']");
-    if (activeSubmit) activeSubmit.disabled = false;
-  }
-}
-db.auth.onAuthStateChange((event) => {
-  if (event === "PASSWORD_RECOVERY") {
-    recoveryMode = true;
-    accountView = "update";
-    openAccount();
-  }
-});
-if (window.location.hash.includes("type=recovery")) {
-  recoveryMode = true;
-  accountView = "update";
-  openAccount();
 }
 
 document.getElementById("search").addEventListener("input", renderProducts);
@@ -2542,6 +2404,10 @@ body { background:#fff; color:#151515; }
 #cart-content .checkout-fields button[type="button"] { display:block; width:100%; min-height:48px; }
 </style>
 
+<style>
+.product-color-select{display:block;width:100%;margin:9px 0 5px;padding:10px 12px;border:1px solid #c9c9c9;border-radius:8px;background:#fff;color:#151515;font:inherit;min-height:42px}
+.product-details-dialog .product-color-select{margin:10px 0 14px}
+</style>
 </body>
 </html>
 
