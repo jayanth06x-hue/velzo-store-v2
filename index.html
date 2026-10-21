@@ -1673,7 +1673,7 @@ body { background:#e9e7e2; }
 </script>
 
 <body>
-  <div class="announcement">VELZO COLLECTIONS · THE MODERN GENTLEMAN</div>
+  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE.</div>
 
   <header class="header">
     <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
@@ -1689,11 +1689,11 @@ body { background:#e9e7e2; }
   <main>
     <section class="hero">
       <div class="hero-content">
-        <div class="eyebrow">CITY STYLE · EST. VELZO</div>
-        <h1>Built for<br>the city.</h1>
-        <p>Sharp layers. Clean silhouettes. Everyday essentials for men who move with purpose — inspired by the grit and confidence of the city.</p>
+        <div class="eyebrow">NEW DROP · GRAPHIC TEES · PRINTED SHIRTS</div>
+        <h1>Wear<br>your vibe.</h1>
+        <p>Statement prints. Oversized fits. Everyday streetwear made for your own rules. Find your next favourite look at Velzo.</p>
         <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-          SHOP MENSWEAR
+          SHOP THE DROP
         </button>
       </div>
     </section>
@@ -1701,14 +1701,14 @@ body { background:#e9e7e2; }
     <section class="section" id="shop">
       <div class="section-heading">
         <div>
-          <h2>The modern gentleman’s edit</h2>
-          <p>Menswear and everyday accessories, selected for a sharper everyday look.</p>
+          <h2>Made for the main character</h2>
+          <p>Graphic tees, printed shirts and street-ready essentials. Find your fit.</p>
         </div>
         <p id="result-count" aria-live="polite"></p>
       </div>
 
       <div class="tools">
-        <input id="search" type="search" placeholder="Search products…" aria-label="Search products">
+        <input id="search" type="search" placeholder="Search tees, printed shirts, streetwear…" aria-label="Search products">
         <select id="category" aria-label="Filter by category">
           <option value="">All categories</option>
         </select>
@@ -1750,11 +1750,11 @@ body { background:#e9e7e2; }
   <footer class="footer">
     <div>
       <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-      <p>Modern menswear and urban essentials.</p>
+      <p>Graphic streetwear, printed shirts and everyday fits.</p>
     </div>
     <div>
       <small>© <span id="year"></span> Velzo Collections</small>
-      <p>City confidence. Everyday function. Velzo Collections.</p>
+      <p>Own your look. Move your way. Velzo Collections.</p>
     </div>
   </footer>
 
@@ -2110,8 +2110,12 @@ function showCheckout() {
         placeholder="Full name" maxlength="100" required>
       <input id="customer-phone" type="tel" autocomplete="tel"
         placeholder="Mobile number" maxlength="20" required>
+      <button class="location-button" type="button" onclick="useCurrentLocation()">
+        ⌖ USE MY CURRENT LOCATION
+      </button>
+      <p class="location-hint">Allow location access to fill your street, area, city and PIN code. You can edit the address before ordering.</p>
       <textarea id="customer-address" autocomplete="street-address"
-        placeholder="Full delivery address and PIN code"
+        placeholder="House / street, area, city, state and PIN code"
         maxlength="500" required></textarea>
       <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
       <button class="gold-button full-button" type="submit">
@@ -2121,6 +2125,56 @@ function showCheckout() {
         style="background:white;border:1px solid #ddd"
         onclick="renderCart()">BACK TO BAG</button>
     </form>`;
+}
+
+async function useCurrentLocation() {
+  const button = document.querySelector(".location-button");
+  const addressField = document.getElementById("customer-address");
+  if (!navigator.geolocation) {
+    showToast("Location is not supported by this browser. Enter your address manually.");
+    return;
+  }
+  if (!window.isSecureContext) {
+    showToast("Location access needs your secure HTTPS website.");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "FINDING YOUR ADDRESS…";
+  navigator.geolocation.getCurrentPosition(async position => {
+    try {
+      const { latitude, longitude } = position.coords;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&addressdetails=1`
+      );
+      if (!response.ok) throw new Error("Address lookup failed.");
+      const data = await response.json();
+      const a = data.address || {};
+      const parts = [
+        [a.house_number, a.road].filter(Boolean).join(" "),
+        a.neighbourhood || a.suburb || a.residential,
+        a.village || a.town || a.city || a.municipality,
+        a.county,
+        a.state,
+        a.postcode,
+        a.country
+      ].filter(Boolean);
+      if (!parts.length) throw new Error("No address details were found.");
+      addressField.value = [...new Set(parts)].join(", ");
+      addressField.dispatchEvent(new Event("input", { bubbles: true }));
+      showToast("Address filled. Please check it before ordering.");
+    } catch (error) {
+      showToast("Could not find the full address. Please enter it manually.");
+    } finally {
+      button.disabled = false;
+      button.textContent = "⌖ USE MY CURRENT LOCATION";
+    }
+  }, error => {
+    button.disabled = false;
+    button.textContent = "⌖ USE MY CURRENT LOCATION";
+    showToast(error.code === 1
+      ? "Location permission denied. Enter your address manually."
+      : "Could not get your location. Please enter your address manually.");
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
 }
 
 async function submitOrder(event) {
@@ -2240,5 +2294,109 @@ loadProducts();
 html{overflow-x:hidden;scroll-behavior:smooth}body{min-width:0;overflow-x:hidden}img,video{max-width:100%}button,a,input,select,textarea{touch-action:manipulation}button,select,input{min-height:42px}@media(max-width:560px){.header{flex-wrap:wrap;align-items:center;padding:12px 4%;gap:10px}.nav{flex:1;flex-wrap:wrap;justify-content:flex-end;gap:8px}.nav a{font-size:12px}.hero{min-height:430px}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 10px}.product-image{width:100%;object-fit:cover}.tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.tools input,.tools select{width:100%;min-width:0;font-size:14px}.cart-panel,.cart-modal,.checkout-panel{width:100%;max-width:100vw}.product-description{font-size:12px;line-height:1.45}.add-button{padding:11px 6px;font-size:11px}.footer{gap:12px}}
 </style>
 
+
+
+<style>
+/* VELZO STREET EDIT — final visual layer */
+:root { --black:#151515; --gold:#c8ff3d; --cream:#f3f3ef; --muted:#777; --line:#deded8; --white:#fff; }
+body { background:#fff; color:#151515; }
+.announcement { background:#c8ff3d !important; color:#151515 !important; font-weight:800; letter-spacing:1.8px; }
+.header { background:rgba(255,255,255,.92); border-bottom:1px solid #e7e7e2; }
+.logo { font-family:Arial,Helvetica,sans-serif; font-weight:900; letter-spacing:-1px; }
+.logo span { color:#79a900; }
+.logo small { font-weight:700; letter-spacing:3px; }
+.nav a { font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.7px; }
+.cart-button { border-radius:999px; background:#151515; border-color:#151515; font-weight:700; }
+.hero { min-height:clamp(460px,65vw,690px); background-image:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35) 58%,rgba(0,0,0,.08)),url("https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=2000&q=85"); }
+.hero-content .eyebrow { color:#c8ff3d; font-weight:800; }
+.hero-content h1 { font-family:Arial,Helvetica,sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-.075em; line-height:.9; }
+.gold-button { background:#c8ff3d; color:#151515; border-color:#c8ff3d; border-radius:999px; font-weight:900; letter-spacing:1px; }
+.gold-button:hover { background:#fff; border-color:#fff; color:#151515; }
+.section-heading h2,.about h2 { font-family:Arial,Helvetica,sans-serif; font-weight:900; letter-spacing:-.055em; }
+#shop.section { background:#f6f6f2; color:#151515; }
+#shop .section-heading h2 { color:#151515; }
+#shop .section-heading p { color:#666; }
+#shop .tools input,#shop .tools select { border-radius:999px; background:#fff; color:#151515; border-color:#d8d8d2; }
+#shop .product { background:#fff; border:1px solid #e5e5df; border-radius:14px; overflow:hidden; padding:0; }
+#shop .product-image-wrap { background:#ededeb; }
+#shop .product-tag { background:#c8ff3d; color:#151515; font-weight:900; border-radius:4px; }
+#shop .product-details { padding:16px 14px 18px; }
+#shop .product-category { color:#688d00; font-weight:900; }
+#shop .product h3 { font-weight:800; }
+#shop .add-button { border-radius:999px; background:#151515; color:#fff; border-color:#151515; font-weight:800; }
+#shop .add-button:hover { background:#c8ff3d; color:#151515; border-color:#c8ff3d; }
+.benefits { background:#c8ff3d; color:#151515; }
+.benefit { border-left-color:rgba(0,0,0,.2); }
+.benefit p { color:#333; }
+.footer { background:#151515; color:#fff; }
+.footer .logo { color:#fff; }
+.footer p,.footer small { color:#bcbcbc; }
+.location-button { width:100%; padding:13px 15px; border:1px solid #151515; border-radius:999px; background:#c8ff3d; color:#151515; font-weight:900; letter-spacing:.5px; cursor:pointer; }
+.location-button:hover { background:#b8ef2e; }
+.location-button:disabled { opacity:.65; cursor:wait; }
+.location-hint { margin:0; color:#666; font-size:12px; line-height:1.55; }
+@media(max-width:620px) {
+ .hero { min-height:460px; }
+ .hero-content h1 { font-size:clamp(48px,14vw,74px); }
+ #shop .product { border-radius:10px; }
+ #shop .product-details { padding:12px 9px 14px; }
+}
+@media(prefers-reduced-motion:reduce) { .hero { animation:none; } }
+</style>
+
+
+<style>
+/* Contrast fix: keep text readable on white/light surfaces */
+#cart-content, .cart-panel, .cart-modal, .checkout-panel,
+.product-details-dialog, .detail-layout, .detail-layout h2,
+.detail-layout h3, .detail-layout p, .detail-layout label,
+.cart-panel h2, .cart-modal h2, .checkout-panel h2,
+.cart-panel p, .cart-modal p, .checkout-panel p,
+.cart-panel label, .cart-modal label, .checkout-panel label,
+.cart-panel .subtext, .cart-modal .subtext, .checkout-panel .subtext {
+  color: #151515;
+}
+#cart-content input, #cart-content textarea, #cart-content select,
+.cart-panel input, .cart-panel textarea, .cart-panel select,
+.cart-modal input, .cart-modal textarea, .cart-modal select,
+.checkout-panel input, .checkout-panel textarea, .checkout-panel select {
+  color: #151515;
+  background-color: #fff;
+}
+#cart-content button[style*="background:white"],
+.cart-panel button[style*="background:white"],
+.cart-modal button[style*="background:white"] { color: #151515 !important; }
+.product-details-dialog .detail-meta { color: #555; }
+</style>
+
+
+<style id="velzo-product-text-contrast-fix">
+/* Make product names, descriptions and prices readable on white cards */
+#shop .product h3, .product h3 { color: #151515 !important; opacity: 1 !important; }
+#shop .product-description, .product-description { color: #55585b !important; opacity: 1 !important; }
+#shop .product-price, .product-price { color: #805800 !important; opacity: 1 !important; font-weight: 800 !important; }
+#shop .product-category, .product-category { color: #527500 !important; opacity: 1 !important; }
+</style>
+
 </body>
 </html>
+
+<style id="velzo-header-contrast-fix">
+  /* Improve readability of the logo and navigation on the white header */
+  .header .logo,
+  .header .logo a,
+  .header .logo small {
+    color: #111111 !important;
+    opacity: 1 !important;
+  }
+  .header .logo span {
+    color: #84b900 !important;
+  }
+  .header .nav a:not(.cart-button) {
+    color: #111111 !important;
+    opacity: 1 !important;
+  }
+  .header .nav a:not(.cart-button):hover {
+    color: #84b900 !important;
+  }
+</style>
