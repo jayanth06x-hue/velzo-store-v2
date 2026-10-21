@@ -1593,6 +1593,18 @@ body { background:#e9e7e2; }
 .product-image-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .product-image-thumb:focus-visible{outline:2px solid #c5a16b;outline-offset:2px}
 </style>
+
+<style id="velzo-account-and-delivery">
+.account-nav-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 15px;border:1px solid #d2d2d7;border-radius:999px;background:#fff;color:#151515;font-size:12px;font-weight:700;cursor:pointer}
+.account-nav-button:hover{background:#f5f5f7}
+.account-modal .account-note{padding:10px 12px;background:#f5f5f7;border-radius:8px;font-size:13px;line-height:1.5;color:#202124}
+.account-modal .account-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
+.account-modal .account-links button{border:0;background:transparent;text-decoration:underline;color:#005fc5;padding:5px 0;cursor:pointer}
+.account-modal .checkout-fields input{color:#151515;background:#fff}
+#cart-content .location-hint{font-size:12px;color:#555;line-height:1.5;margin:0}
+@media(max-width:620px){.account-nav-button{min-height:42px;padding:0 10px;font-size:11px}.header .nav{gap:7px}}
+</style>
+
 </head>
 
 <script>
@@ -1680,6 +1692,7 @@ body { background:#e9e7e2; }
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
       <a class="optional-link" href="#about">Our story</a>
+      <button class="account-nav-button" onclick="openAccount()" aria-label="Open account">Account</button>
       <button class="order-nav-button" onclick="openCart()" aria-label="Open order options">Order</button>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
@@ -1763,6 +1776,12 @@ body { background:#e9e7e2; }
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
       <button class="modal-close" onclick="closeCart()" aria-label="Close cart">×</button>
       <div id="cart-content"></div>
+    </section>
+  </div>
+  <div class="overlay" id="account-overlay" onclick="if(event.target===this) closeAccount()">
+    <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
+      <button class="modal-close" onclick="closeAccount()" aria-label="Close account">×</button>
+      <div id="account-content"></div>
     </section>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2108,16 +2127,20 @@ function showCheckout() {
     <p class="subtext">Your order will be saved before you notify the store.</p>
     <form class="checkout-fields" onsubmit="submitOrder(event)">
       <input id="customer-name" autocomplete="name"
-        placeholder="Full name" maxlength="100" required>
+        placeholder="Customer name" maxlength="100" required>
+      <input id="customer-email" type="email" autocomplete="email"
+        placeholder="Email ID" maxlength="254" required>
       <input id="customer-phone" type="tel" autocomplete="tel"
         placeholder="Mobile number" maxlength="20" required>
       <button class="location-button" type="button" onclick="useCurrentLocation()">
         ⌖ USE MY CURRENT LOCATION
       </button>
       <p class="location-hint">Use your current location to fill these delivery details, then check them before ordering.</p>
-      <input id="customer-street" autocomplete="street-address" placeholder="Street line / house / area" maxlength="250" required>
-      <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
-      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
+      <input id="customer-street" autocomplete="address-line1" placeholder="Shipping address line 1 — house / street" maxlength="250" required>
+      <input id="customer-street2" autocomplete="address-line2" placeholder="Shipping address line 2 — area / landmark" maxlength="250">
+      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN / ZIP code" pattern="[0-9]{6}" maxlength="6" required>
+      <input id="customer-city" autocomplete="address-level2" placeholder="City name" maxlength="100" required>
+      <input id="customer-state" autocomplete="address-level1" placeholder="State" maxlength="100" required>
       <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2133,6 +2156,8 @@ async function useCurrentLocation() {
   const streetField = document.getElementById("customer-street");
   const cityField = document.getElementById("customer-city");
   const pincodeField = document.getElementById("customer-pincode");
+  const street2Field = document.getElementById("customer-street2");
+  const stateField = document.getElementById("customer-state");
   if (!navigator.geolocation) {
     showToast("Location is not supported by this browser. Enter your address manually.");
     return;
@@ -2154,10 +2179,14 @@ async function useCurrentLocation() {
       const a = data.address || {};
       const street = [a.house_number, a.road, a.neighbourhood || a.suburb || a.residential].filter(Boolean).join(", ");
       const city = a.city || a.town || a.village || a.municipality || a.county || "";
+      const area = a.neighbourhood || a.suburb || a.residential || "";
+      const state = a.state || "";
       const pincode = a.postcode || "";
-      if (!street && !city && !pincode) throw new Error("No address details were found.");
-      if (street) streetField.value = street;
+      if (!street && !city && !pincode && !state) throw new Error("No address details were found.");
+      if (street) streetField.value = [a.house_number, a.road].filter(Boolean).join(", ") || street;
+      if (area) street2Field.value = area;
       if (city) cityField.value = city;
+      if (state) stateField.value = state;
       if (pincode) pincodeField.value = pincode.replace(/\D/g, "").slice(0, 6);
       showToast("Address filled. Please check it before ordering.");
     } catch (error) {
@@ -2185,11 +2214,14 @@ async function submitOrder(event) {
   }
 
   const name = document.getElementById("customer-name").value.trim();
+  const email = document.getElementById("customer-email").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const street = document.getElementById("customer-street").value.trim();
+  const street2 = document.getElementById("customer-street2").value.trim();
   const city = document.getElementById("customer-city").value.trim();
+  const state = document.getElementById("customer-state").value.trim();
   const pincode = document.getElementById("customer-pincode").value.trim();
-  const address = `Street line: ${street}, City: ${city}, PIN code: ${pincode}`;
+  const address = `Email: ${email}; Address line 1: ${street}; Address line 2: ${street2 || "N/A"}; City: ${city}; State: ${state}; PIN code: ${pincode}`;
 
   try {
     if (!cart.length) throw new Error("Your bag is empty.");
@@ -2224,6 +2256,7 @@ async function submitOrder(event) {
       "",
       `Total: ${money(order.total)}`,
       `Name: ${name}`,
+      `Email: ${email}`,
       `Phone: ${phone}`,
       `Address: ${address}`,
       "",
@@ -2270,6 +2303,126 @@ async function submitOrder(event) {
       button.textContent = "PLACE ORDER";
     }
   }
+}
+
+
+// Customer account: Supabase Authentication (optional for browsing/checkout).
+let accountView = "login";
+let recoveryMode = false;
+
+function openAccount() {
+  document.getElementById("account-overlay").classList.add("open");
+  renderAccount();
+}
+function closeAccount() {
+  document.getElementById("account-overlay").classList.remove("open");
+}
+function renderAccount(note = "") {
+  const target = document.getElementById("account-content");
+  const title = accountView === "register" ? "Create your account" :
+    accountView === "forgot" ? "Reset your password" :
+    accountView === "update" ? "Choose a new password" : "Welcome back";
+  let fields = "";
+  if (accountView === "register") {
+    fields += '<input id="account-name" type="text" autocomplete="name" placeholder="Full name" maxlength="100" required>';
+  }
+  fields += '<input id="account-email" type="email" autocomplete="email" placeholder="Email address" maxlength="254" required>';
+  if (accountView !== "forgot") {
+    fields += '<input id="account-password" type="password" autocomplete="' +
+      (accountView === "register" ? "new-password" : "current-password") +
+      '" placeholder="' + (accountView === "update" ? "New password (at least 8 characters)" : "Password") +
+      '" minlength="8" required>';
+  }
+  if (accountView === "register" || accountView === "update") {
+    fields += '<input id="account-password-confirm" type="password" autocomplete="new-password" placeholder="Confirm password" minlength="8" required>';
+  }
+  const submitLabel = accountView === "register" ? "CREATE ACCOUNT" :
+    accountView === "forgot" ? "SEND RESET LINK" :
+    accountView === "update" ? "UPDATE PASSWORD" : "SIGN IN";
+  target.innerHTML = `
+    <h2 id="account-title">${title}</h2>
+    <p class="subtext">Use your Velzo account to make future orders easier.</p>
+    ${note ? `<p class="account-note" role="status">${escapeHTML(note)}</p>` : ""}
+    <form id="account-form" class="checkout-fields">${fields}
+      <button class="black-button full-button" type="submit">${submitLabel}</button>
+    </form>
+    <div class="account-links">
+      ${accountView === "login" ? '<button type="button" data-account-view="register">Create account</button><button type="button" data-account-view="forgot">Forgot password?</button>' : ""}
+      ${accountView === "register" ? '<button type="button" data-account-view="login">Already registered? Sign in</button>' : ""}
+      ${accountView === "forgot" ? '<button type="button" data-account-view="login">Back to sign in</button>' : ""}
+    </div>`;
+  document.getElementById("account-form").addEventListener("submit", handleAccountSubmit);
+  target.querySelectorAll("[data-account-view]").forEach(button => {
+    button.addEventListener("click", () => setAccountView(button.dataset.accountView));
+  });
+}
+function setAccountView(view, note = "") {
+  accountView = view;
+  renderAccount(note);
+}
+async function handleAccountSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submit = form.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  const email = document.getElementById("account-email")?.value.trim() || "";
+  const password = document.getElementById("account-password")?.value || "";
+  try {
+    if (accountView === "register") {
+      const name = document.getElementById("account-name").value.trim();
+      const confirmPassword = document.getElementById("account-password-confirm").value;
+      if (password !== confirmPassword) throw new Error("Passwords do not match.");
+      const { data, error } = await db.auth.signUp({
+        email, password,
+        options: { data: { full_name: name }, emailRedirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) throw error;
+      if (data.session) {
+        setAccountView("login", "Account created successfully. You can now sign in.");
+      } else {
+        setAccountView("login", "Check your email to confirm your account, then sign in.");
+      }
+    } else if (accountView === "login") {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const { data } = await db.auth.getUser();
+      const name = data?.user?.user_metadata?.full_name;
+      if (name && document.getElementById("customer-name")) document.getElementById("customer-name").value = name;
+      if (email && document.getElementById("customer-email")) document.getElementById("customer-email").value = email;
+      setAccountView("login", "You are signed in.");
+    } else if (accountView === "forgot") {
+      const { error } = await db.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+      if (error) throw error;
+      setAccountView("login", "If an account exists for that email, a password reset link has been sent. Check your inbox and spam folder.");
+    } else if (accountView === "update") {
+      const confirmPassword = document.getElementById("account-password-confirm").value;
+      if (password !== confirmPassword) throw new Error("Passwords do not match.");
+      const { error } = await db.auth.updateUser({ password });
+      if (error) throw error;
+      recoveryMode = false;
+      setAccountView("login", "Password updated. Please sign in with your new password.");
+    }
+  } catch (error) {
+    console.error("Account action error:", error);
+    renderAccount(error.message || "Something went wrong. Please try again.");
+  } finally {
+    const activeSubmit = document.querySelector("#account-form button[type='submit']");
+    if (activeSubmit) activeSubmit.disabled = false;
+  }
+}
+db.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") {
+    recoveryMode = true;
+    accountView = "update";
+    openAccount();
+  }
+});
+if (window.location.hash.includes("type=recovery")) {
+  recoveryMode = true;
+  accountView = "update";
+  openAccount();
 }
 
 document.getElementById("search").addEventListener("input", renderProducts);
