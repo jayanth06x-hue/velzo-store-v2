@@ -196,8 +196,14 @@ button.danger { background:#8d302b; color:#fff; }
           <input id="productCategory" placeholder="Category" required maxlength="60">
           <input id="productPrice" type="number" min="0" max="99999999" step=".01" placeholder="Price in ₹" required>
           <input id="productTag" placeholder="Badge, e.g. NEW (optional)" maxlength="30">
-          <input id="productImage" type="url" placeholder="Product image URL (https://)" required class="full">
+          <input id="productImage" type="url" placeholder="Main product image URL (https://)" required class="full">
+          <textarea id="productImageUrls" placeholder="Additional image URLs — one HTTPS URL per line (front, back, details...)" rows="4" class="full"></textarea>
+          <input id="productMeeshoUrl" type="url" placeholder="Meesho supplier/product link (optional)" class="full">
           <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
+          <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
+          <input id="productSizes" placeholder="Available sizes, e.g. S, M, L, XL (comma separated)" class="full" maxlength="120">
+          <input id="productSizeChart" type="url" placeholder="Size chart image/link (optional)" class="full">
+          <label class="full"><input id="productOutOfStock" type="checkbox" style="width:auto"> Mark this product OUT OF STOCK</label>
           <label class="full"><input id="productActive" type="checkbox" checked style="width:auto"> Product is visible in the store</label>
           <div class="actions full">
             <button class="gold" type="submit">SAVE PRODUCT</button>
@@ -210,7 +216,7 @@ button.danger { background:#8d302b; color:#fff; }
         <h2 style="margin-top:28px">Your products</h2>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Product</th><th>Price</th><th>Visibility</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Product</th><th>Price</th><th>Stock / Sizes</th><th>Visibility</th><th>Actions</th></tr></thead>
             <tbody id="productRows"></tbody>
           </table>
         </div>
@@ -353,7 +359,7 @@ async function refreshAll() {
 
 async function loadProducts() {
   const {data, error} = await db.from("products")
-    .select("id,name,category,price,tag,description,image_url,active,created_at")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -390,9 +396,10 @@ function renderProducts() {
         <img class="product-thumb" src="${esc(p.image_url)}" alt=""
           onerror="this.style.visibility='hidden'">
         <div><div class="product-name">${esc(p.name)}</div>
-          <small>${esc(p.category)}</small></div>
+          <small>${esc(p.category)} · ${Array.isArray(p.image_urls) ? p.image_urls.length : 0} extra images</small>${p.meesho_url ? `<br><a href="${esc(p.meesho_url)}" target="_blank" rel="noopener">Open Meesho link ↗</a>` : ""}</div>
       </div></td>
       <td>${money(p.price)}</td>
+      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}</small></td>
       <td>${p.active ? "Visible" : "Hidden"}</td>
       <td><div class="actions">
         <button class="secondary" data-action="edit" data-id="${esc(p.id)}">Edit</button>
@@ -410,6 +417,11 @@ function resetProductForm() {
   $("productForm").reset();
   $("productId").value = "";
   $("productActive").checked = true;
+  $("productHasSizes").checked = false;
+  $("productSizes").value = "";
+  $("productSizeChart").value = "";
+  $("productMeeshoUrl").value = "";
+  $("productOutOfStock").checked = false;
   $("formTitle").textContent = "Add a product";
 }
 
@@ -430,7 +442,13 @@ $("productRows").addEventListener("click", async event => {
       $("productPrice").value = product.price;
       $("productTag").value = product.tag || "";
       $("productImage").value = product.image_url;
+      $("productImageUrls").value = Array.isArray(product.image_urls) ? product.image_urls.join("\n") : "";
       $("productDescription").value = product.description;
+      $("productMeeshoUrl").value = product.meesho_url || "";
+      $("productHasSizes").checked = !!product.has_sizes;
+      $("productSizes").value = Array.isArray(product.sizes) ? product.sizes.join(", ") : "";
+      $("productSizeChart").value = product.size_chart_url || "";
+      $("productOutOfStock").checked = !!product.out_of_stock;
       $("productActive").checked = product.active;
       $("formTitle").textContent = "Edit product: " + product.name;
       $("productsTab").scrollIntoView({behavior:"smooth"});
@@ -479,6 +497,12 @@ $("productForm").addEventListener("submit", async event => {
     tag:$("productTag").value.trim(),
     description:$("productDescription").value.trim(),
     image_url:$("productImage").value.trim(),
+    image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
+    has_sizes:$("productHasSizes").checked,
+    sizes:$("productHasSizes").checked ? $("productSizes").value.split(",").map(size => size.trim()).filter(Boolean) : [],
+    size_chart_url:$("productSizeChart").value.trim() || null,
+    meesho_url:$("productMeeshoUrl").value.trim() || null,
+    out_of_stock:$("productOutOfStock").checked,
     active:$("productActive").checked,
     updated_at:new Date().toISOString()
   };
@@ -486,6 +510,12 @@ $("productForm").addEventListener("submit", async event => {
   if (!product.name || !product.category ||
       !Number.isFinite(product.price) || product.price < 0) {
     return message("Check the product name, category and price.");
+  }
+  if (product.image_urls.length > 12) {
+    return message("Use up to 12 additional image URLs per product.");
+  }
+  if (product.has_sizes && product.sizes.length === 0) {
+    return message("Enter at least one size, e.g. S, M, L, XL, or turn off size selection.");
   }
 
   const button = $("productForm").querySelector("button[type=submit]");
@@ -539,7 +569,7 @@ function renderOrders() {
           <small>${esc(o.customer_address)}</small>
         </td>
         <td>${items.map(i =>
-          `${esc(i.name)} × ${esc(i.qty)}`
+          `${esc(i.name)}${i.size ? ` (Size: ${esc(i.size)})` : ""} × ${esc(i.qty)}`
         ).join("<br>")}</td>
         <td>${money(o.total)}</td>
         <td>${esc(o.status)}</td>
