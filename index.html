@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111111">
-  <meta name="description" content="Discover everyday fashion and lifestyle essentials at Velzo Collections. Explore our curated collection.">
+  <meta name="description" content="Discover refined menswear, sharp essentials and urban style at Velzo Collections.">
   <title>Velzo Collections | Everyday, Elevated</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <style>
@@ -1326,6 +1326,260 @@ body.ac-enabled [data-ac-reveal].ac-visible {
   }
 }
 
+  
+/* VELZO FASHION EDIT — visual refresh only; commerce logic remains unchanged */
+:root {
+  --black: #171713;
+  --gold: #c5a36b;
+  --cream: #f4f0e8;
+  --muted: #77756f;
+  --line: #e7e1d6;
+  --white: #fffefa;
+}
+body { background: var(--white); color: var(--black); }
+.announcement {
+  background: #22231d; color: #f8f3e8; padding: 11px 14px;
+  font-size: 10px; letter-spacing: 2.2px;
+}
+.header {
+  padding: 20px 6.5%; background: rgba(255,254,250,.96);
+  border-bottom: 1px solid rgba(23,23,19,.09);
+  box-shadow: 0 6px 24px rgba(23,23,19,.025);
+}
+.logo { font-size: 28px; letter-spacing: 4px; }
+.logo span { color: #b08c4c; }
+.logo small { letter-spacing: 5px; }
+.nav { gap: clamp(14px, 2.5vw, 32px); }
+.nav a { font-size: 12px; letter-spacing: .5px; }
+.nav a:hover { color: #9a773d; }
+.cart-button, .black-button {
+  border-radius: 0; background: #22231d; padding: 13px 19px;
+  letter-spacing: 1px; font-size: 10px; transition: background .25s, transform .25s;
+}
+.cart-button:hover, .black-button:hover { background: #9a773d; transform: translateY(-2px); }
+.hero {
+  min-height: clamp(490px, 56vw, 680px);
+  padding: 70px 8%;
+  position: relative; isolation: isolate; overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(18,19,15,.83) 0%, rgba(18,19,15,.49) 42%, rgba(18,19,15,.06) 100%),
+    url("https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=2000&q=88")
+    center 38% / cover;
+  animation: fashionHeroDrift 22s ease-in-out infinite alternate;
+}
+.hero::before {
+  content: "VELZO / CITY GENTLEMAN";
+  position: absolute; right: 5%; bottom: 28px; z-index: -1;
+  color: rgba(255,255,255,.74); font-size: 9px; letter-spacing: 3px;
+  writing-mode: vertical-rl;
+}
+.hero-content { max-width: 670px; }
+.hero-content .eyebrow {
+  display: inline-block; color: #e0c18a; font-size: 10px;
+  letter-spacing: 3.5px; padding-bottom: 13px;
+}
+.hero-content h1 {
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 400;
+  font-size: clamp(54px, 8.4vw, 105px); letter-spacing: -.055em;
+  line-height: .94; text-wrap: balance; margin: 20px 0 24px;
+}
+.hero-content p { max-width: 440px; font-size: 15px; line-height: 1.9; color: rgba(255,255,255,.88); }
+.gold-button {
+  margin-top: 14px; padding: 16px 23px; border: 1px solid #d5b77f;
+  border-radius: 0; background: #d5b77f; color: #1c1b16;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.8px;
+  transition: background .25s, color .25s, transform .25s;
+}
+.gold-button:hover { background: transparent; color: white; transform: translateY(-3px); }
+.section { max-width: 1440px; padding: 88px 6.5%; }
+.section-heading { align-items: end; margin-bottom: 28px; }
+.section-heading h2, .about h2 {
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 400;
+  letter-spacing: -.045em; font-size: clamp(34px, 4vw, 54px); line-height: 1.05;
+}
+.section-heading p, .about p { color: var(--muted); line-height: 1.8; }
+.tools { display: grid; grid-template-columns: minmax(180px, 1.5fr) minmax(140px, .8fr) minmax(140px, .8fr); gap: 10px; margin-bottom: 28px; }
+.tools input, .tools select {
+  min-height: 48px; padding: 13px 15px; border: 1px solid #ded8cc;
+  border-radius: 0; background: #fbf9f4; color: var(--black);
+}
+.tools input:focus, .tools select:focus { border-color: #b08c4c; outline: none; }
+.product-grid { gap: 34px 20px; }
+.product {
+  background: transparent; border: 0; border-radius: 0; overflow: hidden;
+  transition: transform .35s ease;
+}
+.product:hover { transform: translateY(-7px); box-shadow: none; }
+.product-image-wrap { background: #eee9df; }
+.product-image { aspect-ratio: 3 / 4; object-position: center; }
+.product-tag {
+  left: 12px; top: 12px; padding: 8px 10px; border-radius: 0;
+  background: rgba(255,254,250,.93); color: #29281f;
+  font-size: 9px; letter-spacing: 1.2px; backdrop-filter: blur(8px);
+}
+.product-details { padding: 16px 2px 4px; }
+.product-category { color: #8b7045; font-size: 9px; letter-spacing: 1.8px; text-transform: uppercase; }
+.product h3 { margin: 8px 0; font-size: 15px; font-weight: 500; letter-spacing: -.15px; }
+.product-price { font-size: 17px; font-weight: 600; }
+.add-button {
+  width: 100%; margin-top: 15px; padding: 13px 12px; border: 1px solid #25251f;
+  border-radius: 0; background: transparent; color: #25251f;
+  font-size: 10px; letter-spacing: 1.3px; transition: all .25s ease;
+}
+.add-button:hover { background: #25251f; color: white; border-color: #25251f; }
+.benefits {
+  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px;
+  padding: 54px 8%; background: #f2eee5;
+}
+.benefit { padding: 20px 22px; border-left: 1px solid #d4c8b4; border-radius: 0; }
+.benefit strong { font: 22px Georgia, serif; font-weight: 400; }
+.benefit p { color: #77756f; font-size: 13px; line-height: 1.7; }
+.about { max-width: 790px; padding: 25px 0; }
+.about .eyebrow { color: #987743; }
+.about h2 { max-width: 650px; }
+.footer {
+  padding: 48px 6.5%; background: #20211b; color: #f5f0e6;
+  display: flex; align-items: end; justify-content: space-between; gap: 28px;
+}
+.footer .logo { color: #fffefa; }
+.footer .logo span { color: #d5b77f; }
+.footer p, .footer small { color: #c1bdb3; line-height: 1.8; }
+.overlay { background: rgba(17,17,14,.62); }
+.modal { border-radius: 0; max-width: 620px; }
+.modal-close { border-radius: 0; }
+.toast { border-radius: 0; background: #22231d; }
+@keyframes fashionHeroDrift {
+  from { background-position: center, 43% 38%; }
+  to { background-position: center, 57% 38%; }
+}
+@media (max-width: 800px) {
+  .header { padding: 16px 5%; }
+  .hero { min-height: 540px; background-position: center, 58% center; }
+  .section { padding: 65px 5%; }
+  .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px 14px; }
+  .benefits { padding: 35px 5%; gap: 12px; }
+  .benefit { padding: 16px 12px; }
+  .benefit strong { font-size: 18px; }
+}
+@media (max-width: 560px) {
+  .announcement { font-size: 9px; letter-spacing: 1.3px; }
+  .logo { font-size: 22px; letter-spacing: 3px; }
+  .logo small { font-size: 8px; letter-spacing: 3.5px; }
+  .nav { gap: 13px; }
+  .nav a { font-size: 11px; }
+  .cart-button { padding: 11px 12px; font-size: 10px; }
+  .hero { min-height: 530px; padding: 50px 7%; background-position: center, 61% center; }
+  .hero-content h1 { font-size: clamp(52px, 14vw, 72px); }
+  .hero-content p { max-width: 320px; font-size: 14px; }
+  .section { padding: 55px 5%; }
+  .section-heading { align-items: start; gap: 8px; }
+  .section-heading h2 { font-size: 35px; }
+  .tools { grid-template-columns: 1fr 1fr; }
+  .tools input { grid-column: 1 / -1; }
+  .product-grid { gap: 24px 12px; }
+  .product-details { padding-top: 12px; }
+  .product h3 { font-size: 13px; }
+  .product-price { font-size: 15px; }
+  .benefits { grid-template-columns: 1fr; gap: 0; }
+  .benefit { border-left: 2px solid #c5a36b; }
+  .footer { align-items: start; flex-direction: column; padding: 38px 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero { animation: none; }
+}
+
+
+/* VELZO CITY GENTLEMAN — gritty, cinematic urban direction */
+:root { --black:#17191b; --gold:#c5a16b; --cream:#e8e5de; --muted:#888b8d; --line:#393b3d; }
+body { background:#e9e7e2; }
+.announcement { background:#181a1c; color:#d6d0c4; letter-spacing:2px; }
+.header { background:#202225; color:#f3f0e9; border-bottom:1px solid #353638; }
+.logo { color:#f3f0e9; }
+.nav a { color:#e3e0d9; }
+.hero {
+  background-image: linear-gradient(90deg,rgba(10,12,14,.91) 0%,rgba(15,17,19,.73) 43%,rgba(15,17,19,.18) 100%),
+    url("https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=2000&q=88");
+  background-color:#181a1c; filter:none;
+}
+.hero::after { content:""; position:absolute; inset:0; pointer-events:none; z-index:-1; background:linear-gradient(0deg,rgba(7,8,9,.36),transparent 45%),linear-gradient(90deg,rgba(25,28,31,.16),rgba(25,28,31,.03)); }
+.hero-content h1 { text-transform:uppercase; letter-spacing:-.045em; }
+.hero-content .eyebrow { color:#d0ad78; }
+.gold-button { background:#c5a16b; border-color:#c5a16b; }
+.section { background:#e9e7e2; }
+.section-heading h2,.about h2 { color:#202225; text-transform:uppercase; }
+.product { color:#202225; }
+.product-image-wrap { background:#d4d1ca; }
+.add-button { border-color:#27292b; color:#27292b; }
+.add-button:hover { background:#27292b; }
+.benefits { background:#dcd9d2; }
+.benefit { border-left-color:#9a794b; }
+.footer { background:#181a1c; }
+@media (max-width:560px) { .hero { background-position:center, 62% center; } }
+
+
+
+/* VELZO CITY GENTLEMAN — darker urban product gallery */
+#shop.section {
+  position: relative;
+  isolation: isolate;
+  color: #f3f1ec;
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(130, 137, 145, .18), transparent 42%),
+    radial-gradient(ellipse at 88% 35%, rgba(120, 91, 49, .12), transparent 38%),
+    linear-gradient(145deg, #292c30 0%, #1b1d20 54%, #121416 100%);
+}
+#shop.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .15;
+  background-image: repeating-linear-gradient(0deg, transparent 0 5px, rgba(255,255,255,.035) 6px, transparent 7px);
+}
+#shop .section-heading h2 { color: #f6f2e9; }
+#shop .section-heading p { color: #b8b9ba; }
+#shop .tools input,
+#shop .tools select {
+  color: #f2f0eb;
+  background: #24272a;
+  border-color: #4b4e50;
+  border-radius: 3px;
+}
+#shop .tools input::placeholder { color: #a9abad; }
+#shop .product-grid { gap: 28px 20px; }
+#shop .product {
+  padding: 10px;
+  background: linear-gradient(155deg, #303337, #222427 72%);
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow: 0 12px 28px rgba(0,0,0,.17);
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+#shop .product:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212,177,106,.48);
+  box-shadow: 0 18px 34px rgba(0,0,0,.28);
+}
+#shop .product-image-wrap { background: #3a3c3f; border-radius: 2px; }
+#shop .product-tag { border-radius: 2px; color: #171819; background: #d4b16a; }
+#shop .product-details { padding: 15px 5px 5px; }
+#shop .product-category { color: #d4b16a; }
+#shop .product h3 { color: #f7f5f0; }
+#shop .product-description { color: #b8b9ba; }
+#shop .product-price { color: #f4e4bd; }
+#shop .add-button {
+  color: #f7f5f0;
+  background: transparent;
+  border-color: #77797a;
+  border-radius: 2px;
+}
+#shop .add-button:hover { color: #171819; background: #d4b16a; border-color: #d4b16a; }
+#shop .empty-state { color: #c3c3c3; }
+@media (max-width: 650px) {
+  #shop .product { padding: 7px; }
+  #shop .product-grid { gap: 20px 10px; }
+}
+
   </style>
 </head>
 
@@ -1407,7 +1661,7 @@ body.ac-enabled [data-ac-reveal].ac-visible {
 </script>
 
 <body>
-  <div class="announcement">THOUGHTFULLY SELECTED · MADE FOR EVERYDAY STYLE</div>
+  <div class="announcement">VELZO COLLECTIONS · THE MODERN GENTLEMAN</div>
 
   <header class="header">
     <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
@@ -1423,11 +1677,11 @@ body.ac-enabled [data-ac-reveal].ac-visible {
   <main>
     <section class="hero">
       <div class="hero-content">
-        <div class="eyebrow">The everyday edit</div>
-        <h1>Everyday style.<br>Elevated.</h1>
-        <p>Explore considered essentials, timeless details and fresh finds selected for your everyday life.</p>
+        <div class="eyebrow">CITY STYLE · EST. VELZO</div>
+        <h1>Built for<br>the city.</h1>
+        <p>Sharp layers. Clean silhouettes. Everyday essentials for men who move with purpose — inspired by the grit and confidence of the city.</p>
         <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-          EXPLORE THE COLLECTION
+          SHOP MENSWEAR
         </button>
       </div>
     </section>
@@ -1435,8 +1689,8 @@ body.ac-enabled [data-ac-reveal].ac-visible {
     <section class="section" id="shop">
       <div class="section-heading">
         <div>
-          <h2>Shop the collection</h2>
-          <p>Find your next favourite piece.</p>
+          <h2>The modern gentleman’s edit</h2>
+          <p>Menswear and everyday accessories, selected for a sharper everyday look.</p>
         </div>
         <p id="result-count" aria-live="polite"></p>
       </div>
@@ -1459,12 +1713,12 @@ body.ac-enabled [data-ac-reveal].ac-visible {
 
     <section class="benefits" aria-label="Our promises">
       <div class="benefit">
-        <strong>Thoughtfully selected</strong>
-        <p>Everyday finds chosen with care.</p>
+        <strong>Made for the city</strong>
+        <p>Versatile essentials with a confident, urban edge.</p>
       </div>
       <div class="benefit">
-        <strong>A considered experience</strong>
-        <p>Simple browsing and easy cart management.</p>
+        <strong>Sharp by design</strong>
+        <p>Clean details. Timeless layers. No unnecessary noise.</p>
       </div>
       <div class="benefit">
         <strong>Here to help</strong>
@@ -1475,8 +1729,8 @@ body.ac-enabled [data-ac-reveal].ac-visible {
     <section class="section" id="about">
       <div class="about">
         <div class="eyebrow">Our point of view</div>
-        <h2>Less ordinary. More you.</h2>
-        <p>Velzo Collections is built around a simple idea: great everyday pieces should feel considered, versatile and easy to make your own. Discover the collection and find something that fits your style.</p>
+        <h2>Own the streets. Define your style.</h2>
+        <p>Velzo Collections brings together menswear and lifestyle essentials with a cinematic, city-at-night attitude. Think tailored confidence, muted tones and practical pieces made for everyday life.</p>
       </div>
     </section>
   </main>
@@ -1484,11 +1738,11 @@ body.ac-enabled [data-ac-reveal].ac-visible {
   <footer class="footer">
     <div>
       <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-      <p>Everyday essentials, thoughtfully selected.</p>
+      <p>Modern menswear and urban essentials.</p>
     </div>
     <div>
       <small>© <span id="year"></span> Velzo Collections</small>
-      <p>Product prices and availability shown are sample content until you update the catalogue.</p>
+      <p>City confidence. Everyday function. Velzo Collections.</p>
     </div>
   </footer>
 
