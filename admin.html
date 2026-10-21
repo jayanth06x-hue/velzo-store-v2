@@ -142,6 +142,7 @@ button.danger { background:#8d302b; color:#fff; }
 .product-thumb { background:#202225; }
 #loginPanel { border-top-color:#c5a16b; }
 
+.admin-size-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.admin-size-buttons label{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:9px 12px;border:1px solid #555;border-radius:7px;cursor:pointer;background:#171717;color:#eee}.admin-size-buttons label:has(input:checked){background:#d4b16a;color:#111;border-color:#d4b16a}.admin-size-buttons input{position:absolute;opacity:0;width:1px;height:1px}.field-label{display:block;font-size:13px;margin:8px 0;color:inherit}
 </style>
 </head>
 <body>
@@ -201,7 +202,13 @@ button.danger { background:#8d302b; color:#fff; }
           <input id="productMeeshoUrl" type="url" placeholder="Meesho supplier/product link (optional)" class="full">
           <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
           <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
-          <input id="productSizes" placeholder="Available sizes, e.g. S, M, L, XL (comma separated)" class="full" maxlength="120">
+          <div class="full size-picker-admin">
+            <span class="field-label">Choose available sizes (tap to select)</span>
+            <div id="productSizeButtons" class="admin-size-buttons">
+              <label><input type="checkbox" value="XS"> XS</label><label><input type="checkbox" value="S"> S</label><label><input type="checkbox" value="M"> M</label><label><input type="checkbox" value="L"> L</label><label><input type="checkbox" value="XL"> XL</label><label><input type="checkbox" value="XXL"> XXL</label><label><input type="checkbox" value="XXXL"> XXXL</label><label><input type="checkbox" value="Free Size"> Free Size</label>
+            </div>
+            <input id="productSizes" placeholder="Other sizes (optional, comma separated)" class="full" maxlength="120">
+          </div>
           <input id="productSizeChart" type="url" placeholder="Size chart image/link (optional)" class="full">
           <label class="full"><input id="productOutOfStock" type="checkbox" style="width:auto"> Mark this product OUT OF STOCK</label>
           <label class="full"><input id="productActive" type="checkbox" checked style="width:auto"> Product is visible in the store</label>
@@ -419,6 +426,7 @@ function resetProductForm() {
   $("productActive").checked = true;
   $("productHasSizes").checked = false;
   $("productSizes").value = "";
+  document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = false);
   $("productSizeChart").value = "";
   $("productMeeshoUrl").value = "";
   $("productOutOfStock").checked = false;
@@ -446,7 +454,9 @@ $("productRows").addEventListener("click", async event => {
       $("productDescription").value = product.description;
       $("productMeeshoUrl").value = product.meesho_url || "";
       $("productHasSizes").checked = !!product.has_sizes;
-      $("productSizes").value = Array.isArray(product.sizes) ? product.sizes.join(", ") : "";
+      const standardSizes = ["XS","S","M","L","XL","XXL","XXXL","Free Size"];
+      document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = Array.isArray(product.sizes) && product.sizes.includes(input.value));
+      $("productSizes").value = Array.isArray(product.sizes) ? product.sizes.filter(size => !standardSizes.includes(size)).join(", ") : "";
       $("productSizeChart").value = product.size_chart_url || "";
       $("productOutOfStock").checked = !!product.out_of_stock;
       $("productActive").checked = product.active;
@@ -499,7 +509,10 @@ $("productForm").addEventListener("submit", async event => {
     image_url:$("productImage").value.trim(),
     image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
     has_sizes:$("productHasSizes").checked,
-    sizes:$("productHasSizes").checked ? $("productSizes").value.split(",").map(size => size.trim()).filter(Boolean) : [],
+    sizes:$("productHasSizes").checked ? [...new Set([
+      ...Array.from(document.querySelectorAll("#productSizeButtons input:checked")).map(input => input.value),
+      ...$("productSizes").value.split(",").map(size => size.trim()).filter(Boolean)
+    ])] : [],
     size_chart_url:$("productSizeChart").value.trim() || null,
     meesho_url:$("productMeeshoUrl").value.trim() || null,
     out_of_stock:$("productOutOfStock").checked,
