@@ -2408,6 +2408,164 @@ body { background:#fff; color:#151515; }
 .product-color-select{display:block;width:100%;margin:9px 0 5px;padding:10px 12px;border:1px solid #c9c9c9;border-radius:8px;background:#fff;color:#151515;font:inherit;min-height:42px}
 .product-details-dialog .product-color-select{margin:10px 0 14px}
 </style>
+  
+<!-- VELZO CUSTOMER ACCOUNT + CUSTOMER CARE -->
+<style>
+#velzo-account-btn,#velzo-care-btn{
+  position:fixed;right:16px;z-index:9998;border:0;border-radius:30px;
+  padding:13px 18px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px #0002
+}
+#velzo-account-btn{bottom:78px;background:#c8ff3d;color:#151515}
+#velzo-care-btn{bottom:20px;background:#151515;color:white}
+#velzo-auth-box{display:none;position:fixed;inset:0;z-index:10000;
+  background:#0009;align-items:center;justify-content:center;padding:16px}
+#velzo-auth-card{background:white;color:#151515;padding:25px;border-radius:16px;
+  width:min(420px,100%);position:relative}
+#velzo-auth-card input{display:block;width:100%;margin:10px 0;padding:13px;
+  border:1px solid #ccc;border-radius:8px}
+#velzo-auth-card button{padding:12px;border:0;border-radius:8px;cursor:pointer}
+#velzo-auth-submit{width:100%;background:#c8ff3d;color:#151515;font-weight:800}
+#velzo-auth-card .velzo-secondary{background:#eee;margin:5px 3px}
+#velzo-auth-message{font-size:13px;overflow-wrap:anywhere}
+</style>
+
+<button id="velzo-account-btn" onclick="velzoOpenAuth()">Register / Login</button>
+<button id="velzo-care-btn"
+ onclick="window.open('https://wa.me/918500716966?text='+encodeURIComponent('Hello Velzo Collections, I need customer support.'),'_blank','noopener')">
+ Customer Care ↗
+</button>
+
+<div id="velzo-auth-box">
+ <section id="velzo-auth-card">
+  <button onclick="velzoCloseAuth()" style="float:right;background:#eee">✕</button>
+  <h2 id="velzo-auth-title">Your Velzo Account</h2>
+  <p>Create an account or sign in to Velzo Collections.</p>
+
+  <form id="velzo-auth-form">
+   <input id="velzo-name" placeholder="Full name" autocomplete="name">
+   <input id="velzo-email" type="email" placeholder="Email address"
+          autocomplete="email" required>
+   <input id="velzo-password" type="password" placeholder="Password"
+          autocomplete="current-password" minlength="6" required>
+   <button id="velzo-auth-submit" type="submit">CREATE ACCOUNT</button>
+  </form>
+
+  <button class="velzo-secondary" onclick="velzoSetMode('login')">Login</button>
+  <button class="velzo-secondary" onclick="velzoSetMode('register')">Register</button>
+  <button class="velzo-secondary" onclick="velzoResetPassword()">Forgot password?</button>
+  <button class="velzo-secondary" onclick="velzoLogout()">Sign out</button>
+  <p id="velzo-auth-message" role="status"></p>
+ </section>
+</div>
+
+<script>
+let velzoAuthMode = "register";
+
+function velzoOpenAuth(){
+  document.getElementById("velzo-auth-box").style.display="flex";
+  velzoUpdateAuth();
+}
+function velzoCloseAuth(){
+  document.getElementById("velzo-auth-box").style.display="none";
+}
+function velzoSetMode(mode){
+  velzoAuthMode=mode;
+  document.getElementById("velzo-auth-title").textContent =
+    mode==="register" ? "Create Your Account" : "Welcome Back";
+  document.getElementById("velzo-name").style.display =
+    mode==="register" ? "block" : "none";
+  document.getElementById("velzo-password").style.display="block";
+  document.getElementById("velzo-auth-submit").textContent =
+    mode==="register" ? "CREATE ACCOUNT" : "LOGIN";
+  document.getElementById("velzo-auth-message").textContent="";
+}
+async function velzoUpdateAuth(){
+  const {data:{session}}=await db.auth.getSession();
+  const btn=document.getElementById("velzo-account-btn");
+  btn.textContent=session ? "My Account / Sign Out" : "Register / Login";
+  if(session){
+    document.getElementById("velzo-auth-title").textContent="My Account";
+    document.getElementById("velzo-auth-message").textContent=
+      "Signed in as "+session.user.email;
+  }else{
+    velzoSetMode("register");
+  }
+}
+
+document.getElementById("velzo-auth-form").addEventListener("submit",
+async function(e){
+  e.preventDefault();
+  const msg=document.getElementById("velzo-auth-message");
+  const email=document.getElementById("velzo-email").value.trim();
+  const password=document.getElementById("velzo-password").value;
+  const name=document.getElementById("velzo-name").value.trim();
+  msg.textContent="Please wait...";
+  let result;
+
+  if(velzoAuthMode==="register"){
+    result=await db.auth.signUp({
+      email,password,
+      options:{data:{full_name:name},
+        emailRedirectTo:window.location.origin}
+    });
+  }else{
+    result=await db.auth.signInWithPassword({email,password});
+  }
+
+  if(result.error){
+    msg.textContent=result.error.message;
+    return;
+  }
+
+  msg.textContent=velzoAuthMode==="register"
+    ? "Account created. Check your email to confirm registration if requested."
+    : "Login successful!";
+  await velzoUpdateAuth();
+});
+
+async function velzoResetPassword(){
+  const email=document.getElementById("velzo-email").value.trim();
+  const msg=document.getElementById("velzo-auth-message");
+  if(!email){
+    msg.textContent="Enter your email address first.";
+    return;
+  }
+  const {error}=await db.auth.resetPasswordForEmail(email,{
+    redirectTo:window.location.origin
+  });
+  msg.textContent=error ? error.message :
+    "If the email is registered, password reset instructions will be sent.";
+}
+
+async function velzoLogout(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){
+    velzoSetMode("login");
+    return;
+  }
+  const {error}=await db.auth.signOut();
+  document.getElementById("velzo-auth-message").textContent=
+    error ? error.message : "Signed out successfully.";
+  await velzoUpdateAuth();
+}
+
+document.getElementById("velzo-account-btn").addEventListener("click",
+async function(){
+  const {data:{session}}=await db.auth.getSession();
+  if(session){
+    velzoOpenAuth();
+  }else{
+    velzoOpenAuth();
+  }
+});
+
+db.auth.onAuthStateChange(()=>{
+  setTimeout(velzoUpdateAuth,0);
+});
+velzoUpdateAuth();
+</script>
+<!-- END VELZO CUSTOMER ACCOUNT + CUSTOMER CARE -->
+
 </body>
 </html>
 
