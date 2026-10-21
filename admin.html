@@ -57,6 +57,91 @@ th{background:var(--cream);font-size:12px}
  .stats{grid-template-columns:1fr}
  .logo{font-size:20px}
 }
+
+/* VELZO ADMIN — fashion studio dashboard styling; data/auth logic unchanged */
+:root {
+  --black: #20211b; --gold: #d5b77f; --cream: #f3efe6;
+  --line: #e5dfd3; --muted: #77756f;
+}
+body { background: #f4f1ea; color: #22231d; font-family: Arial, Helvetica, sans-serif; }
+.header {
+  position: sticky; top: 0; z-index: 20; background: #20211b; color: #fffefa;
+  padding: 19px 5.5%; box-shadow: 0 8px 25px rgba(0,0,0,.12);
+}
+.logo { font: 26px Georgia,serif; letter-spacing: 3px; }
+.logo span { color: #d5b77f; }
+.header a { font-size: 11px; letter-spacing: 1.3px; text-transform: uppercase; }
+.header a:hover { color: #d5b77f; }
+.wrap { max-width: 1320px; margin: 32px auto; padding: 0 22px; }
+.panel { background: #fffefa; border: 1px solid #e5dfd3; border-radius: 2px; padding: 28px; box-shadow: 0 12px 35px rgba(35,32,24,.035); }
+h1,h2 { font-family: Georgia,'Times New Roman',serif; font-weight: 400; letter-spacing: -.035em; }
+h1 { font-size: clamp(30px,4vw,44px); }
+h2 { font-size: 30px; }
+.muted { color: #77756f; }
+.form { gap: 14px; }
+input,textarea,select {
+  border: 1px solid #ddd6c9; border-radius: 0; background: #fffefa; padding: 13px 14px;
+  color: #22231d; transition: border-color .2s, box-shadow .2s;
+}
+input:focus,textarea:focus,select:focus { outline: none; border-color: #b08c4c; box-shadow: 0 0 0 3px rgba(197,163,107,.13); }
+input[type="checkbox"] { accent-color: #a9874d; }
+button { transition: background .2s, color .2s, transform .2s; }
+button:hover { transform: translateY(-1px); }
+button.primary { background: #20211b; }
+button.primary:hover { background: #3b3c32; }
+button.gold { background: #d5b77f; color: #22231d; letter-spacing: .8px; }
+button.gold:hover { background: #c3a16a; }
+button.secondary { border-color: #d8d0c2; background: #fffefa; }
+button.secondary:hover { background: #f3efe6; }
+button.danger { background: #8f3228; }
+.status { border-left: 3px solid #c5a36b; background: #f3efe6; padding: 15px 17px; }
+.stats { gap: 14px; }
+.stat { background: #fffefa; border: 1px solid #e5dfd3; padding: 22px; position: relative; overflow: hidden; }
+.stat::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #c5a36b; }
+.stat span { text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; }
+.stat strong { font-family: Georgia,serif; font-size: 34px; font-weight: 400; }
+.tabs { border-bottom: 1px solid #e5dfd3; padding-bottom: 13px; }
+.tabs button { letter-spacing: .8px; }
+.tabs button.active { background: #d5b77f; color: #22231d; }
+table { min-width: 690px; }
+th { background: #f3efe6; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+td,th { padding: 14px 12px; border-bottom-color: #eee9df; }
+.product-thumb { width: 54px; height: 66px; background: #f3efe6; }
+.product-name { font-size: 13px; }
+.note { line-height: 1.7; }
+#loginPanel { border-top: 3px solid #c5a36b; }
+#loginPanel h1 { margin-top: 0; }
+@media(max-width:650px) {
+  .header { padding: 16px 4%; }
+  .wrap { padding: 0 10px; margin: 18px auto; }
+  .panel { padding: 17px; }
+  .stats { grid-template-columns: 1fr; }
+  .stat { padding: 17px 20px; }
+}
+
+
+/* VELZO CITY GENTLEMAN — cinematic admin workspace */
+:root { --black:#17191b; --gold:#c5a16b; --cream:#e8e5de; --line:#383b3e; --muted:#a6a7a7; }
+body { background:#202225; color:#eeeae2; }
+.header { background:#121416; border-bottom:1px solid #393b3d; }
+.wrap { max-width:1380px; }
+.panel,.stat { background:#292c2f; color:#eeeae2; border-color:#3b3e40; box-shadow:0 14px 36px rgba(0,0,0,.16); }
+.muted,.note,.stat span { color:#b1b2b2; }
+input,textarea,select { background:#202225; color:#f4f1ea; border-color:#4b4d4f; }
+input::placeholder,textarea::placeholder { color:#9a9c9e; }
+th { background:#202225; color:#d5b77f; }
+td,th { border-bottom-color:#3b3e40; }
+button.secondary { background:#292c2f; color:#eeeae2; border-color:#55585a; }
+button.secondary:hover { background:#3a3d40; }
+button.primary { background:#111315; }
+button.gold { background:#c5a16b; }
+button.danger { background:#8d302b; color:#fff; }
+.status { background:#33302a; color:#f5f0e6; border-left-color:#c5a16b; }
+.stat::after { background:#c5a16b; }
+.tabs { border-bottom-color:#3b3e40; }
+.product-thumb { background:#202225; }
+#loginPanel { border-top-color:#c5a16b; }
+
 </style>
 </head>
 <body>
@@ -139,7 +224,7 @@ th{background:var(--cream);font-size:12px}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Status</th><th>Update</th></tr></thead>
+            <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Status</th><th>Update / Delete</th></tr></thead>
             <tbody id="orderRows"></tbody>
           </table>
         </div>
@@ -315,6 +400,7 @@ function renderProducts() {
           data-action="visibility" data-id="${esc(p.id)}">
           ${p.active ? "Hide" : "Show"}
         </button>
+        <button class="danger" data-action="delete" data-id="${esc(p.id)}">Delete</button>
       </div></td>
     </tr>
   `).join("") || '<tr><td colspan="4">No products found.</td></tr>';
@@ -348,6 +434,16 @@ $("productRows").addEventListener("click", async event => {
       $("productActive").checked = product.active;
       $("formTitle").textContent = "Edit product: " + product.name;
       $("productsTab").scrollIntoView({behavior:"smooth"});
+      return;
+    }
+
+    if (button.dataset.action === "delete") {
+      if (!confirm(`Permanently delete product "${product.name}"? This cannot be undone.`)) return;
+      const {error} = await db.from("products").delete().eq("id", product.id);
+      if (error) throw error;
+      resetProductForm();
+      await loadProducts();
+      message("Product deleted.");
       return;
     }
 
@@ -454,20 +550,31 @@ function renderOrders() {
             ).join("")}
           </select>
           <button class="secondary" data-update-order="${esc(o.id)}">Update</button>
+          <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
         </div></td>
       </tr>`;
   }).join("") || '<tr><td colspan="6">No orders yet.</td></tr>';
 }
 
 $("orderRows").addEventListener("click", async event => {
-  const button = event.target.closest("button[data-update-order]");
+  const button = event.target.closest("button[data-update-order], button[data-delete-order]");
   if (!button) return;
 
-  const id = button.dataset.updateOrder;
-  const select = $("orderRows").querySelector(`select[data-status="${CSS.escape(id)}"]`);
-  if (!select) return;
+  const id = button.dataset.updateOrder || button.dataset.deleteOrder;
 
   try {
+    if (button.dataset.deleteOrder) {
+      const order = allOrders.find(o => String(o.id) === String(id));
+      if (!confirm(`Permanently delete order ${id}${order?.customer_name ? ` for ${order.customer_name}` : ""}? This cannot be undone.`)) return;
+      const {error} = await db.from("orders").delete().eq("id", id);
+      if (error) throw error;
+      await loadOrders();
+      message("Order deleted.");
+      return;
+    }
+
+    const select = $("orderRows").querySelector(`select[data-status="${CSS.escape(id)}"]`);
+    if (!select) return;
     const {error} = await db.from("orders")
       .update({status:select.value})
       .eq("id",id);
