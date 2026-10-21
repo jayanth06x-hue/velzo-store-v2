@@ -1680,6 +1680,7 @@ body { background:#e9e7e2; }
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
       <a class="optional-link" href="#about">Our story</a>
+      <button class="order-nav-button" onclick="openCart()" aria-label="Open order options">Order</button>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
       </button>
@@ -2113,10 +2114,10 @@ function showCheckout() {
       <button class="location-button" type="button" onclick="useCurrentLocation()">
         ⌖ USE MY CURRENT LOCATION
       </button>
-      <p class="location-hint">Allow location access to fill your street, area, city and PIN code. You can edit the address before ordering.</p>
-      <textarea id="customer-address" autocomplete="street-address"
-        placeholder="House / street, area, city, state and PIN code"
-        maxlength="500" required></textarea>
+      <p class="location-hint">Use your current location to fill these delivery details, then check them before ordering.</p>
+      <input id="customer-street" autocomplete="street-address" placeholder="Street line / house / area" maxlength="250" required>
+      <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
+      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2129,7 +2130,9 @@ function showCheckout() {
 
 async function useCurrentLocation() {
   const button = document.querySelector(".location-button");
-  const addressField = document.getElementById("customer-address");
+  const streetField = document.getElementById("customer-street");
+  const cityField = document.getElementById("customer-city");
+  const pincodeField = document.getElementById("customer-pincode");
   if (!navigator.geolocation) {
     showToast("Location is not supported by this browser. Enter your address manually.");
     return;
@@ -2149,18 +2152,13 @@ async function useCurrentLocation() {
       if (!response.ok) throw new Error("Address lookup failed.");
       const data = await response.json();
       const a = data.address || {};
-      const parts = [
-        [a.house_number, a.road].filter(Boolean).join(" "),
-        a.neighbourhood || a.suburb || a.residential,
-        a.village || a.town || a.city || a.municipality,
-        a.county,
-        a.state,
-        a.postcode,
-        a.country
-      ].filter(Boolean);
-      if (!parts.length) throw new Error("No address details were found.");
-      addressField.value = [...new Set(parts)].join(", ");
-      addressField.dispatchEvent(new Event("input", { bubbles: true }));
+      const street = [a.house_number, a.road, a.neighbourhood || a.suburb || a.residential].filter(Boolean).join(", ");
+      const city = a.city || a.town || a.village || a.municipality || a.county || "";
+      const pincode = a.postcode || "";
+      if (!street && !city && !pincode) throw new Error("No address details were found.");
+      if (street) streetField.value = street;
+      if (city) cityField.value = city;
+      if (pincode) pincodeField.value = pincode.replace(/\D/g, "").slice(0, 6);
       showToast("Address filled. Please check it before ordering.");
     } catch (error) {
       showToast("Could not find the full address. Please enter it manually.");
@@ -2188,7 +2186,10 @@ async function submitOrder(event) {
 
   const name = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
-  const address = document.getElementById("customer-address").value.trim();
+  const street = document.getElementById("customer-street").value.trim();
+  const city = document.getElementById("customer-city").value.trim();
+  const pincode = document.getElementById("customer-pincode").value.trim();
+  const address = `Street line: ${street}, City: ${city}, PIN code: ${pincode}`;
 
   try {
     if (!cart.length) throw new Error("Your bag is empty.");
@@ -2378,6 +2379,16 @@ body { background:#fff; color:#151515; }
 #shop .product-category, .product-category { color: #527500 !important; opacity: 1 !important; }
 </style>
 
+
+<style id="velzo-order-button-visibility-fix">
+/* Keep the checkout/order controls visible and easy to find */
+#cart-content .checkout-fields { display:flex !important; flex-direction:column; gap:12px; width:100%; }
+#cart-content .checkout-fields button[type="submit"] { display:block !important; visibility:visible !important; opacity:1 !important; width:100%; min-height:52px; margin:8px 0 0; background:#c8ff3d !important; color:#151515 !important; border:2px solid #151515 !important; border-radius:999px; font-weight:900; letter-spacing:1px; cursor:pointer; position:relative; z-index:2; }
+#cart-content .checkout-fields button[type="submit"]:disabled { opacity:.7 !important; cursor:wait; }
+#cart-content button[onclick="showCheckout()"] { display:block !important; visibility:visible !important; opacity:1 !important; width:100%; min-height:50px; }
+#cart-content .checkout-fields button[type="button"] { display:block; width:100%; min-height:48px; }
+</style>
+
 </body>
 </html>
 
@@ -2399,4 +2410,11 @@ body { background:#fff; color:#151515; }
   .header .nav a:not(.cart-button):hover {
     color: #84b900 !important;
   }
+</style>
+
+<style id="velzo-order-nav-button-fix">
+.header .nav { display:flex; align-items:center; gap:16px; }
+.header .order-nav-button { display:inline-flex !important; align-items:center; justify-content:center; min-height:48px; padding:0 22px; border:2px solid #151515; border-radius:999px; background:#c8ff3d; color:#151515; font-size:12px; font-weight:900; letter-spacing:1px; cursor:pointer; visibility:visible; opacity:1; }
+.header .order-nav-button:hover { background:#151515; color:#fff; }
+@media(max-width:560px) { .header .nav { gap:7px; } .header .order-nav-button { min-height:42px; padding:0 12px; font-size:11px; } }
 </style>
