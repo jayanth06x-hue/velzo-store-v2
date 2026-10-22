@@ -1680,6 +1680,7 @@ body { background:#e9e7e2; }
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
       <a class="optional-link" href="#about">Our story</a>
+      <button class="order-nav-button" onclick="openCart()" aria-label="Open order options">Order</button>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
       </button>
@@ -1784,6 +1785,7 @@ const db = window.supabase.createClient(
 );
 
 let PRODUCTS = [];
+let PAYMENT_SETTINGS = {upi_enabled:true,cod_enabled:true,upi_id:"",payee_name:"Velzo Collections",qr_image_url:"",fixed_amount:null,instructions:""};
 let cart = readCart();
 const selectedSizes = {};
 const selectedColors = {};
@@ -2115,10 +2117,25 @@ function renderCart() {
       onclick="closeCart()">CONTINUE SHOPPING</button>`;
 }
 
-function showCheckout() {
+async function showCheckout() {
   if (!cart.length) return showToast("Your bag is empty.");
+  const target = document.getElementById("cart-content");
+  target.innerHTML = '<h2 id="cart-title">Delivery details</h2><p>Loading payment options…</p>';
+  try {
+    const {data, error} = await db.from("velzo_payment_settings")
+      .select("id,upi_id,payee_name,qr_image_url,fixed_amount,instructions,upi_enabled,cod_enabled")
+      .eq("id",1).maybeSingle();
+    if (!error && data) PAYMENT_SETTINGS = {...PAYMENT_SETTINGS, ...data};
+    else if (error) console.warn("Could not load payment settings:", error.message);
+  } catch (e) { console.warn("Payment settings unavailable:", e); }
 
-  document.getElementById("cart-content").innerHTML = `
+  const upiAvailable = PAYMENT_SETTINGS.upi_enabled && PAYMENT_SETTINGS.upi_id && Number(PAYMENT_SETTINGS.fixed_amount) > 0;
+  const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2),cu:"INR",tn:"Velzo Collections payment"}).toString() : "";
+  const qrImage = qrPayload ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrPayload) : (PAYMENT_SETTINGS.qr_image_url || "");
+  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
+    ${PAYMENT_SETTINGS.cod_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="COD" ${!upiAvailable ? "checked" : ""} style="width:auto"> <span><strong>Cash on Delivery</strong><br><small>Pay when your order arrives.</small></span></label>` : ""}
+    ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a></div>` : ""}`;
+  target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
     <p class="subtext">Your order will be saved before you notify the store.</p>
     <form class="checkout-fields" onsubmit="submitOrder(event)">
@@ -2133,7 +2150,9 @@ function showCheckout() {
       <input id="customer-street" autocomplete="street-address" placeholder="Street line / house / area" maxlength="250" required>
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
-      <p><strong>Subtotal: ${money(cartTotal())}</strong></p>
+      <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
+      <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
+      ${upiAvailable && Math.abs(Number(PAYMENT_SETTINGS.fixed_amount)-cartTotal()) > 0.009 ? `<p style="color:#9a3412;background:#fff7ed;padding:10px;border-radius:8px;font-size:12px">Note: The configured QR is fixed at ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}, but this bag subtotal is ${money(cartTotal())}. Only select UPI if the fixed amount is correct for this payment.</p>` : ''}
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
       </button>
@@ -2204,6 +2223,7 @@ async function submitOrder(event) {
   const street = document.getElementById("customer-street").value.trim();
   const city = document.getElementById("customer-city").value.trim();
   const pincode = document.getElementById("customer-pincode").value.trim();
+  const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "Not selected";
   const address = `Street line: ${street}, City: ${city}, PIN code: ${pincode}`;
 
   try {
@@ -2239,6 +2259,7 @@ async function submitOrder(event) {
       ...savedItems,
       "",
       `Total: ${money(order.total)}`,
+      `Payment method selected: ${paymentMethod}`,
       `Name: ${name}`,
       `Phone: ${phone}`,
       `Address: ${address}`,
@@ -2260,6 +2281,8 @@ async function submitOrder(event) {
       <p>Your order has been saved.</p>
       <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
       <p><strong>Total:</strong> ${money(order.total)}</p>
+      <p><strong>Payment method:</strong> ${escapeHTML(paymentMethod)}</p>
+      ${paymentMethod === "UPI" ? `<p class="subtext">Please ensure you paid ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)} to ${escapeHTML(PAYMENT_SETTINGS.upi_id)}. The store must verify receipt before confirming payment.</p>` : ""}
       <p class="subtext">
         ${validWhatsApp
           ? "You can also notify the store through WhatsApp."
@@ -2431,7 +2454,12 @@ body { background:#fff; color:#151515; }
   }
 </style>
 
-
+<style id="velzo-order-nav-button-fix">
+.header .nav { display:flex; align-items:center; gap:16px; }
+.header .order-nav-button { display:inline-flex !important; align-items:center; justify-content:center; min-height:48px; padding:0 22px; border:2px solid #151515; border-radius:999px; background:#c8ff3d; color:#151515; font-size:12px; font-weight:900; letter-spacing:1px; cursor:pointer; visibility:visible; opacity:1; }
+.header .order-nav-button:hover { background:#151515; color:#fff; }
+@media(max-width:560px) { .header .nav { gap:7px; } .header .order-nav-button { min-height:42px; padding:0 12px; font-size:11px; } }
+</style>
 
 <!-- VELZO ACCOUNT AND CUSTOMER CARE -->
 <style id="velzo-account-care-styles">
@@ -2449,9 +2477,7 @@ body { background:#fff; color:#151515; }
 .velzo-account-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .velzo-account-actions button{padding:10px 12px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
 #velzo-account-message{overflow-wrap:anywhere;font-size:13px;min-height:20px}
-@media(max-width:700px){.header{gap:8px;padding:13px 3%;align-items:flex-start}.header .logo{font-size:22px}.header .nav{gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:74%}.header .nav a,.header .nav button{font-size:11px}.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{padding:9px 10px;min-height:38px}.header .nav .velzo-care-nav{display:inline-flex!important;visibility:visible!important;opacity:1!important;background:#151515!important;color:#fff!important;border:2px solid #c8ff3d!important;box-shadow:0 2px 8px #0002}}
-.header .nav .velzo-care-nav{display:inline-flex!important;visibility:visible!important;opacity:1!important;background:#151515!important;color:#fff!important;border:2px solid #c8ff3d!important;position:relative;z-index:2}
-@media(max-width:420px){.header .nav{max-width:100%;width:100%;justify-content:flex-start}.header{flex-wrap:wrap}.header .nav .velzo-care-nav{order:10}}
+@media(max-width:700px){.header{gap:8px;padding:13px 3%}.header .logo{font-size:22px}.header .nav{gap:6px;flex-wrap:wrap;justify-content:flex-end}.header .nav a,.header .nav button{font-size:11px}.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{padding:8px 9px;min-height:36px}}
 </style>
 
 <div id="velzo-account-overlay" role="dialog" aria-modal="true" aria-labelledby="velzo-account-title" onclick="if(event.target===this)velzoCloseAccount()">
@@ -2510,13 +2536,6 @@ body { background:#fff; color:#151515; }
 .velzo-order-card,.velzo-address-card{border:1px solid #e5e5e5;border-radius:12px;padding:13px;margin:10px 0;background:#fff}
 .velzo-order-card p,.velzo-address-card p{margin:5px 0;overflow-wrap:anywhere}
 .velzo-order-card strong{color:#151515}
-.velzo-order-status{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.4px;background:#f1f1f1;color:#333}
-.velzo-order-status.is-packed{background:#dcfce7;color:#166534}
-.velzo-order-status.is-delivered{background:#dbeafe;color:#1d4ed8}
-.velzo-order-status.is-return{background:#fef3c7;color:#92400e}
-.velzo-return-button{margin-top:9px;padding:10px 14px;border:1px solid #151515;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900;cursor:pointer}
-.velzo-return-button:disabled{opacity:.55;cursor:not-allowed}
-.velzo-return-note{font-size:12px;color:#555}
 .velzo-address-card button{margin-top:8px;padding:8px 11px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
 </style>
 
@@ -2593,64 +2612,20 @@ body { background:#fff; color:#151515; }
     if (!currentUser) { target.innerHTML = '<p>Please log in to see your orders.</p>'; return; }
     target.innerHTML = '<p>Loading your orders…</p>';
     try {
-      const {data, error} = await db.from('orders').select('id,created_at,items,total,status,delivered_at').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+      const {data, error} = await db.from('orders').select('id,created_at,items,total,status').eq('user_id', currentUser.id).order('created_at',{ascending:false});
       if (error) throw error;
       if (!data || !data.length) {
         target.innerHTML = '<p>No orders linked to this account yet. Orders placed before customer-account linking may not appear here.</p>';
         return;
       }
-      const returnResults = await Promise.all(data.map(async order => {
-        try {
-          const {data: requests, error: returnError} = await db.from('return_requests').select('id,status,created_at').eq('order_id', order.id).order('created_at',{ascending:false}).limit(1);
-          if (returnError) return {order, request:null, returnTableUnavailable:true};
-          return {order, request:requests && requests[0] ? requests[0] : null, returnTableUnavailable:false};
-        } catch (_) { return {order, request:null, returnTableUnavailable:true}; }
-      }));
-      target.innerHTML = returnResults.map(({order,request,returnTableUnavailable}) => {
+      target.innerHTML = data.map(order => {
         const date = order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable';
         const items = Array.isArray(order.items) ? order.items.map(i => `${escapeHtml(i.name || 'Item')} × ${Number(i.qty || 1)}`).join(', ') : 'Order items';
-        const rawStatus = String(order.status || 'Placed');
-        const normalized = rawStatus.toLowerCase();
-        const statusClass = normalized === 'packed' ? 'is-packed' : normalized === 'delivered' ? 'is-delivered' : '';
-        let returnArea = '';
-        if (request) {
-          returnArea = `<p><strong>Return:</strong> <span class="velzo-order-status is-return">${escapeHtml(request.status || 'Requested')}</span></p>`;
-        } else if (normalized === 'delivered' && order.delivered_at) {
-          const deadline = new Date(order.delivered_at).getTime() + 72*60*60*1000;
-          const remaining = deadline - Date.now();
-          if (remaining > 0) {
-            const hours = Math.floor(remaining/3600000), minutes = Math.floor((remaining%3600000)/60000);
-            returnArea = `<p class="velzo-return-note">Return window: ${hours}h ${minutes}m remaining (within 3 days of delivery).</p><button class="velzo-return-button" type="button" onclick="velzoRequestReturn('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}')">Request Return</button>`;
-          } else returnArea = '<p class="velzo-return-note">The 3-day return window has ended.</p>';
-        } else if (normalized === 'delivered') {
-          returnArea = '<p class="velzo-return-note">Return timing will appear after delivery date is recorded by the store.</p>';
-        }
-        if (returnTableUnavailable && normalized === 'delivered' && !returnArea) returnArea = '<p class="velzo-return-note">Return requests are not configured yet. The store admin must enable the return-request table.</p>';
-        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> <span class="velzo-order-status ${statusClass}">${escapeHtml(rawStatus)}</span></p>${returnArea}</article>`;
+        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(order.status || 'Placed')}</p></article>`;
       }).join('');
     } catch(e) {
       target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
       msg.textContent = e.message || 'Could not load orders.';
-    }
-  };
-
-  window.velzoRequestReturn = async function(orderId){
-    if(!currentUser){msg.textContent='Please log in first.';return;}
-    const reason = window.prompt('Please tell us why you want to return this order:');
-    if(reason === null) return;
-    if(!reason.trim()){msg.textContent='Please enter a return reason.';return;}
-    msg.textContent='Submitting return request…';
-    try {
-      const {data:order,error:orderError} = await db.from('orders').select('id,status,delivered_at').eq('id',orderId).eq('user_id',currentUser.id).single();
-      if(orderError) throw orderError;
-      if(String(order.status || '').toLowerCase() !== 'delivered' || !order.delivered_at) throw new Error('This order is not eligible yet. The store must mark it Delivered and record the delivery time.');
-      if(Date.now() > new Date(order.delivered_at).getTime() + 72*60*60*1000) throw new Error('The 3-day return window has ended.');
-      const {error} = await db.from('return_requests').insert({order_id:order.id,user_id:currentUser.id,reason:reason.trim(),status:'Requested'});
-      if(error) throw error;
-      msg.textContent='Return request submitted. You can see its status in My Orders.';
-      await velzoLoadOrders();
-    } catch(e) {
-      msg.textContent = e.message || 'Could not submit return request. Check that return_requests and its Supabase policies are configured.';
     }
   };
 
@@ -2780,36 +2755,6 @@ body { background:#fff; color:#151515; }
   }).catch(()=>{});
 })();
 </script>
-
-
-<!-- Keep Customer Care visibly high-contrast even before hover -->
-<style id="velzo-customer-care-visible-fix">
-.header .nav a.velzo-care-nav,
-.header .nav a.velzo-care-nav:link,
-.header .nav a.velzo-care-nav:visited {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  background: #151515 !important;
-  border: 2px solid #c8ff3d !important;
-  text-decoration: none !important;
-  text-shadow: none !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,.18) !important;
-  position: relative !important;
-  z-index: 20 !important;
-}
-.header .nav a.velzo-care-nav:hover,
-.header .nav a.velzo-care-nav:focus-visible {
-  color: #151515 !important;
-  -webkit-text-fill-color: #151515 !important;
-  background: #c8ff3d !important;
-  outline: 2px solid #151515 !important;
-}
-</style>
 
 </body>
 </html>
