@@ -2128,12 +2128,14 @@ async function showCheckout() {
     else if (error) console.warn("Could not load payment settings:", error.message);
   } catch (e) { console.warn("Payment settings unavailable:", e); }
 
-  const upiAvailable = PAYMENT_SETTINGS.upi_enabled && PAYMENT_SETTINGS.upi_id && Number(PAYMENT_SETTINGS.fixed_amount) > 0;
-  const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2),cu:"INR",tn:"Velzo Collections payment"}).toString() : "";
-  const qrImage = qrPayload ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrPayload) : (PAYMENT_SETTINGS.qr_image_url || "");
-  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
+  const checkoutAmount = Number(cartTotal());
+  const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
+  // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
+  const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:checkoutAmount.toFixed(2),cu:"INR",tn:"Velzo Collections order"}).toString() : "";
+  const qrImage = qrPayload ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrPayload) : "";
+  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + checkoutAmount.toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
     ${PAYMENT_SETTINGS.cod_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="COD" ${!upiAvailable ? "checked" : ""} style="width:auto"> <span><strong>Cash on Delivery</strong><br><small>Pay when your order arrives.</small></span></label>` : ""}
-    ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
+    ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${checkoutAmount.toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${checkoutAmount.toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
   target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
     <p class="subtext">Your order will be saved before you notify the store.</p>
@@ -2151,7 +2153,7 @@ async function showCheckout() {
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
       <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
-      ${upiAvailable && Math.abs(Number(PAYMENT_SETTINGS.fixed_amount)-cartTotal()) > 0.009 ? `<p style="color:#9a3412;background:#fff7ed;padding:10px;border-radius:8px;font-size:12px">Note: The configured QR is fixed at ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)}, but this bag subtotal is ${money(cartTotal())}. Only select UPI if the fixed amount is correct for this payment.</p>` : ''}
+      
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
       </button>
@@ -2286,7 +2288,7 @@ async function submitOrder(event) {
       const {error: utrError} = await db.from("payment_confirmations").insert({
         order_id: String(order.order_id),
         utr: submittedUtr,
-        order_amount: Number(PAYMENT_SETTINGS.fixed_amount || order.total || 0),
+        order_amount: Number(order.total || cartTotal()),
         status: "Pending Verification"
       });
       if (utrError) {
@@ -2328,7 +2330,7 @@ async function submitOrder(event) {
 
     const isUpiPayment = /upi|phonepe/i.test(String(paymentMethod));
     window.velzoPendingPaymentOrderId = String(order.order_id);
-    window.velzoPendingPaymentAmount = Number(PAYMENT_SETTINGS.fixed_amount || order.total || 0);
+    window.velzoPendingPaymentAmount = Number(order.total || cartTotal());
     document.getElementById("cart-content").innerHTML = `
       <h2 id="cart-title">Order placed successfully</h2>
       <p>Your order has been saved.</p>
