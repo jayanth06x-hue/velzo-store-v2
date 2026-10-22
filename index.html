@@ -2209,6 +2209,35 @@ async function useCurrentLocation() {
   }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
 }
 
+async function submitPaymentConfirmation(event) {
+  event.preventDefault();
+  const form = document.getElementById("payment-confirmation-form");
+  const input = document.getElementById("payment-utr");
+  const message = document.getElementById("payment-confirmation-message");
+  const button = form?.querySelector('button[type="submit"]');
+  const orderId = String(window.velzoPendingPaymentOrderId || "");
+  const utr = String(input?.value || "").trim();
+  if (!orderId) { if (message) message.textContent = "Order ID is missing. Please contact the store."; return; }
+  if (utr.length < 6 || utr.length > 100) { if (message) message.textContent = "Enter a valid transaction reference (6–100 characters)."; return; }
+  if (button) { button.disabled = true; button.textContent = "SUBMITTING…"; }
+  try {
+    const {error} = await db.from("payment_confirmations").insert({
+      order_id: orderId,
+      utr: utr,
+      order_amount: Number(window.velzoPendingPaymentAmount || 0),
+      status: "Pending Verification"
+    });
+    if (error) throw error;
+    if (message) message.textContent = "Submitted. Payment status: Pending Verification. The store will check the transaction manually.";
+    if (input) input.disabled = true;
+    if (button) button.remove();
+  } catch (error) {
+    console.error("Payment confirmation submission failed:", error);
+    if (message) message.textContent = error.code === "23505" ? "This transaction reference has already been submitted." : "Could not submit payment details. Please contact the store and quote your order ID.";
+    if (button) { button.disabled = false; button.textContent = "SUBMIT PAYMENT DETAILS"; }
+  }
+}
+
 async function submitOrder(event) {
   event.preventDefault();
 
@@ -2276,13 +2305,22 @@ async function submitOrder(event) {
     cart = [];
     saveCart();
 
+    window.velzoPendingPaymentOrderId = String(order.order_id);
+    window.velzoPendingPaymentAmount = Number(PAYMENT_SETTINGS.fixed_amount || order.total || 0);
     document.getElementById("cart-content").innerHTML = `
       <h2 id="cart-title">Order placed successfully</h2>
       <p>Your order has been saved.</p>
       <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
       <p><strong>Total:</strong> ${money(order.total)}</p>
       <p><strong>Payment method:</strong> ${escapeHTML(paymentMethod)}</p>
-      ${paymentMethod === "UPI" ? `<p class="subtext">Please ensure you paid ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)} to ${escapeHTML(PAYMENT_SETTINGS.upi_id)}. The store must verify receipt before confirming payment.</p>` : ""}
+      ${paymentMethod === "UPI" ? `<p class="subtext">Please ensure you paid ₹${Number(PAYMENT_SETTINGS.fixed_amount).toFixed(2)} to ${escapeHTML(PAYMENT_SETTINGS.upi_id)}. The store must verify receipt before confirming payment.</p>
+      <form id="payment-confirmation-form" class="checkout-fields" onsubmit="submitPaymentConfirmation(event)">
+        <label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label>
+        <input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter transaction reference number" required>
+        <p class="subtext">Submitting this number does not confirm payment. The store will verify it manually.</p>
+        <button class="gold-button full-button" type="submit">SUBMIT PAYMENT DETAILS</button>
+        <p id="payment-confirmation-message" class="subtext" role="status" aria-live="polite"></p>
+      </form>` : ""}
       <p class="subtext">
         ${validWhatsApp
           ? "You can also notify the store through WhatsApp."
