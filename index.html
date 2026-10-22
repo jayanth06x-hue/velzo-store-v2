@@ -1684,6 +1684,8 @@ body { background:#e9e7e2; }
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
       </button>
+      <button class="velzo-account-nav" id="velzo-account-btn" type="button" onclick="velzoOpenAccount()">Register / Login</button>
+      <a class="velzo-care-nav" href="https://wa.me/918500716966?text=Hello%20Velzo%20Collections%2C%20I%20need%20customer%20support." target="_blank" rel="noopener noreferrer">Customer Care</a>
     </nav>
   </header>
 
@@ -2409,67 +2411,6 @@ body { background:#fff; color:#151515; }
 .product-details-dialog .product-color-select{margin:10px 0 14px}
 </style>
 
-<!-- VELZO CUSTOMER ACCOUNT + ALWAYS-VISIBLE CUSTOMER CARE -->
-<style>
-#velzo-account-btn,#velzo-care-btn{position:fixed!important;right:12px!important;z-index:99999!important;display:flex!important;align-items:center;justify-content:center;min-height:48px;padding:13px 18px;border-radius:30px;font-size:14px;font-weight:800;line-height:1.2;opacity:1!important;visibility:visible!important;pointer-events:auto!important;box-shadow:0 4px 18px rgba(0,0,0,.25);cursor:pointer}
-#velzo-account-btn{bottom:78px!important;background:#c8ff3d!important;color:#151515!important;border:2px solid #151515!important}
-#velzo-care-btn{bottom:16px!important;background:#151515!important;color:#fff!important;border:2px solid #c8ff3d!important;white-space:nowrap}
-#velzo-auth-box{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:16px}
-#velzo-auth-card{background:#fff;color:#151515;padding:24px;border-radius:16px;width:min(420px,100%);max-height:90vh;overflow:auto;position:relative;box-shadow:0 15px 60px #0005}
-#velzo-auth-card input{display:block;width:100%;margin:10px 0;padding:13px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#111;font-size:16px}
-#velzo-auth-card button{padding:12px;border:0;border-radius:8px;cursor:pointer;font-size:14px}
-#velzo-auth-submit{width:100%;background:#c8ff3d;color:#151515;font-weight:800}
-#velzo-auth-card .velzo-secondary{background:#eee;color:#111;margin:5px 3px}
-#velzo-auth-message{font-size:13px;overflow-wrap:anywhere;line-height:1.5}
-@media(max-width:480px){#velzo-account-btn,#velzo-care-btn{right:10px!important;font-size:13px;padding:12px 15px}#velzo-account-btn{bottom:74px!important}#velzo-care-btn{bottom:14px!important}}
-</style>
-<button id="velzo-account-btn" type="button">Register / Login</button>
-<button id="velzo-care-btn" type="button">WhatsApp Customer Care</button>
-<div id="velzo-auth-box" role="dialog" aria-modal="true" aria-labelledby="velzo-auth-title">
- <section id="velzo-auth-card">
-  <button id="velzo-auth-close" type="button" style="float:right;background:#eee;color:#111">✕ Close</button>
-  <h2 id="velzo-auth-title">Create Your Account</h2>
-  <p>Create an account or sign in to Velzo Collections.</p>
-  <form id="velzo-auth-form">
-   <input id="velzo-name" type="text" placeholder="Full name" autocomplete="name" maxlength="100">
-   <input id="velzo-email" type="email" placeholder="Email address" autocomplete="email" required>
-   <input id="velzo-password" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required>
-   <button id="velzo-auth-submit" type="submit">CREATE ACCOUNT</button>
-  </form>
-  <button class="velzo-secondary" id="velzo-login-mode" type="button">Login</button>
-  <button class="velzo-secondary" id="velzo-register-mode" type="button">Register</button>
-  <button class="velzo-secondary" id="velzo-reset-password" type="button">Forgot password?</button>
-  <button class="velzo-secondary" id="velzo-sign-out" type="button">Sign out</button>
-  <p id="velzo-auth-message" role="status" aria-live="polite"></p>
- </section>
-</div>
-<script>
-(function(){
-  const box=document.getElementById('velzo-auth-box');
-  const msg=document.getElementById('velzo-auth-message');
-  const nameField=document.getElementById('velzo-name');
-  const emailField=document.getElementById('velzo-email');
-  const passField=document.getElementById('velzo-password');
-  const submit=document.getElementById('velzo-auth-submit');
-  let mode='register';
-  function setMode(next){mode=next;document.getElementById('velzo-auth-title').textContent=next==='register'?'Create Your Account':'Welcome Back';nameField.style.display=next==='register'?'block':'none';passField.style.display='block';submit.textContent=next==='register'?'CREATE ACCOUNT':'LOGIN';passField.autocomplete=next==='register'?'new-password':'current-password';msg.textContent='';}
-  async function updateButton(){try{const {data:{session}}=await db.auth.getSession();document.getElementById('velzo-account-btn').textContent=session?'My Account':'Register / Login';}catch(e){document.getElementById('velzo-account-btn').textContent='Register / Login';}}
-  document.getElementById('velzo-account-btn').addEventListener('click',async()=>{box.style.display='flex';try{const {data:{session}}=await db.auth.getSession();if(session){setMode('login');msg.textContent='Signed in as '+session.user.email;}else setMode('register');}catch(e){setMode('register');}});
-  document.getElementById('velzo-care-btn').addEventListener('click',()=>{window.open('https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent('Hello Velzo Collections, I need customer support.'),'_blank','noopener,noreferrer');});
-  document.getElementById('velzo-auth-close').addEventListener('click',()=>{box.style.display='none';});
-  box.addEventListener('click',e=>{if(e.target===box)box.style.display='none';});
-  document.getElementById('velzo-login-mode').addEventListener('click',()=>setMode('login'));
-  document.getElementById('velzo-register-mode').addEventListener('click',()=>setMode('register'));
-  document.getElementById('velzo-auth-form').addEventListener('submit',async e=>{e.preventDefault();submit.disabled=true;msg.textContent='Please wait…';try{let result;if(mode==='register'){result=await db.auth.signUp({email:emailField.value.trim(),password:passField.value,options:{data:{full_name:nameField.value.trim()}}});}else{result=await db.auth.signInWithPassword({email:emailField.value.trim(),password:passField.value});}if(result.error)throw result.error;msg.textContent=mode==='register'?'Account request successful. Check your email if confirmation is required.':'Login successful.';await updateButton();}catch(err){msg.textContent=err.message||'Something went wrong. Please try again.';}finally{submit.disabled=false;}});
-  document.getElementById('velzo-reset-password').addEventListener('click',async()=>{const email=emailField.value.trim();if(!email){msg.textContent='Enter your email address first.';return;}msg.textContent='Sending reset instructions…';try{const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});if(error)throw error;msg.textContent='If the email is registered, password reset instructions will be sent.';}catch(err){msg.textContent=err.message||'Could not send reset email.';}});
-  document.getElementById('velzo-sign-out').addEventListener('click',async()=>{try{const {data:{session}}=await db.auth.getSession();if(!session){msg.textContent='You are not signed in.';return;}const {error}=await db.auth.signOut();if(error)throw error;msg.textContent='Signed out successfully.';await updateButton();}catch(err){msg.textContent=err.message||'Could not sign out.';}});
-  db.auth.onAuthStateChange(()=>{updateButton();});updateButton();
-})();
-</script>
-<!-- END VELZO CUSTOMER ACCOUNT + CUSTOMER CARE -->
-
-</body>
-</html>
 
 <style id="velzo-header-contrast-fix">
   /* Improve readability of the logo and navigation on the white header */
@@ -2497,3 +2438,301 @@ body { background:#fff; color:#151515; }
 .header .order-nav-button:hover { background:#151515; color:#fff; }
 @media(max-width:560px) { .header .nav { gap:7px; } .header .order-nav-button { min-height:42px; padding:0 12px; font-size:11px; } }
 </style>
+
+<!-- VELZO ACCOUNT AND CUSTOMER CARE -->
+<style id="velzo-account-care-styles">
+.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 13px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;text-decoration:none;cursor:pointer}
+.header .nav .velzo-account-nav{border:1px solid #151515;background:#c8ff3d;color:#151515}
+.header .nav .velzo-care-nav{border:1px solid #151515;background:#151515;color:#fff}
+#velzo-account-overlay{display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.68);align-items:center;justify-content:center;padding:16px}
+#velzo-account-card{position:relative;width:min(430px,100%);max-height:90vh;overflow:auto;background:#fff;color:#151515;border-radius:18px;padding:25px;box-shadow:0 20px 70px #0005}
+#velzo-account-card h2{margin:0 36px 8px 0;color:#151515}
+#velzo-account-card p{color:#555;line-height:1.5}
+#velzo-account-card input{display:block;width:100%;padding:13px;margin:10px 0;border:1px solid #d4d4d4;border-radius:9px;background:#fff;color:#151515}
+#velzo-account-card button{cursor:pointer}
+#velzo-account-close{position:absolute;right:15px;top:15px;border:0;border-radius:50%;width:35px;height:35px;background:#eee;color:#111;font-size:22px}
+#velzo-account-submit{width:100%;padding:14px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900;margin:6px 0}
+.velzo-account-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.velzo-account-actions button{padding:10px 12px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
+#velzo-account-message{overflow-wrap:anywhere;font-size:13px;min-height:20px}
+@media(max-width:700px){.header{gap:8px;padding:13px 3%}.header .logo{font-size:22px}.header .nav{gap:6px;flex-wrap:wrap;justify-content:flex-end}.header .nav a,.header .nav button{font-size:11px}.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{padding:8px 9px;min-height:36px}}
+</style>
+
+<div id="velzo-account-overlay" role="dialog" aria-modal="true" aria-labelledby="velzo-account-title" onclick="if(event.target===this)velzoCloseAccount()">
+  <section id="velzo-account-card">
+    <button id="velzo-account-close" type="button" onclick="velzoCloseAccount()" aria-label="Close">×</button>
+    <h2 id="velzo-account-title">Create your Velzo account</h2>
+    <p id="velzo-account-intro">Register to create your customer account, or sign in if you already have one.</p>
+
+    <div id="velzo-auth-view">
+      <form id="velzo-account-form">
+        <input id="velzo-account-name" type="text" autocomplete="name" placeholder="Full name" maxlength="100">
+        <input id="velzo-account-email" type="email" autocomplete="email" placeholder="Email address" required>
+        <input id="velzo-account-password" type="password" autocomplete="new-password" placeholder="Password (at least 6 characters)" minlength="6" required>
+        <button id="velzo-account-submit" type="submit">CREATE ACCOUNT</button>
+      </form>
+      <div class="velzo-account-actions" id="velzo-auth-actions">
+        <button type="button" onclick="velzoSetAccountMode('register')">Register</button>
+        <button type="button" onclick="velzoSetAccountMode('login')">Login</button>
+        <button type="button" onclick="velzoForgotPassword()">Forgot password?</button>
+      </div>
+    </div>
+
+    <div id="velzo-customer-view" style="display:none">
+      <p id="velzo-signed-in-email" class="velzo-account-email"></p>
+      <div class="velzo-account-actions velzo-account-tabs">
+        <button type="button" onclick="velzoShowAccountSection('orders')">My Orders</button>
+        <button type="button" onclick="velzoShowAccountSection('addresses')">Saved Addresses</button>
+        <button type="button" onclick="velzoSignOut()">Sign out</button>
+      </div>
+      <section id="velzo-account-orders" class="velzo-account-section">
+        <h3>My Orders</h3>
+        <div id="velzo-orders-list"><p>Loading your orders…</p></div>
+      </section>
+      <section id="velzo-account-addresses" class="velzo-account-section" style="display:none">
+        <h3>Saved Addresses</h3>
+        <form id="velzo-address-form">
+          <input id="velzo-address-label" type="text" maxlength="40" placeholder="Address name (e.g. Home)" required>
+          <textarea id="velzo-address-text" maxlength="500" placeholder="House / street, area, city, state and PIN code" required></textarea>
+          <button id="velzo-address-save" type="submit">SAVE ADDRESS</button>
+        </form>
+        <div id="velzo-address-list"><p>Loading saved addresses…</p></div>
+      </section>
+    </div>
+    <p id="velzo-account-message" role="status" aria-live="polite"></p>
+  </section>
+</div>
+
+<style id="velzo-account-sections-style">
+#velzo-account-card .velzo-account-tabs{margin:16px 0}
+#velzo-account-card .velzo-account-tabs button{background:#151515;color:#fff;border-color:#151515}
+#velzo-account-card .velzo-account-section{border-top:1px solid #e8e8e8;margin-top:16px;padding-top:12px}
+#velzo-account-card .velzo-account-section h3{color:#151515;margin:8px 0 12px}
+#velzo-account-card .velzo-account-email{overflow-wrap:anywhere;background:#f5f5f5;border-radius:9px;padding:10px}
+#velzo-account-card textarea{display:block;width:100%;min-height:100px;resize:vertical;padding:13px;margin:10px 0;border:1px solid #d4d4d4;border-radius:9px;background:#fff;color:#151515;font:inherit}
+#velzo-address-save{width:100%;padding:12px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900}
+.velzo-order-card,.velzo-address-card{border:1px solid #e5e5e5;border-radius:12px;padding:13px;margin:10px 0;background:#fff}
+.velzo-order-card p,.velzo-address-card p{margin:5px 0;overflow-wrap:anywhere}
+.velzo-order-card strong{color:#151515}
+.velzo-address-card button{margin-top:8px;padding:8px 11px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
+</style>
+
+<script>
+(function(){
+  let mode = 'register';
+  let currentUser = null;
+  const $ = id => document.getElementById(id);
+  const overlay = $('velzo-account-overlay');
+  const msg = $('velzo-account-message');
+  const emailInput = $('velzo-account-email');
+  const passwordInput = $('velzo-account-password');
+  const nameInput = $('velzo-account-name');
+  const submit = $('velzo-account-submit');
+  const title = $('velzo-account-title');
+  const intro = $('velzo-account-intro');
+  const accountButton = $('velzo-account-btn');
+
+  function setSignedInView(session) {
+    currentUser = session && session.user ? session.user : null;
+    const signedIn = !!currentUser;
+    $('velzo-auth-view').style.display = signedIn ? 'none' : 'block';
+    $('velzo-customer-view').style.display = signedIn ? 'block' : 'none';
+    accountButton.textContent = signedIn ? 'My Account' : 'Register / Login';
+    title.textContent = signedIn ? 'My Account' : (mode === 'login' ? 'Welcome back' : 'Create your Velzo account');
+    intro.textContent = signedIn ? 'Manage your orders and saved delivery addresses.' : (mode === 'login' ? 'Sign in using your registered email and password.' : 'Register with your name, email and password.');
+    $('velzo-signed-in-email').textContent = signedIn ? 'Logged in as ' + (currentUser.email || 'your account') : '';
+    if (signedIn) velzoShowAccountSection('orders');
+  }
+
+  window.velzoOpenAccount = async function(){
+    overlay.style.display = 'flex';
+    msg.textContent = '';
+    try {
+      const {data:{session}, error} = await db.auth.getSession();
+      if(error) throw error;
+      if(session) {
+        setSignedInView(session);
+        await velzoLoadOrders();
+      } else {
+        setSignedInView(null);
+        velzoSetAccountMode('register');
+      }
+    } catch(e) {
+      msg.textContent = 'Could not check your session: ' + (e.message || 'Please refresh and try again.');
+    }
+  };
+  window.velzoCloseAccount = function(){overlay.style.display='none';};
+  window.velzoSetAccountMode = function(nextMode){
+    mode = nextMode === 'login' ? 'login' : 'register';
+    title.textContent = mode === 'register' ? 'Create your Velzo account' : 'Welcome back';
+    intro.textContent = mode === 'register' ? 'Register with your name, email and password.' : 'Sign in using your registered email and password.';
+    nameInput.style.display = mode === 'register' ? 'block' : 'none';
+    nameInput.required = mode === 'register';
+    passwordInput.style.display = 'block';
+    passwordInput.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+    submit.style.display = 'block';
+    submit.textContent = mode === 'register' ? 'CREATE ACCOUNT' : 'LOGIN';
+    $('velzo-auth-view').style.display = 'block';
+    $('velzo-customer-view').style.display = 'none';
+    msg.textContent = '';
+  };
+
+  window.velzoShowAccountSection = async function(section){
+    const orders = section === 'orders';
+    $('velzo-account-orders').style.display = orders ? 'block' : 'none';
+    $('velzo-account-addresses').style.display = orders ? 'none' : 'block';
+    if (orders) await velzoLoadOrders();
+    else await velzoLoadAddresses();
+  };
+
+  window.velzoLoadOrders = async function(){
+    const target = $('velzo-orders-list');
+    if (!currentUser) { target.innerHTML = '<p>Please log in to see your orders.</p>'; return; }
+    target.innerHTML = '<p>Loading your orders…</p>';
+    try {
+      const {data, error} = await db.from('orders').select('id,created_at,items,total,status').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+      if (error) throw error;
+      if (!data || !data.length) {
+        target.innerHTML = '<p>No orders linked to this account yet. Orders placed before customer-account linking may not appear here.</p>';
+        return;
+      }
+      target.innerHTML = data.map(order => {
+        const date = order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable';
+        const items = Array.isArray(order.items) ? order.items.map(i => `${escapeHtml(i.name || 'Item')} × ${Number(i.qty || 1)}`).join(', ') : 'Order items';
+        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(order.status || 'Placed')}</p></article>`;
+      }).join('');
+    } catch(e) {
+      target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
+      msg.textContent = e.message || 'Could not load orders.';
+    }
+  };
+
+  window.velzoLoadAddresses = async function(){
+    const target = $('velzo-address-list');
+    if (!currentUser) { target.innerHTML = '<p>Please log in to manage addresses.</p>'; return; }
+    target.innerHTML = '<p>Loading saved addresses…</p>';
+    try {
+      const {data,error} = await db.from('customer_addresses').select('id,label,address,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+      if(error) throw error;
+      if(!data || !data.length){target.innerHTML='<p>No saved addresses yet. Add one above.</p>';return;}
+      target.innerHTML = data.map(a => `<article class="velzo-address-card"><p><strong>${escapeHtml(a.label || 'Address')}</strong></p><p>${escapeHtml(a.address || '')}</p><button type="button" onclick="velzoUseAddress('${String(a.id).replace(/[^a-zA-Z0-9-]/g,'')}')">Use at checkout</button> <button type="button" onclick="velzoDeleteAddress('${String(a.id).replace(/[^a-zA-Z0-9-]/g,'')}')">Delete</button></article>`).join('');
+      window.velzoAddressCache = data;
+    } catch(e) {
+      target.innerHTML = '<p>Saved addresses need the customer_addresses table in Supabase. Run the setup SQL provided with this file.</p>';
+      msg.textContent = e.message || 'Could not load saved addresses.';
+    }
+  };
+
+  window.velzoUseAddress = function(id){
+    const a = (window.velzoAddressCache || []).find(x => String(x.id) === String(id));
+    if(!a) return;
+    // Store the chosen address for the existing checkout flow without changing its layout.
+    try { sessionStorage.setItem('velzo-selected-address', a.address); } catch(e) {}
+    msg.textContent = 'Address selected. Paste/use it in the delivery address field at checkout.';
+    velzoCloseAccount();
+  };
+
+  window.velzoDeleteAddress = async function(id){
+    if(!currentUser || !confirm('Delete this saved address?')) return;
+    try {
+      const {error} = await db.from('customer_addresses').delete().eq('id',id).eq('user_id',currentUser.id);
+      if(error) throw error;
+      msg.textContent = 'Address deleted.';
+      await velzoLoadAddresses();
+    } catch(e) { msg.textContent = e.message || 'Could not delete address.'; }
+  };
+
+  $('velzo-address-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(!currentUser){msg.textContent='Please log in first.';return;}
+    const label = $('velzo-address-label').value.trim();
+    const address = $('velzo-address-text').value.trim();
+    if(label.length < 1 || address.length < 8){msg.textContent='Enter an address name and complete delivery address.';return;}
+    const button = $('velzo-address-save');
+    button.disabled = true;
+    try {
+      const {error} = await db.from('customer_addresses').insert({user_id:currentUser.id,label,address});
+      if(error) throw error;
+      $('velzo-address-form').reset();
+      msg.textContent='Address saved.';
+      await velzoLoadAddresses();
+    } catch(e) { msg.textContent=e.message || 'Could not save address. Check Supabase table and policies.'; }
+    finally { button.disabled=false; }
+  });
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  $('velzo-account-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    submit.disabled = true;
+    submit.style.opacity = '.65';
+    msg.textContent = mode === 'register' ? 'Creating account…' : 'Signing in…';
+    try {
+      let result;
+      if(mode === 'register'){
+        result = await db.auth.signUp({
+          email: emailInput.value.trim(),
+          password: passwordInput.value,
+          options: { data: {full_name: nameInput.value.trim()}, emailRedirectTo: window.location.origin }
+        });
+      } else {
+        result = await db.auth.signInWithPassword({email:emailInput.value.trim(),password:passwordInput.value});
+      }
+      if(result.error) throw result.error;
+      if(mode === 'register' && !result.data.session) {
+        msg.textContent = 'Registration submitted. Check your email to confirm your account, then log in.';
+      } else {
+        msg.textContent = mode === 'register' ? 'Account created successfully.' : 'Login successful.';
+        const {data:{session}} = await db.auth.getSession();
+        if(session) {
+          setSignedInView(session);
+          await velzoLoadOrders();
+        }
+      }
+    } catch(err) {
+      msg.textContent = err.message || 'Something went wrong. Please try again.';
+    } finally {
+      submit.disabled = false;
+      submit.style.opacity = '1';
+    }
+  });
+
+  window.velzoForgotPassword = async function(){
+    const email = emailInput.value.trim();
+    if(!email){msg.textContent='Enter your email address first, then select Forgot password.';emailInput.focus();return;}
+    msg.textContent='Sending reset instructions…';
+    try {
+      const {error} = await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+      if(error) throw error;
+      msg.textContent='If this email is registered, password reset instructions will be sent. Check your inbox and spam folder.';
+    } catch(err){msg.textContent=err.message || 'Could not send reset email.';}
+  };
+
+  window.velzoSignOut = async function(){
+    try {
+      const {error} = await db.auth.signOut();
+      if(error) throw error;
+      currentUser = null;
+      mode='register';
+      accountButton.textContent='Register / Login';
+      setSignedInView(null);
+      velzoSetAccountMode('login');
+      msg.textContent='You have signed out.';
+    } catch(err){msg.textContent=err.message || 'Sign out failed.';}
+  };
+
+  db.auth.onAuthStateChange((_event, session)=>{
+    currentUser = session && session.user ? session.user : null;
+    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
+  });
+  db.auth.getSession().then(({data})=>{
+    currentUser = data.session && data.session.user ? data.session.user : null;
+    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
+  }).catch(()=>{});
+})();
+</script>
+
+</body>
+</html>
