@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#111111">
 <title>Velzo Collections | Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--black:#111;--gold:#d4b16a;--cream:#f7f5f0;--line:#e8e5de;--muted:#747474}
 *{box-sizing:border-box}
@@ -242,6 +243,16 @@ button.danger { background:#8d302b; color:#fff; }
           <input id="paymentPayeeName" class="full" placeholder="Velzo Collections" maxlength="120">
           <label class="full" for="paymentQrUrl">Existing QR image URL (optional)</label>
           <input id="paymentQrUrl" class="full" type="url" placeholder="https://.../phonepe-qr.png">
+          <label class="full" for="paymentFixedAmount">Fixed QR amount (₹)</label>
+          <input id="paymentFixedAmount" class="full" type="number" min="1" max="1000000" step="0.01" placeholder="e.g. 499">
+          <div class="full actions">
+            <button class="gold" type="button" id="generatePaymentQr">GENERATE AMOUNT QR</button>
+            <button class="secondary" type="button" id="downloadPaymentQr" disabled>DOWNLOAD QR PNG</button>
+          </div>
+          <div id="paymentQrPreview" class="full" style="display:none;padding:18px;border:1px solid #e8e5de;text-align:center;border-radius:6px">
+            <div id="paymentQrCode" style="display:inline-block;background:#fff;padding:12px"></div>
+            <p id="paymentQrSummary" class="muted"></p>
+          </div>
           <label class="full" for="paymentInstructions">Payment instructions</label>
           <textarea id="paymentInstructions" class="full" rows="3" maxlength="500" placeholder="Scan and pay the exact amount. We verify payments before confirming."></textarea>
           <label class="full"><input id="paymentUpiEnabled" type="checkbox" style="width:auto" checked> Enable UPI payment</label>
@@ -389,13 +400,14 @@ async function refreshAll() {
 
 async function loadPaymentSettings() {
   const {data, error} = await db.from("velzo_payment_settings")
-    .select("id,upi_id,payee_name,qr_image_url,instructions,upi_enabled,cod_enabled")
+    .select("id,upi_id,payee_name,qr_image_url,fixed_amount,instructions,upi_enabled,cod_enabled")
     .eq("id", 1).maybeSingle();
   if (error) throw error;
   const row = data || {};
   $("paymentUpiId").value = row.upi_id || "";
   $("paymentPayeeName").value = row.payee_name || "Velzo Collections";
   $("paymentQrUrl").value = row.qr_image_url || "";
+  $("paymentFixedAmount").value = row.fixed_amount ?? "";
   $("paymentInstructions").value = row.instructions || "Scan and pay the exact amount. We verify payments before confirming.";
   $("paymentUpiEnabled").checked = row.upi_enabled !== false;
   $("paymentCodEnabled").checked = row.cod_enabled !== false;
@@ -415,6 +427,7 @@ $("paymentSettingsForm").addEventListener("submit", async event => {
       upi_id: upiId || null,
       payee_name: $("paymentPayeeName").value.trim() || "Velzo Collections",
       qr_image_url: qrUrl || null,
+      fixed_amount: $("paymentFixedAmount").value ? Number($("paymentFixedAmount").value) : null,
       instructions: $("paymentInstructions").value.trim() || null,
       upi_enabled: $("paymentUpiEnabled").checked,
       cod_enabled: $("paymentCodEnabled").checked,
@@ -433,6 +446,44 @@ $("paymentSettingsForm").addEventListener("submit", async event => {
 $("refreshPaymentSettings").addEventListener("click", async () => {
   try { await loadPaymentSettings(); message("Payment settings refreshed."); }
   catch (error) { message("Could not load payment settings: " + error.message); }
+});
+
+
+let generatedPaymentQr = null;
+$("generatePaymentQr").addEventListener("click", () => {
+  try {
+    const upiId = $("paymentUpiId").value.trim();
+    const payee = $("paymentPayeeName").value.trim() || "Velzo Collections";
+    const amount = Number($("paymentFixedAmount").value);
+    if (!/^[^\s@]+@[^\s@]+$/.test(upiId)) throw new Error("Enter your PhonePe UPI ID first.");
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) throw new Error("Enter a valid amount greater than ₹0.");
+    if (typeof QRCode === "undefined") throw new Error("QR generator library did not load. Check your internet connection and try again.");
+    const uri = "upi://pay?" + new URLSearchParams({pa:upiId, pn:payee, am:amount.toFixed(2), cu:"INR", tn:"Velzo Collections payment"}).toString();
+    const host = $("paymentQrCode");
+    host.innerHTML = "";
+    generatedPaymentQr = null;
+    new QRCode(host, {text:uri, width:240, height:240, colorDark:"#111111", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M});
+    $("paymentQrPreview").style.display = "block";
+    $("paymentQrSummary").textContent = "Fixed amount: ₹" + amount.toFixed(2) + " · Payee: " + payee + ". Scan with a UPI app and verify the displayed details before paying.";
+    $("downloadPaymentQr").disabled = false;
+    message("Fixed-amount QR generated. Save Payment Settings separately to store the amount.");
+  } catch (error) {
+    message(error.message || "Could not generate QR.");
+  }
+});
+
+$("downloadPaymentQr").addEventListener("click", () => {
+  const host = $("paymentQrCode");
+  const canvas = host.querySelector("canvas");
+  const img = host.querySelector("img");
+  const dataUrl = canvas ? canvas.toDataURL("image/png") : (img ? img.src : "");
+  if (!dataUrl) { message("Generate the QR first."); return; }
+  const link = document.createElement("a");
+  link.href = dataUrl;
+  link.download = "velzo-fixed-amount-upi-qr.png";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 });
 
 
