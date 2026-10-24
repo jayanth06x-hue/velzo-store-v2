@@ -2927,5 +2927,68 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 }
 </style>
 
+
+<style id="velzo-account-and-category-slider">
+/* Burgundy + navy account button */
+.header .nav .velzo-account-nav {
+  background: linear-gradient(135deg, #621D35, #101D35) !important;
+  color: #FFF8EF !important;
+  border: 1px solid #D6B77A !important;
+  box-shadow: 0 5px 16px rgba(98,29,53,.18) !important;
+}
+.header .nav .velzo-account-nav:hover {
+  background: #D6B77A !important;
+  color: #101D35 !important;
+  transform: translateY(-1px);
+}
+/* Swipeable category slider */
+.velzo-category-slider{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 14px;margin:4px 0 18px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#D6B77A #F1EDE6}
+.velzo-category-slider button{flex:0 0 auto;scroll-snap-align:start;border:1px solid #D8C8B7;background:#FFFDFA;color:#101D35;border-radius:999px;padding:10px 17px;font-size:12px;font-weight:700;letter-spacing:.25px;cursor:pointer;transition:all .22s ease}
+.velzo-category-slider button:hover,.velzo-category-slider button.active{background:linear-gradient(120deg,#621D35,#101D35);border-color:#D6B77A;color:#FFF8EF;box-shadow:0 5px 15px rgba(16,29,53,.12)}
+.velzo-category-slider button:focus-visible{outline:2px solid #D6B77A;outline-offset:3px}
+@media(max-width:600px){.velzo-category-slider{gap:8px}.velzo-category-slider button{padding:9px 14px;font-size:11px}}
+</style>
+<script id="velzo-category-slider-script">
+(function(){
+  function setupVelzoCategorySlider(){
+    const shop=document.getElementById('shop');
+    const select=document.getElementById('category');
+    const grid=document.getElementById('products');
+    if(!shop||!select||!grid||shop.querySelector('.velzo-category-slider')) return;
+    const slider=document.createElement('div');
+    slider.className='velzo-category-slider';
+    slider.setAttribute('aria-label','Swipe to browse product categories');
+    slider.setAttribute('role','group');
+    slider.innerHTML='<button type="button" data-category="" class="active">All styles</button>';
+    const addCategory=(label,value)=>{
+      if(!label || !value) return;
+      const b=document.createElement('button'); b.type='button'; b.dataset.category=value; b.textContent=label;
+      slider.appendChild(b);
+    };
+    // These are quick filters; the original product data and checkout remain unchanged.
+    const categories=[...select.options].filter(o=>o.value).map(o=>({label:o.textContent.trim(),value:o.value}));
+    const wanted=categories.filter(c=>/accessor|dress|cloth|fashion|women|men/i.test(c.label));
+    const chosen=[...wanted.filter(c=>/accessor/i.test(c.label)),...wanted.filter(c=>/dress/i.test(c.label)),...wanted.filter(c=>!/accessor|dress/i.test(c.label))];
+    chosen.forEach(c=>addCategory(c.label,c.value));
+    select.parentElement.insertAdjacentElement('afterend',slider);
+    // Sync the swipeable chips with the site's existing category filter.
+    slider.addEventListener('click',e=>{
+      const b=e.target.closest('button[data-category]'); if(!b) return;
+      select.value=b.dataset.category; select.dispatchEvent(new Event('change',{bubbles:true}));
+      slider.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));
+    });
+    select.addEventListener('change',()=>slider.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.category===select.value)));
+    // If categories load asynchronously, refresh the chips once the select receives its options.
+    const observer=new MutationObserver(()=>{
+      const existing=new Set([...slider.querySelectorAll('button')].map(b=>b.dataset.category));
+      [...select.options].filter(o=>o.value&&!existing.has(o.value)).forEach(o=>addCategory(o.textContent.trim(),o.value));
+    });
+    observer.observe(select,{childList:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setupVelzoCategorySlider); else setupVelzoCategorySlider();
+  setTimeout(setupVelzoCategorySlider,800);
+})();
+</script>
+
 </body>
 </html>
