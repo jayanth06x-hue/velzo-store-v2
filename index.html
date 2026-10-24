@@ -1608,6 +1608,11 @@ body { background:#e9e7e2; }
     .dresses-button:hover { background: #101d35; border-color: #101d35; }
     @media (max-width: 480px) { .hero-actions { gap: 9px; } .hero-actions .gold-button, .accessories-button { padding: 12px 15px; font-size: 10px; } }
 </style>
+<style id="velzo-featured-styles">
+/* Featured product: premium editorial, gentle 3D motion */
+.velzo-featured{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(24px,5vw,72px);margin:clamp(20px,4vw,52px) auto;padding:clamp(24px,5vw,68px);max-width:1400px;background:radial-gradient(circle at 78% 40%,#34302b 0,transparent 38%),linear-gradient(125deg,#111211,#24211d 72%,#171716);color:#f7f3eb;border:1px solid rgba(213,183,127,.3);border-radius:4px;isolation:isolate}
+.velzo-featured[hidden]{display:none!important}.velzo-featured-copy{position:relative;z-index:2}.velzo-featured-kicker{color:#d5b77f;font-size:10px;letter-spacing:.22em}.velzo-featured-label{color:#c6bda9;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:25px 0 8px}.velzo-featured-copy h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,58px);line-height:1.05;letter-spacing:-.04em;margin:0 0 16px}.velzo-featured-copy>p:not(.velzo-featured-label){max-width:460px;color:#d1ccc2;line-height:1.8}.velzo-featured-bottom{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:28px}.velzo-featured-bottom strong{font-size:20px}.velzo-featured-bottom button{background:#d5b77f;color:#151512;border:0;padding:14px 19px;letter-spacing:.1em;font-size:10px;font-weight:700;cursor:pointer}.velzo-featured-visual{position:relative;min-height:300px;display:grid;place-items:center;perspective:1000px}.velzo-featured-visual img{position:relative;z-index:1;width:min(100%,430px);height:clamp(300px,43vw,500px);object-fit:contain;filter:drop-shadow(0 30px 30px #0008);transform:rotateY(-8deg) rotateX(2deg);animation:velzoFloat 6s ease-in-out infinite;transition:transform .45s ease}.velzo-featured-visual:hover img{transform:rotateY(0) rotateX(0) scale(1.035)}.velzo-featured-orbit{position:absolute;width:min(90%,390px);aspect-ratio:1;border:1px solid #d5b77f55;border-radius:50%;box-shadow:0 0 0 28px #d5b77f08,0 0 0 58px #d5b77f05;animation:velzoOrbit 18s linear infinite}.velzo-featured-orbit:after{content:"";position:absolute;top:13%;left:14%;width:8px;height:8px;border-radius:50%;background:#d5b77f;box-shadow:0 0 20px #d5b77f}.@keyframes velzoFloat{0%,100%{translate:0 0}50%{translate:0 -10px}}@keyframes velzoOrbit{to{transform:rotate(360deg)}}@media(max-width:700px){.velzo-featured{grid-template-columns:1fr;padding:28px 20px;gap:8px}.velzo-featured-copy h2{font-size:36px}.velzo-featured-visual{min-height:260px}.velzo-featured-visual img{height:310px}.velzo-featured-bottom{gap:14px}}
+</style>
 </head>
 
 <script>
@@ -1721,6 +1726,17 @@ body { background:#e9e7e2; }
           </button>
         </div>
       </div>
+    </section>
+
+    <section class="velzo-featured" id="velzo-featured" aria-live="polite" hidden>
+      <div class="velzo-featured-copy">
+        <span class="velzo-featured-kicker">VELZO EDIT · FEATURED LOOK</span>
+        <p class="velzo-featured-label">Selected for you</p>
+        <h2 id="velzo-featured-name">The featured piece</h2>
+        <p id="velzo-featured-description">A signature look from Velzo Collections.</p>
+        <div class="velzo-featured-bottom"><strong id="velzo-featured-price"></strong><button type="button" id="velzo-featured-shop">DISCOVER THE LOOK ↗</button></div>
+      </div>
+      <div class="velzo-featured-visual"><div class="velzo-featured-orbit"></div><img id="velzo-featured-image" alt="Featured Velzo product" loading="eager"></div>
     </section>
 
     <section class="section" id="shop">
@@ -1856,6 +1872,40 @@ function saveCart() {
     cart.reduce((sum, item) => sum + item.qty, 0);
 }
 
+let VELZO_FEATURED_ID = null;
+async function loadFeaturedSetting() {
+  const section = document.getElementById("velzo-featured");
+  try {
+    const {data, error} = await db.from("store_settings").select("featured_product_id").eq("id", 1).maybeSingle();
+    if (error) throw error;
+    VELZO_FEATURED_ID = data?.featured_product_id || null;
+  } catch (error) {
+    // Keep the storefront functional if the optional setting is not available yet.
+    console.warn("Featured product setting unavailable:", error.message);
+  }
+  renderFeaturedProduct();
+}
+function renderFeaturedProduct() {
+  const section = document.getElementById("velzo-featured");
+  if (!section) return;
+  const product = PRODUCTS.find(p => String(p.id) === String(VELZO_FEATURED_ID));
+  if (!product || !product.image_url) { section.hidden = true; return; }
+  section.hidden = false;
+  document.getElementById("velzo-featured-name").textContent = product.name || "Featured look";
+  document.getElementById("velzo-featured-description").textContent = product.description || "A signature look from Velzo Collections.";
+  document.getElementById("velzo-featured-price").textContent = money(product.price);
+  const img = document.getElementById("velzo-featured-image");
+  img.src = product.image_url; img.alt = product.name || "Featured Velzo product";
+  document.getElementById("velzo-featured-shop").onclick = () => {
+    document.getElementById("search").value = "";
+    document.getElementById("category").value = "";
+    window.velzoQuickCategory = "";
+    renderProducts();
+    const card = [...document.querySelectorAll("#products .product")].find(el => el.textContent.includes(product.name));
+    (card || document.getElementById("shop")).scrollIntoView({behavior:"smooth",block:"start"});
+  };
+}
+
 async function loadProducts() {
   const target = document.getElementById("products");
   target.innerHTML = '<div class="empty-state">Loading products…</div>';
@@ -1874,6 +1924,7 @@ async function loadProducts() {
   }
 
   PRODUCTS = data || [];
+  await loadFeaturedSetting();
 
   // Remove old cart items that no longer exist in the catalogue.
   cart = cart.filter(item =>
