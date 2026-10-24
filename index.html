@@ -1889,36 +1889,24 @@ async function loadProducts() {
 
 function shopAccessories() {
   const select = document.getElementById("category");
-  const accessoriesOption = [...select.options].find(option =>
-    /accessor(y|ies)/i.test(option.textContent)
-  );
-  if (accessoriesOption) {
-    select.value = accessoriesOption.value;
-    document.getElementById("search").value = "";
-  } else {
-    // Fallback: search product names, categories and descriptions for accessories.
-    select.value = "";
-    document.getElementById("search").value = "accessories";
-  }
+  const search = document.getElementById("search");
+  const option = [...select.options].find(o => /accessor(y|ies)/i.test(o.textContent + " " + o.value));
+  search.value = "";
+  select.value = option ? option.value : "";
+  window.velzoQuickCategory = option ? "" : "accessor";
   renderProducts();
-  document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function shopDresses() {
   const select = document.getElementById("category");
-  const dressesOption = [...select.options].find(option =>
-    /dress(es)?|women.?s clothing|women.?s fashion/i.test(option.textContent)
-  );
-  if (dressesOption) {
-    select.value = dressesOption.value;
-    document.getElementById("search").value = "";
-  } else {
-    // Fallback: search product names, categories and descriptions for dresses.
-    select.value = "";
-    document.getElementById("search").value = "dress";
-  }
+  const search = document.getElementById("search");
+  const option = [...select.options].find(o => /dress|women.?s clothing|women.?s fashion/i.test(o.textContent + " " + o.value));
+  search.value = "";
+  select.value = option ? option.value : "";
+  window.velzoQuickCategory = option ? "" : "dress";
   renderProducts();
-  document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function setupCategories() {
@@ -1946,6 +1934,17 @@ function renderProducts() {
     (p.name + " " + p.category + " " + p.description)
       .toLowerCase().includes(query)
   );
+
+  // Quick hero buttons search all product text, even when the store's category
+  // names differ from the button label. If there are no matches, show the full
+  // catalogue rather than an empty product area.
+  const quickTerm = (window.velzoQuickCategory || "").toLowerCase();
+  if (quickTerm) {
+    const quickMatches = PRODUCTS.filter(p =>
+      (p.name + " " + p.category + " " + p.description).toLowerCase().includes(quickTerm)
+    );
+    items = quickMatches.length ? quickMatches : PRODUCTS.slice();
+  }
 
   if (sorting === "low") items.sort((a, b) => a.price - b.price);
   if (sorting === "high") items.sort((a, b) => b.price - a.price);
@@ -2424,7 +2423,7 @@ async function submitOrder(event) {
 }
 
 document.getElementById("search").addEventListener("input", renderProducts);
-document.getElementById("category").addEventListener("change", renderProducts);
+document.getElementById("category").addEventListener("change", () => { window.velzoQuickCategory = ""; renderProducts(); });
 document.getElementById("sort").addEventListener("change", renderProducts);
 document.getElementById("year").textContent = new Date().getFullYear();
 
