@@ -1592,6 +1592,21 @@ body { background:#e9e7e2; }
 .product-image-thumb.active,.product-image-thumb:hover{border-color:#c5a16b;opacity:1}
 .product-image-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .product-image-thumb:focus-visible{outline:2px solid #c5a16b;outline-offset:2px}
+
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
+    .hero-actions .gold-button { margin-top: 0; }
+    .accessories-button {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 48px; padding: 13px 22px; cursor: pointer;
+      background: linear-gradient(120deg, #6b1f3a, #101d35);
+      color: #fff8f0; border: 1px solid #8b7045; border-radius: 2px;
+      font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .accessories-button:hover { transform: translateY(-2px); box-shadow: 0 7px 20px #0003; }
+    .dresses-button { background: #6b1f3a; color: #fff8f0; border-color: #6b1f3a; }
+    .dresses-button:hover { background: #101d35; border-color: #101d35; }
+    @media (max-width: 480px) { .hero-actions { gap: 9px; } .hero-actions .gold-button, .accessories-button { padding: 12px 15px; font-size: 10px; } }
 </style>
 </head>
 
@@ -1694,9 +1709,17 @@ body { background:#e9e7e2; }
         <div class="eyebrow">NEW DROP · GRAPHIC TEES · PRINTED SHIRTS</div>
         <h1>Wear<br>your vibe.</h1>
         <p>Statement prints. Oversized fits. Everyday streetwear made for your own rules. Find your next favourite look at Velzo.</p>
-        <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-          SHOP THE DROP
-        </button>
+        <div class="hero-actions">
+          <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
+            SHOP THE DROP
+          </button>
+          <button class="accessories-button" onclick="shopAccessories()">
+            ACCESSORIES
+          </button>
+          <button class="accessories-button dresses-button" onclick="shopDresses()">
+            DRESSES
+          </button>
+        </div>
       </div>
     </section>
 
@@ -1862,6 +1885,40 @@ async function loadProducts() {
   saveCart();
   setupCategories();
   renderProducts();
+}
+
+function shopAccessories() {
+  const select = document.getElementById("category");
+  const accessoriesOption = [...select.options].find(option =>
+    /accessor(y|ies)/i.test(option.textContent)
+  );
+  if (accessoriesOption) {
+    select.value = accessoriesOption.value;
+    document.getElementById("search").value = "";
+  } else {
+    // Fallback: search product names, categories and descriptions for accessories.
+    select.value = "";
+    document.getElementById("search").value = "accessories";
+  }
+  renderProducts();
+  document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
+}
+
+function shopDresses() {
+  const select = document.getElementById("category");
+  const dressesOption = [...select.options].find(option =>
+    /dress(es)?|women.?s clothing|women.?s fashion/i.test(option.textContent)
+  );
+  if (dressesOption) {
+    select.value = dressesOption.value;
+    document.getElementById("search").value = "";
+  } else {
+    // Fallback: search product names, categories and descriptions for dresses.
+    select.value = "";
+    document.getElementById("search").value = "dress";
+  }
+  renderProducts();
+  document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
 }
 
 function setupCategories() {
@@ -2947,6 +3004,13 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 .velzo-category-slider button:hover,.velzo-category-slider button.active{background:linear-gradient(120deg,#621D35,#101D35);border-color:#D6B77A;color:#FFF8EF;box-shadow:0 5px 15px rgba(16,29,53,.12)}
 .velzo-category-slider button:focus-visible{outline:2px solid #D6B77A;outline-offset:3px}
 @media(max-width:600px){.velzo-category-slider{gap:8px}.velzo-category-slider button{padding:9px 14px;font-size:11px}}
+/* Final brand logo palette: burgundy + midnight navy */
+.logo { color: #6B1F3A !important; }
+.logo span { color: #101D35 !important; }
+.logo small { color: #101D35 !important; }
+.footer .logo { color: #6B1F3A !important; }
+.footer .logo span { color: #101D35 !important; }
+.footer .logo small { color: #101D35 !important; }
 </style>
 <script id="velzo-category-slider-script">
 (function(){
@@ -2992,3 +3056,20 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 
 </body>
 </html>
+<style id="velzo-logo-final-colors">
+  /* Header logo: burgundy + midnight navy */
+  .header .logo,
+  header .logo { color: #6B1F3A !important; }
+  .header .logo span,
+  header .logo span { color: #101D35 !important; }
+  .header .logo small,
+  header .logo small { color: #6B1F3A !important; }
+
+  /* Footer logo: all burgundy */
+  .footer .logo,
+  footer .logo,
+  .footer .logo span,
+  footer .logo span,
+  .footer .logo small,
+  footer .logo small { color: #6B1F3A !important; }
+</style>
