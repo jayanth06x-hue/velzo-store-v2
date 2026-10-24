@@ -2723,7 +2723,7 @@ body { background:#fff; color:#151515; }
     if (!currentUser) { target.innerHTML = '<p>Please log in to see your orders.</p>'; return; }
     target.innerHTML = '<p>Loading your orders…</p>';
     try {
-      const {data, error} = await db.from('orders').select('id,created_at,items,total,status').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+      const {data, error} = await db.from('orders').select('id,created_at,items,total,status,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,delivered_at').eq('user_id', currentUser.id).order('created_at',{ascending:false});
       if (error) throw error;
       if (!data || !data.length) {
         target.innerHTML = '<p>No orders linked to this account yet. Orders placed before customer-account linking may not appear here.</p>';
@@ -2732,11 +2732,33 @@ body { background:#fff; color:#151515; }
       target.innerHTML = data.map(order => {
         const date = order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable';
         const items = Array.isArray(order.items) ? order.items.map(i => `${escapeHtml(i.name || 'Item')} × ${Number(i.qty || 1)}`).join(', ') : 'Order items';
-        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(order.status || 'Placed')}</p></article>`;
+        const status = String(order.status || 'Placed');
+        const placedAt = order.created_at ? new Date(order.created_at).getTime() : 0;
+        const deliveredAt = order.delivered_at ? new Date(order.delivered_at).getTime() : (status.toLowerCase() === 'delivered' ? Date.now() : 0);
+        const canCancel = placedAt && Date.now() <= placedAt + 3*86400000 && !['packed','shipped','delivered','cancelled'].includes(status.toLowerCase()) && !order.cancellation_request_status;
+        const canReturn = deliveredAt && Date.now() <= deliveredAt + 3*86400000 && status.toLowerCase() === 'delivered' && !order.return_request_status;
+        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(status)}</p>${order.cancellation_request_status ? `<p><strong>Cancellation request:</strong> ${escapeHtml(order.cancellation_request_status)}</p>` : ''}${order.return_request_status ? `<p><strong>Return request:</strong> ${escapeHtml(order.return_request_status)}</p>` : ''}${canCancel ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','cancel')">Request cancellation</button>` : ''}${canReturn ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','return')">Request return</button>` : ''}</article>`;
       }).join('');
     } catch(e) {
       target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
       msg.textContent = e.message || 'Could not load orders.';
+    }
+  };
+
+  window.velzoRequestOrderAction = async function(id, action){
+    if(!currentUser) return;
+    const isCancel = action === 'cancel';
+    const label = isCancel ? 'cancellation' : 'return';
+    if(!confirm(`Submit a ${label} request for this order?`)) return;
+    try {
+      const now = new Date().toISOString();
+      const changes = isCancel ? {cancellation_requested_at:now,cancellation_request_status:'Pending'} : {return_requested_at:now,return_request_status:'Pending'};
+      const {error} = await db.from('orders').update(changes).eq('id',id).eq('user_id',currentUser.id);
+      if(error) throw error;
+      msg.textContent = `${label.charAt(0).toUpperCase()+label.slice(1)} request submitted. The store will review it.`;
+      await velzoLoadOrders();
+    } catch(e) {
+      msg.textContent = 'Could not submit request: ' + (e.message || 'Please run the Supabase setup SQL and try again.');
     }
   };
 
