@@ -208,6 +208,11 @@ button.danger { background:#8d302b; color:#fff; }
           <input id="productImage" type="url" placeholder="Main product image URL (https://)" required class="full">
           <textarea id="productImageUrls" placeholder="Additional image URLs — one HTTPS URL per line (front, back, details...)" rows="4" class="full"></textarea>
           <input id="productMeeshoUrl" type="url" placeholder="Meesho supplier/product link (optional)" class="full">
+          <div class="full" style="padding:14px;border:1px solid #c5a16b;border-radius:10px;background:rgba(197,161,107,.08);margin:4px 0">
+            <label for="productColors" class="field-label" style="font-weight:700;font-size:14px">PRODUCT COLOUR OPTIONS</label>
+            <input id="productColors" style="width:100%;margin-top:7px" placeholder="e.g. Black, White, Navy Blue" maxlength="300" autocomplete="off">
+            <p class="note" style="margin:7px 0 0">Type colours separated by commas. Example: Black, White, Navy Blue. Leave empty if this product has no colour choices.</p>
+          </div>
           <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
           <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
           <div class="full size-picker-admin">
@@ -374,7 +379,7 @@ async function refreshAll() {
 
 async function loadProducts() {
   const {data, error} = await db.from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -414,7 +419,7 @@ function renderProducts() {
           <small>${esc(p.category)} · ${Array.isArray(p.image_urls) ? p.image_urls.length : 0} extra images</small>${p.meesho_url ? `<br><a href="${esc(p.meesho_url)}" target="_blank" rel="noopener">Open Meesho link ↗</a>` : ""}</div>
       </div></td>
       <td>${money(p.price)}</td>
-      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}</small></td>
+      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}<br>${Array.isArray(p.colors) && p.colors.length ? "Colours: " + esc(p.colors.join(", ")) : "No colour options"}</small></td>
       <td>${p.active ? "Visible" : "Hidden"}</td>
       <td><div class="actions">
         <button class="secondary" data-action="edit" data-id="${esc(p.id)}">Edit</button>
@@ -434,6 +439,7 @@ function resetProductForm() {
   $("productActive").checked = true;
   $("productHasSizes").checked = false;
   $("productSizes").value = "";
+  $("productColors").value = "";
   document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = false);
   $("productSizeChart").value = "";
   $("productMeeshoUrl").value = "";
@@ -486,6 +492,7 @@ $("productRows").addEventListener("click", async event => {
       $("productImageUrls").value = Array.isArray(product.image_urls) ? product.image_urls.join("\n") : "";
       $("productDescription").value = product.description;
       $("productMeeshoUrl").value = product.meesho_url || "";
+      $("productColors").value = Array.isArray(product.colors) ? product.colors.join(", ") : "";
       $("productHasSizes").checked = !!product.has_sizes;
       const standardSizes = ["XS","S","M","L","XL","XXL","XXXL","Free Size"];
       document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = Array.isArray(product.sizes) && product.sizes.includes(input.value));
@@ -539,6 +546,7 @@ $("productForm").addEventListener("submit", async event => {
     price:Number($("productPrice").value),
     tag:$("productTag").value.trim(),
     description:$("productDescription").value.trim(),
+    colors:[...new Set($("productColors").value.split(",").map(color => color.trim()).filter(Boolean))],
     image_url:$("productImage").value.trim(),
     image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
     has_sizes:$("productHasSizes").checked,
@@ -556,6 +564,9 @@ $("productForm").addEventListener("submit", async event => {
   if (!product.name || !product.category ||
       !Number.isFinite(product.price) || product.price < 0) {
     return message("Check the product name, category and price.");
+  }
+  if (product.colors.length > 20) {
+    return message("Use up to 20 colour options per product.");
   }
   if (product.image_urls.length > 12) {
     return message("Use up to 12 additional image URLs per product.");
