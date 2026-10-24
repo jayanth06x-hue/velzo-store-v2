@@ -1,3074 +1,714 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>Velzo Collections | Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <head>
-     <meta name="google-site-verification" content="DALoxJr1YziXzAvstFpbiAqFG5QBSh6XMiqF1mi1cKY" />
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111111">
-  <meta name="description" content="Discover refined menswear, sharp essentials and urban style at Velzo Collections.">
-  <title>Velzo Collections | Everyday, Elevated</title>
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <style>
-    :root {
-      --black: #111111;
-      --gold: #d4b16a;
-      --cream: #f7f5f0;
-      --muted: #757575;
-      --line: #e8e5de;
-      --white: #ffffff;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      color: var(--black);
-      background: var(--white);
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    button, input, select { font: inherit; }
-    button { cursor: pointer; }
-    button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: 3px;
-    }
-    .announcement {
-      padding: 10px 14px;
-      background: var(--black);
-      color: white;
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: 1.6px;
-    }
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 17px 6%;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,.97);
-    }
-    .logo {
-      display: inline-flex;
-      flex-direction: column;
-      color: var(--black);
-      text-decoration: none;
-      font: 26px Georgia, serif;
-      letter-spacing: 3px;
-      line-height: 1;
-    }
-    .logo span { color: #9b7836; }
-    .logo small {
-      margin-top: 5px;
-      font: 9px Arial, sans-serif;
-      letter-spacing: 4px;
-      text-align: center;
-    }
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-    }
-    .nav a {
-      color: inherit;
-      text-decoration: none;
-      font-size: 13px;
-    }
-    .nav a:hover { color: #94702e; }
-    .cart-button, .black-button {
-      padding: 12px 16px;
-      background: var(--black);
-      color: white;
-      border: 0;
-    }
-    .cart-button { white-space: nowrap; }
-    .hero {
-      min-height: 460px;
-      display: flex;
-      align-items: center;
-      padding: 55px 8%;
-      color: white;
-      background:
-        linear-gradient(90deg, rgba(0,0,0,.78), rgba(0,0,0,.18)),
-        url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=85")
-        center 45% / cover;
-    }
-    .hero-content { max-width: 590px; }
-    .eyebrow {
-      color: var(--gold);
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 3px;
-    }
-    h1 {
-      margin: 20px 0 16px;
-      font: normal clamp(42px, 6vw, 72px)/1.05 Georgia, serif;
-    }
-    .hero p {
-      max-width: 440px;
-      color: #ededed;
-      font-size: 15px;
-      line-height: 1.8;
-    }
-    .gold-button {
-      padding: 14px 20px;
-      margin-top: 14px;
-      border: 1px solid var(--gold);
-      background: var(--gold);
-      color: var(--black);
-      font-size: 12px;
-      font-weight: bold;
-      letter-spacing: .7px;
-    }
-    .section { padding: 58px 6%; }
-    .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 20px;
-      margin-bottom: 27px;
-    }
-    .section-heading h2 {
-      margin: 0 0 9px;
-      font: normal 36px Georgia, serif;
-    }
-    .section-heading p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 23px;
-    }
-    .tools input, .tools select {
-      min-width: 165px;
-      padding: 12px;
-      border: 1px solid var(--line);
-      background: white;
-      border-radius: 0;
-    }
-    .tools input { flex: 1; }
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 20px;
-    }
-    .product { min-width: 0; }
-    .product-image-wrap {
-      position: relative;
-      overflow: hidden;
-      background: var(--cream);
-    }
-    .product-image {
-      display: block;
-      width: 100%;
-      aspect-ratio: 4 / 4.8;
-      object-fit: cover;
-      transition: transform .35s ease;
-    }
-    .product:hover .product-image { transform: scale(1.035); }
-    .product-tag {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      background: white;
-      padding: 6px 9px;
-      font-size: 10px;
-      letter-spacing: .7px;
-    }
-    .product-details { padding: 14px 1px; }
-    .product-category {
-      color: #927134;
-      text-transform: uppercase;
-      font-size: 10px;
-      letter-spacing: 1.4px;
-    }
-    .product h3 {
-      margin: 8px 0;
-      font-size: 15px;
-      font-weight: 500;
-    }
-    .product-description {
-      margin: 0 0 12px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .product-price { font-size: 16px; font-weight: bold; }
-    .product-size-select { width:100%; margin:10px 0 4px; padding:11px; background:#202225; color:#f4f1ea; border:1px solid #55585a; }
-    .size-chart-link { display:inline-block; margin:2px 0 8px; color:#c5a16b; font-size:12px; text-decoration:underline; }
-    .stock-label { display:inline-block; margin:7px 0; color:#f1c0b9; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
-    .add-button:disabled { opacity:.5; cursor:not-allowed; }
+<style>
+:root{--black:#111;--gold:#d4b16a;--cream:#f7f5f0;--line:#e8e5de;--muted:#747474}
+*{box-sizing:border-box}
+body{margin:0;background:#f6f5f2;color:var(--black);font:14px Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.header{background:#111;color:white;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.logo{font:25px Georgia,serif;letter-spacing:2px}
+.logo span{color:var(--gold)}
+.header a{color:white;text-decoration:none}
+.wrap{max-width:1200px;margin:25px auto;padding:0 16px}
+.panel{background:white;border:1px solid var(--line);padding:22px;margin-bottom:20px;border-radius:6px}
+h1,h2{font-family:Georgia,serif;font-weight:normal}
+h2{font-size:27px;margin:0 0 18px}
+.muted{color:var(--muted);line-height:1.6}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+input,textarea,select{width:100%;min-width:0;padding:12px;border:1px solid #ddd;background:white;border-radius:3px}
+textarea{min-height:75px;resize:vertical}
+.full{grid-column:1/-1}
+button.primary{background:#111;color:white;border:0;padding:12px 16px}
+button.gold{background:var(--gold);color:#111;border:0;padding:12px 16px;font-weight:bold}
+button.secondary{background:white;color:#111;border:1px solid #ddd;padding:10px 12px}
+button.danger{background:#9f3028;color:white;border:0;padding:10px 12px}
+.status{padding:12px;background:var(--cream);margin-bottom:16px;line-height:1.6;overflow-wrap:anywhere;display:none}
+.status.show{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.stat{padding:17px;background:white;border:1px solid var(--line)}
+.stat span{color:var(--muted);font-size:12px}
+.stat strong{display:block;font-size:24px;margin-top:8px}
+.table-wrap{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+td,th{padding:12px;text-align:left;vertical-align:top;border-bottom:1px solid #eee;line-height:1.5}
+th{background:var(--cream);font-size:12px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.product-thumb{width:50px;height:60px;object-fit:cover;background:var(--cream)}
+.product-cell{display:flex;gap:10px;align-items:center;min-width:180px}
+.product-name{font-weight:bold}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tabs button.active{background:var(--gold);color:#111}
+.hidden{display:none!important}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+.empty{padding:25px;text-align:center;color:var(--muted)}
+@media(max-width:650px){
+ .header{padding:15px 4%}
+ .wrap{padding:0 10px}
+ .panel{padding:15px}
+ .form{grid-template-columns:1fr}
+ .full{grid-column:auto}
+ .stats{grid-template-columns:1fr}
+ .logo{font-size:20px}
+}
 
-    .add-button {
-      width: 100%;
-      margin-top: 13px;
-      padding: 12px;
-      border: 1px solid var(--black);
-      background: white;
-      color: var(--black);
-      transition: background .2s, color .2s;
-    }
-    .add-button:hover { background: var(--black); color: white; }
-    .empty-state {
-      grid-column: 1/-1;
-      padding: 45px 12px;
-      text-align: center;
-      color: var(--muted);
-    }
-    .benefits {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      padding: 35px 6%;
-      background: var(--cream);
-      text-align: center;
-    }
-    .benefit strong { display: block; margin-bottom: 8px; }
-    .benefit p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-    .about {
-      max-width: 760px;
-      margin: auto;
-      text-align: center;
-    }
-    .about h2 { font: normal 34px Georgia, serif; }
-    .about p { color: var(--muted); line-height: 1.8; font-size: 14px; }
-    .footer {
-      padding: 35px 6%;
-      background: var(--black);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .footer p { color: #c1c1c1; font-size: 12px; line-height: 1.6; }
-    .footer .logo { color: white; }
-    .footer small { color: #aaa; }
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      background: rgba(0,0,0,.58);
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-    }
-    .overlay.open { display: flex; }
-    .modal {
-      position: relative;
-      width: min(520px, 100%);
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 25px;
-      background: white;
-    }
-    .modal h2 { margin: 0 35px 18px 0; font: normal 29px Georgia, serif; }
-    .modal-close {
-      position: absolute;
-      right: 15px;
-      top: 12px;
-      border: 0;
-      background: transparent;
-      font-size: 26px;
-    }
-    .cart-line {
-      display: grid;
-      grid-template-columns: 58px 1fr auto;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid var(--line);
-      padding: 12px 0;
-    }
-    .cart-line img { width: 58px; height: 70px; object-fit: cover; }
-    .cart-line p { margin: 5px 0; color: var(--muted); font-size: 12px; }
-    .quantity { display: flex; align-items: center; gap: 8px; }
-    .quantity button { padding: 5px 9px; border: 1px solid var(--line); background: white; }
-    .cart-total { padding: 18px 0 5px; font-weight: bold; }
-    .modal .full-button { width: 100%; margin-top: 10px; padding: 13px; }
-    .modal .subtext { color: var(--muted); font-size: 12px; line-height: 1.6; }
-    .checkout-fields { display: grid; gap: 10px; margin-top: 15px; }
-    .checkout-fields input, .checkout-fields textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 0;
-    }
-    .checkout-fields textarea { min-height: 75px; resize: vertical; }
-    .toast {
-      position: fixed;
-      z-index: 40;
-      left: 50%;
-      bottom: 22px;
-      transform: translateX(-50%);
-      max-width: calc(100% - 28px);
-      padding: 13px 18px;
-      background: var(--black);
-      color: white;
-      font-size: 13px;
-      text-align: center;
-      display: none;
-    }
-    .toast.show { display: block; }
-    @media (max-width: 900px) {
-      .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .header { padding: 15px 4%; }
-      .nav { gap: 12px; }
-      .section { padding: 45px 4%; }
-    }
-    @media (max-width: 620px) {
-      .announcement { font-size: 9px; letter-spacing: 1px; }
-      .header { gap: 10px; }
-      .logo { font-size: 21px; }
-      .logo small { font-size: 8px; letter-spacing: 3px; }
-      .nav { gap: 10px; }
-      .nav a { font-size: 12px; }
-      .nav .optional-link { display: none; }
-      .cart-button { padding: 10px; font-size: 12px; }
-      .hero { min-height: 375px; padding: 35px 6%; }
-      .hero p { font-size: 14px; }
-      .section-heading { align-items: start; flex-direction: column; }
-      .section-heading h2 { font-size: 31px; }
-      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
-      .product-details { padding: 11px 1px; }
-      .product h3 { font-size: 14px; }
-      .benefits { grid-template-columns: 1fr; padding: 30px 8%; }
-      .footer { align-items: start; flex-direction: column; }
-    }
-  /* =========================================
-   VELZO COLLECTIONS — MINIMAL DESIGN UPDATE
-   CSS only: keeps the existing store logic.
-   ========================================= */
-
+/* VELZO ADMIN — fashion studio dashboard styling; data/auth logic unchanged */
 :root {
-  --black: #1d1d1f;
-  --gold: #0071e3;
-  --cream: #f5f5f7;
-  --muted: #6e6e73;
-  --line: #e5e5e7;
-  --white: #ffffff;
+  --black: #20211b; --gold: #d5b77f; --cream: #f3efe6;
+  --line: #e5dfd3; --muted: #77756f;
 }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
-  color: var(--black);
-  background: #fff;
-  -webkit-font-smoothing: antialiased;
-  line-height: 1.5;
-}
-
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-}
-
-.announcement {
-  background: #f5f5f7;
-  color: #424245;
-  padding: 10px 14px;
-  font-size: 10px;
-  letter-spacing: 1.1px;
-  border-bottom: 1px solid #ebebed;
-}
-
+body { background: #f4f1ea; color: #22231d; font-family: Arial, Helvetica, sans-serif; }
 .header {
-  padding: 19px 6%;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-}
-
-.logo {
-  font-family: inherit;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-
-.logo span {
-  color: var(--gold);
-}
-
-.logo small {
-  font-family: inherit;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 3.5px;
-  margin-top: 6px;
-}
-
-.nav {
-  gap: 25px;
-}
-
-.nav a {
-  font-size: 13px;
-  color: #424245;
-  transition: color 0.2s ease;
-}
-
-.nav a:hover {
-  color: var(--gold);
-}
-
-.cart-button {
-  background: var(--black);
-  color: white;
-  padding: 11px 19px;
-  border: 1px solid var(--black);
-  border-radius: 999px;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.cart-button:hover {
-  background: #3a3a3c;
-  transform: translateY(-1px);
-}
-
-.hero {
-  min-height: 510px;
-  padding: 75px 8%;
-  background-image:
-    linear-gradient(
-      90deg,
-      rgba(17, 17, 17, 0.66),
-      rgba(17, 17, 17, 0.16)
-    ),
-    url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=85");
-  background-position: center;
-  background-size: cover;
-}
-
-.hero-content {
-  max-width: 620px;
-}
-
-.eyebrow {
-  font-size: 11px;
-  letter-spacing: 2.4px;
-  font-weight: 600;
-}
-
-h1 {
-  font-family: inherit;
-  font-size: clamp(42px, 6vw, 70px);
-  font-weight: 650;
-  letter-spacing: -0.055em;
-  line-height: 1.04;
-  margin: 22px 0;
-}
-
-.hero p {
-  max-width: 450px;
-  font-size: 15px;
-  line-height: 1.8;
-  color: #f0f0f0;
-}
-
-.gold-button {
-  background: var(--gold);
-  color: white;
-  border: 1px solid var(--gold);
-  border-radius: 999px;
-  padding: 14px 24px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.gold-button:hover {
-  background: #0062c4;
-  transform: translateY(-1px);
-}
-
-.section {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 78px 6%;
-}
-
-.section-heading {
-  margin-bottom: 32px;
-}
-
-.section-heading h2,
-.about h2 {
-  font-family: inherit;
-  font-size: clamp(30px, 4vw, 42px);
-  font-weight: 650;
-  letter-spacing: -0.045em;
-  line-height: 1.15;
-}
-
-.section-heading p,
-.about p {
-  color: var(--muted);
-}
-
-.tools {
-  gap: 12px;
-  margin-bottom: 30px;
-}
-
-.tools input,
-.tools select {
-  border: 1px solid #d2d2d7;
-  border-radius: 12px;
-  padding: 13px 15px;
-  background: #fff;
-  font-size: 13px;
-  min-height: 45px;
-}
-
-.tools input:focus,
-.tools select:focus {
-  border-color: var(--gold);
-  outline: 2px solid rgba(0, 113, 227, 0.12);
-}
-
-.product-grid {
-  gap: 30px 22px;
-}
-
-.product {
-  min-width: 0;
-}
-
-.product-image-wrap {
-  border-radius: 14px;
-  overflow: hidden;
-  background: #f5f5f7;
-}
-
-.product-image {
-  aspect-ratio: 4 / 4.7;
-  transition: transform 0.45s cubic-bezier(.2, .7, .2, 1);
-}
-
-.product:hover .product-image {
-  transform: scale(1.035);
-}
-
-.product-tag {
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #424245;
-  padding: 7px 10px;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.7px;
-}
-
-.product-details {
-  padding: 15px 2px;
-}
-
-.product-category {
-  color: #6e6e73;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-}
-
-.product h3 {
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  line-height: 1.4;
-  margin: 9px 0;
-}
-
-.product-description {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-}
-
-.product-price {
-  font-size: 16px;
-  font-weight: 650;
-  letter-spacing: -0.3px;
-}
-
-.add-button {
-  background: #fff;
-  color: var(--black);
-  border: 1px solid #d2d2d7;
-  border-radius: 999px;
-  padding: 12px 15px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: color 0.2s ease, background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.add-button:hover {
-  color: white;
-  background: var(--black);
-  border-color: var(--black);
-}
-
-.benefits {
-  padding: 45px 7%;
-  background: #f5f5f7;
-  gap: 30px;
-}
-
-.benefit strong {
-  font-size: 14px;
-  font-weight: 650;
-  letter-spacing: -0.2px;
-}
-
-.benefit p {
-  margin-top: 8px;
-  color: var(--muted);
-  line-height: 1.7;
-  font-size: 12px;
-}
-
-.about {
-  max-width: 700px;
-}
-
-.about h2 {
-  margin: 16px 0;
-}
-
-.about p {
-  font-size: 14px;
-  line-height: 1.9;
-}
-
-.footer {
-  padding: 44px 6%;
-  background: #f5f5f7;
-  color: var(--black);
-  border-top: 1px solid #e5e5e7;
-}
-
-.footer .logo {
-  color: var(--black);
-}
-
-.footer p {
-  color: #6e6e73;
-}
-
-.footer small {
-  color: #6e6e73;
-}
-
-.overlay {
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
-.modal {
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
-}
-
-.modal h2 {
-  font-family: inherit;
-  font-weight: 650;
-  letter-spacing: -0.7px;
-}
-
-.modal-close {
-  border-radius: 50%;
-  color: #6e6e73;
-}
-
-.cart-line {
-  padding: 16px 0;
-}
-
-.cart-line img {
-  border-radius: 8px;
-  background: #f5f5f7;
-}
-
-.quantity button {
-  border-radius: 50%;
-  background: #f5f5f7;
-}
-
-.full-button {
-  border-radius: 999px;
-}
-
-.checkout-fields input,
-.checkout-fields textarea {
-  border: 1px solid #d2d2d7;
-  border-radius: 10px;
-  padding: 13px;
-}
-
-.checkout-fields input:focus,
-.checkout-fields textarea:focus {
-  outline: 2px solid rgba(0, 113, 227, 0.15);
-  border-color: var(--gold);
-}
-
-.toast {
-  border-radius: 999px;
-  padding: 13px 20px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
-}
-
-/* RESPONSIVE LAYOUT */
-@media (min-width: 1400px) {
-  .product-grid {
-    gap: 36px 26px;
-  }
-}
-
-@media (max-width: 900px) {
-  .section {
-    padding: 58px 4%;
-  }
-
-  .product-grid {
-    gap: 25px 16px;
-  }
-
-  .hero {
-    min-height: 450px;
-    padding: 60px 6%;
-  }
-}
-
-@media (max-width: 620px) {
-  .header {
-    padding: 15px 4%;
-  }
-
-  .logo {
-    font-size: 20px;
-    letter-spacing: 1.5px;
-  }
-
-  .nav {
-    gap: 12px;
-  }
-
-  .hero {
-    min-height: 405px;
-    padding: 42px 6%;
-    background-position: 58% center;
-  }
-
-  h1 {
-    font-size: clamp(40px, 10vw, 54px);
-  }
-
-  .section {
-    padding: 48px 5%;
-  }
-
-  .section-heading {
-    margin-bottom: 24px;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px 12px;
-  }
-
-  .product-image-wrap {
-    border-radius: 10px;
-  }
-
-  .product-details {
-    padding: 12px 1px;
-  }
-
-  .product h3 {
-    font-size: 14px;
-  }
-
-  .product-description {
-    font-size: 11px;
-  }
-
-  .add-button {
-    padding: 11px 8px;
-    font-size: 10px;
-  }
-
-  .benefits {
-    padding: 35px 8%;
-    gap: 25px;
-  }
-
-  .footer {
-    padding: 35px 6%;
-  }
-
-  .modal {
-    padding: 23px 18px;
-    border-radius: 16px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
-    
-/* =============================================
-   VELZO 2.0 — ANIMATED PREMIUM HOMEPAGE
-   Visual changes only. Keep existing JavaScript.
-   ============================================= */
-
-:root {
-  --gold: #0071e3;
-  --black: #1d1d1f;
-  --cream: #f5f5f7;
-  --muted: #6e6e73;
-  --line: #e5e5e7;
-}
-
-/* Announcement bar */
-.announcement {
-  background: #111 !important;
-  color: #fff !important;
-  border: 0;
-  font-size: 10px;
-  letter-spacing: 2px;
-  padding: 12px;
-  animation: announcementIn .7s ease both;
-}
-
-/* Floating glass-style navigation */
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding: 17px 6%;
-  background: rgba(255,255,255,.84);
-  backdrop-filter: blur(22px) saturate(170%);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  box-shadow: 0 1px 0 rgba(0,0,0,.05);
-}
-
-.logo {
-  font-size: 25px;
-  letter-spacing: 2.5px;
-  transition: letter-spacing .3s ease;
-}
-
-.logo:hover {
-  letter-spacing: 3.5px;
-}
-
-.nav a {
-  position: relative;
-}
-
-.nav a::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--gold);
-  transition: width .25s ease;
-}
-
-.nav a:hover::after {
-  width: 100%;
-}
-
-/* Cinematic animated hero */
-.hero {
-  position: relative;
-  min-height: min(76vh, 680px);
-  overflow: hidden;
-  isolation: isolate;
-  background-image:
-    linear-gradient(
-      105deg,
-      rgba(8,10,15,.86) 0%,
-      rgba(8,10,15,.54) 48%,
-      rgba(8,10,15,.12) 100%
-    ),
-    url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=85");
-  background-position: center, 48% center;
-  background-size: cover, cover;
-  animation: heroDrift 22s ease-in-out infinite alternate;
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    0deg,
-    rgba(0,0,0,.18),
-    transparent 50%
-  );
-}
-
-.hero-content {
-  max-width: 650px;
-}
-
-.hero-content .eyebrow {
-  animation: revealUp .7s .1s both;
-}
-
-.hero-content h1 {
-  font-family: inherit;
-  font-size: clamp(48px, 7.4vw, 86px);
-  font-weight: 650;
-  letter-spacing: -.065em;
-  line-height: .99;
-  text-wrap: balance;
-  animation: revealUp .8s .25s both;
-}
-
-.hero-content p {
-  max-width: 440px;
-  font-size: 16px;
-  line-height: 1.85;
-  animation: revealUp .8s .4s both;
-}
-
-.hero-content .gold-button {
-  animation: revealUp .8s .55s both, buttonBreath 4s 2s infinite;
-}
-
-/* Buttons with a moving light sweep */
-.gold-button,
-.cart-button,
-.add-button {
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform .25s ease,
-    background .25s ease,
-    box-shadow .25s ease;
-}
-
-.gold-button::after,
-.cart-button::after,
-.add-button::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  bottom: -40%;
-  left: -100%;
-  width: 55%;
-  transform: skewX(-20deg);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.36),
-    transparent
-  );
-  transition: left .6s ease;
-  pointer-events: none;
-}
-
-.gold-button:hover::after,
-.cart-button:hover::after,
-.add-button:hover::after {
-  left: 145%;
-}
-
-.gold-button:hover,
-.cart-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 9px 25px rgba(0,113,227,.24);
-}
-
-/* Store section and typography */
-.section {
-  padding-top: 85px;
-  padding-bottom: 85px;
-}
-
-.section-heading h2,
-.about h2 {
-  font-size: clamp(34px, 4.4vw, 49px);
-  font-weight: 650;
-  letter-spacing: -.055em;
-}
-
-.section-heading > div {
-  animation: revealUp .7s ease both;
-}
-
-.tools input,
-.tools select {
-  border-radius: 999px;
-  padding: 14px 18px;
-  transition: border-color .2s ease, box-shadow .2s ease;
-}
-
-.tools input:focus,
-.tools select:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(0,113,227,.09);
-  outline: none;
-}
-
-/* Raised product cards with staggered entrances */
-.product-grid {
-  gap: 30px 22px;
-}
-
-.product {
-  position: relative;
-  border: 1px solid rgba(0,0,0,.055);
-  border-radius: 18px;
-  background: #fff;
-  overflow: hidden;
-  box-shadow: 0 3px 12px rgba(0,0,0,.025);
-  animation: cardEnter .7s cubic-bezier(.2,.75,.25,1) both;
-  transition:
-    transform .35s cubic-bezier(.2,.75,.25,1),
-    box-shadow .35s ease,
-    border-color .35s ease;
-}
-
-.product:nth-child(4n + 1) { animation-delay: .04s; }
-.product:nth-child(4n + 2) { animation-delay: .12s; }
-.product:nth-child(4n + 3) { animation-delay: .20s; }
-.product:nth-child(4n + 4) { animation-delay: .28s; }
-
-.product:hover {
-  transform: translateY(-9px);
-  border-color: rgba(0,113,227,.2);
-  box-shadow: 0 20px 45px rgba(0,0,0,.09);
-}
-
-.product-image-wrap {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0;
-  background: #f5f5f7;
-}
-
-.product-image {
-  display: block;
-  transition:
-    transform .7s cubic-bezier(.2,.7,.2,1),
-    filter .5s ease;
-}
-
-.product:hover .product-image {
-  transform: scale(1.075);
-  filter: saturate(1.06);
-}
-
-.product-tag {
-  top: 13px;
-  left: 13px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.9);
-  backdrop-filter: blur(10px);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.product-details {
-  padding: 18px 16px 19px;
-}
-
-.product-category {
-  color: #727277;
-  font-size: 10px;
-  letter-spacing: 1.3px;
-}
-
-.product h3 {
-  font-size: 15px;
-  letter-spacing: -.35px;
-  font-weight: 600;
-}
-
-.product-price {
-  font-size: 18px;
-  letter-spacing: -.5px;
-}
-
-.add-button {
-  margin-top: 16px;
-  padding: 13px;
-  border-radius: 999px;
-  background: #fff;
-  font-weight: 650;
-}
-
-.add-button:hover {
-  background: #111;
-  border-color: #111;
-  color: white;
-  transform: translateY(-2px);
-}
-
-/* Gentle movement for the benefit tiles */
-.benefits {
-  padding-top: 55px;
-  padding-bottom: 55px;
-  background: linear-gradient(135deg, #f8f8fa, #eeeeF2);
-}
-
-.benefit {
-  padding: 20px 15px;
-  border-radius: 16px;
-  transition: transform .3s ease, background .3s ease;
-}
-
-.benefit:hover {
-  transform: translateY(-5px);
-  background: rgba(255,255,255,.85);
-}
-
-.benefit strong {
-  letter-spacing: -.3px;
-}
-
-/* Animated entrance for brand story */
-.about {
-  padding: 25px 0;
-  animation: revealUp .8s ease both;
-}
-
-.about h2 {
-  line-height: 1.12;
-}
-
-/* Smoother cart and checkout */
-.overlay {
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-}
-
-.modal {
-  border: 1px solid rgba(255,255,255,.7);
-  border-radius: 23px;
-  animation: modalEnter .32s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.modal-close {
-  transition: transform .2s ease, background .2s ease;
-}
-
-.modal-close:hover {
-  transform: rotate(90deg);
-}
-
-.toast {
-  animation: toastEnter .3s ease both;
-}
-
-/* Motion system */
-@keyframes revealUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes cardEnter {
-  from { opacity: 0; transform: translateY(24px) scale(.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes heroDrift {
-  from { background-position: center, 45% center; }
-  to { background-position: center, 56% center; }
-}
-
-@keyframes modalEnter {
-  from { opacity: 0; transform: translateY(18px) scale(.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes toastEnter {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-@keyframes announcementIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes buttonBreath {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,113,227,0); }
-  50% { box-shadow: 0 0 0 5px rgba(0,113,227,.10); }
-}
-
-/* Responsive layout */
-@media (max-width: 900px) {
-  .product-grid {
-    gap: 22px 14px;
-  }
-
-  .product-details {
-    padding: 14px 12px;
-  }
-}
-
-@media (max-width: 620px) {
-  .hero {
-    min-height: 440px;
-    background-position: center, center;
-  }
-
-  .hero-content h1 {
-    font-size: clamp(43px, 11vw, 58px);
-  }
-
-  .hero-content p {
-    font-size: 14px;
-  }
-
-  .section {
-    padding-top: 55px;
-    padding-bottom: 55px;
-  }
-
-  .product-grid {
-    gap: 20px 11px;
-  }
-
-  .product {
-    border-radius: 12px;
-  }
-
-  .product-details {
-    padding: 13px 10px;
-  }
-
-  .product h3 {
-    font-size: 14px;
-  }
-
-  .product-price {
-    font-size: 16px;
-  }
-
-  .product:hover {
-    transform: translateY(-3px);
-  }
-}
-
-/* Respect accessibility settings */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-/* AnimatedContent-style scroll reveals */
-body.ac-enabled [data-ac-reveal] {
-  opacity: 0;
-  transform: translate3d(0, 36px, 0) scale(.985);
-  filter: blur(5px);
-  transition:
-    opacity .8s cubic-bezier(.2,.7,.2,1),
-    transform .8s cubic-bezier(.2,.7,.2,1),
-    filter .8s ease;
-  transition-delay: var(--ac-delay, 0ms);
-  will-change: opacity, transform, filter;
-}
-
-body.ac-enabled [data-ac-reveal].ac-visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
-  filter: blur(0);
-}
-
-/* Keep text readable and avoid horizontal overflow */
-.product-grid {
-  overflow: visible;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body.ac-enabled [data-ac-reveal],
-  body.ac-enabled [data-ac-reveal].ac-visible {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-    will-change: auto;
-  }
-}
-
-  
-/* VELZO FASHION EDIT — visual refresh only; commerce logic remains unchanged */
-:root {
-  --black: #171713;
-  --gold: #c5a36b;
-  --cream: #f4f0e8;
-  --muted: #77756f;
-  --line: #e7e1d6;
-  --white: #fffefa;
-}
-body { background: var(--white); color: var(--black); }
-.announcement {
-  background: #22231d; color: #f8f3e8; padding: 11px 14px;
-  font-size: 10px; letter-spacing: 2.2px;
-}
-.header {
-  padding: 20px 6.5%; background: rgba(255,254,250,.96);
-  border-bottom: 1px solid rgba(23,23,19,.09);
-  box-shadow: 0 6px 24px rgba(23,23,19,.025);
-}
-.logo { font-size: 28px; letter-spacing: 4px; }
-.logo span { color: #b08c4c; }
-.logo small { letter-spacing: 5px; }
-.nav { gap: clamp(14px, 2.5vw, 32px); }
-.nav a { font-size: 12px; letter-spacing: .5px; }
-.nav a:hover { color: #9a773d; }
-.cart-button, .black-button {
-  border-radius: 0; background: #22231d; padding: 13px 19px;
-  letter-spacing: 1px; font-size: 10px; transition: background .25s, transform .25s;
-}
-.cart-button:hover, .black-button:hover { background: #9a773d; transform: translateY(-2px); }
-.hero {
-  min-height: clamp(490px, 56vw, 680px);
-  padding: 70px 8%;
-  position: relative; isolation: isolate; overflow: hidden;
-  background:
-    linear-gradient(90deg, rgba(18,19,15,.83) 0%, rgba(18,19,15,.49) 42%, rgba(18,19,15,.06) 100%),
-    url("https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=2000&q=88")
-    center 38% / cover;
-  animation: fashionHeroDrift 22s ease-in-out infinite alternate;
-}
-.hero::before {
-  content: "VELZO / CITY GENTLEMAN";
-  position: absolute; right: 5%; bottom: 28px; z-index: -1;
-  color: rgba(255,255,255,.74); font-size: 9px; letter-spacing: 3px;
-  writing-mode: vertical-rl;
-}
-.hero-content { max-width: 670px; }
-.hero-content .eyebrow {
-  display: inline-block; color: #e0c18a; font-size: 10px;
-  letter-spacing: 3.5px; padding-bottom: 13px;
-}
-.hero-content h1 {
-  font-family: Georgia, 'Times New Roman', serif; font-weight: 400;
-  font-size: clamp(54px, 8.4vw, 105px); letter-spacing: -.055em;
-  line-height: .94; text-wrap: balance; margin: 20px 0 24px;
-}
-.hero-content p { max-width: 440px; font-size: 15px; line-height: 1.9; color: rgba(255,255,255,.88); }
-.gold-button {
-  margin-top: 14px; padding: 16px 23px; border: 1px solid #d5b77f;
-  border-radius: 0; background: #d5b77f; color: #1c1b16;
-  font-size: 10px; font-weight: 700; letter-spacing: 1.8px;
-  transition: background .25s, color .25s, transform .25s;
-}
-.gold-button:hover { background: transparent; color: white; transform: translateY(-3px); }
-.section { max-width: 1440px; padding: 88px 6.5%; }
-.section-heading { align-items: end; margin-bottom: 28px; }
-.section-heading h2, .about h2 {
-  font-family: Georgia, 'Times New Roman', serif; font-weight: 400;
-  letter-spacing: -.045em; font-size: clamp(34px, 4vw, 54px); line-height: 1.05;
-}
-.section-heading p, .about p { color: var(--muted); line-height: 1.8; }
-.tools { display: grid; grid-template-columns: minmax(180px, 1.5fr) minmax(140px, .8fr) minmax(140px, .8fr); gap: 10px; margin-bottom: 28px; }
-.tools input, .tools select {
-  min-height: 48px; padding: 13px 15px; border: 1px solid #ded8cc;
-  border-radius: 0; background: #fbf9f4; color: var(--black);
-}
-.tools input:focus, .tools select:focus { border-color: #b08c4c; outline: none; }
-.product-grid { gap: 34px 20px; }
-.product {
-  background: transparent; border: 0; border-radius: 0; overflow: hidden;
-  transition: transform .35s ease;
-}
-.product:hover { transform: translateY(-7px); box-shadow: none; }
-.product-image-wrap { background: #eee9df; }
-.product-image { aspect-ratio: 3 / 4; object-position: center; }
-.product-tag {
-  left: 12px; top: 12px; padding: 8px 10px; border-radius: 0;
-  background: rgba(255,254,250,.93); color: #29281f;
-  font-size: 9px; letter-spacing: 1.2px; backdrop-filter: blur(8px);
-}
-.product-details { padding: 16px 2px 4px; }
-.product-category { color: #8b7045; font-size: 9px; letter-spacing: 1.8px; text-transform: uppercase; }
-.product h3 { margin: 8px 0; font-size: 15px; font-weight: 500; letter-spacing: -.15px; }
-.product-price { font-size: 17px; font-weight: 600; }
-.add-button {
-  width: 100%; margin-top: 15px; padding: 13px 12px; border: 1px solid #25251f;
-  border-radius: 0; background: transparent; color: #25251f;
-  font-size: 10px; letter-spacing: 1.3px; transition: all .25s ease;
-}
-.add-button:hover { background: #25251f; color: white; border-color: #25251f; }
-.benefits {
-  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px;
-  padding: 54px 8%; background: #f2eee5;
-}
-.benefit { padding: 20px 22px; border-left: 1px solid #d4c8b4; border-radius: 0; }
-.benefit strong { font: 22px Georgia, serif; font-weight: 400; }
-.benefit p { color: #77756f; font-size: 13px; line-height: 1.7; }
-.about { max-width: 790px; padding: 25px 0; }
-.about .eyebrow { color: #987743; }
-.about h2 { max-width: 650px; }
-.footer {
-  padding: 48px 6.5%; background: #20211b; color: #f5f0e6;
-  display: flex; align-items: end; justify-content: space-between; gap: 28px;
-}
-.footer .logo { color: #fffefa; }
-.footer .logo span { color: #d5b77f; }
-.footer p, .footer small { color: #c1bdb3; line-height: 1.8; }
-.overlay { background: rgba(17,17,14,.62); }
-.modal { border-radius: 0; max-width: 620px; }
-.modal-close { border-radius: 0; }
-.toast { border-radius: 0; background: #22231d; }
-@keyframes fashionHeroDrift {
-  from { background-position: center, 43% 38%; }
-  to { background-position: center, 57% 38%; }
-}
-@media (max-width: 800px) {
-  .header { padding: 16px 5%; }
-  .hero { min-height: 540px; background-position: center, 58% center; }
-  .section { padding: 65px 5%; }
-  .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px 14px; }
-  .benefits { padding: 35px 5%; gap: 12px; }
-  .benefit { padding: 16px 12px; }
-  .benefit strong { font-size: 18px; }
-}
-@media (max-width: 560px) {
-  .announcement { font-size: 9px; letter-spacing: 1.3px; }
-  .logo { font-size: 22px; letter-spacing: 3px; }
-  .logo small { font-size: 8px; letter-spacing: 3.5px; }
-  .nav { gap: 13px; }
-  .nav a { font-size: 11px; }
-  .cart-button { padding: 11px 12px; font-size: 10px; }
-  .hero { min-height: 530px; padding: 50px 7%; background-position: center, 61% center; }
-  .hero-content h1 { font-size: clamp(52px, 14vw, 72px); }
-  .hero-content p { max-width: 320px; font-size: 14px; }
-  .section { padding: 55px 5%; }
-  .section-heading { align-items: start; gap: 8px; }
-  .section-heading h2 { font-size: 35px; }
-  .tools { grid-template-columns: 1fr 1fr; }
-  .tools input { grid-column: 1 / -1; }
-  .product-grid { gap: 24px 12px; }
-  .product-details { padding-top: 12px; }
-  .product h3 { font-size: 13px; }
-  .product-price { font-size: 15px; }
-  .benefits { grid-template-columns: 1fr; gap: 0; }
-  .benefit { border-left: 2px solid #c5a36b; }
-  .footer { align-items: start; flex-direction: column; padding: 38px 6%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero { animation: none; }
-}
-
-
-/* VELZO CITY GENTLEMAN — gritty, cinematic urban direction */
-:root { --black:#17191b; --gold:#c5a16b; --cream:#e8e5de; --muted:#888b8d; --line:#393b3d; }
-body { background:#e9e7e2; }
-.announcement { background:#181a1c; color:#d6d0c4; letter-spacing:2px; }
-.header { background:#202225; color:#f3f0e9; border-bottom:1px solid #353638; }
-.logo { color:#f3f0e9; }
-.nav a { color:#e3e0d9; }
-.hero {
-  background-image: linear-gradient(90deg,rgba(10,12,14,.91) 0%,rgba(15,17,19,.73) 43%,rgba(15,17,19,.18) 100%),
-    url("https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=2000&q=88");
-  background-color:#181a1c; filter:none;
-}
-.hero::after { content:""; position:absolute; inset:0; pointer-events:none; z-index:-1; background:linear-gradient(0deg,rgba(7,8,9,.36),transparent 45%),linear-gradient(90deg,rgba(25,28,31,.16),rgba(25,28,31,.03)); }
-.hero-content h1 { text-transform:uppercase; letter-spacing:-.045em; }
-.hero-content .eyebrow { color:#d0ad78; }
-.gold-button { background:#c5a16b; border-color:#c5a16b; }
-.section { background:#e9e7e2; }
-.section-heading h2,.about h2 { color:#202225; text-transform:uppercase; }
-.product { color:#202225; }
-.product-image-wrap { background:#d4d1ca; }
-.add-button { border-color:#27292b; color:#27292b; }
-.add-button:hover { background:#27292b; }
-.benefits { background:#dcd9d2; }
-.benefit { border-left-color:#9a794b; }
-.footer { background:#181a1c; }
-@media (max-width:560px) { .hero { background-position:center, 62% center; } }
-
-
-
-/* VELZO CITY GENTLEMAN — darker urban product gallery */
-#shop.section {
-  position: relative;
-  isolation: isolate;
-  color: #f3f1ec;
-  background:
-    radial-gradient(ellipse at 12% 0%, rgba(130, 137, 145, .18), transparent 42%),
-    radial-gradient(ellipse at 88% 35%, rgba(120, 91, 49, .12), transparent 38%),
-    linear-gradient(145deg, #292c30 0%, #1b1d20 54%, #121416 100%);
-}
-#shop.section::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: .15;
-  background-image: repeating-linear-gradient(0deg, transparent 0 5px, rgba(255,255,255,.035) 6px, transparent 7px);
-}
-#shop .section-heading h2 { color: #f6f2e9; }
-#shop .section-heading p { color: #b8b9ba; }
-#shop .tools input,
-#shop .tools select {
-  color: #f2f0eb;
-  background: #24272a;
-  border-color: #4b4e50;
-  border-radius: 3px;
-}
-#shop .tools input::placeholder { color: #a9abad; }
-#shop .product-grid { gap: 28px 20px; }
-#shop .product {
-  padding: 10px;
-  background: linear-gradient(155deg, #303337, #222427 72%);
-  border: 1px solid rgba(255,255,255,.09);
-  box-shadow: 0 12px 28px rgba(0,0,0,.17);
-  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-}
-#shop .product:hover {
-  transform: translateY(-4px);
-  border-color: rgba(212,177,106,.48);
-  box-shadow: 0 18px 34px rgba(0,0,0,.28);
-}
-#shop .product-image-wrap { background: #3a3c3f; border-radius: 2px; }
-#shop .product-tag { border-radius: 2px; color: #171819; background: #d4b16a; }
-#shop .product-details { padding: 15px 5px 5px; }
-#shop .product-category { color: #d4b16a; }
-#shop .product h3 { color: #f7f5f0; }
-#shop .product-description { color: #b8b9ba; }
-#shop .product-price { color: #f4e4bd; }
-#shop .add-button {
-  color: #f7f5f0;
-  background: transparent;
-  border-color: #77797a;
-  border-radius: 2px;
-}
-#shop .add-button:hover { color: #171819; background: #d4b16a; border-color: #d4b16a; }
-#shop .empty-state { color: #c3c3c3; }
-@media (max-width: 650px) {
-  #shop .product { padding: 7px; }
-  #shop .product-grid { gap: 20px 10px; }
-}
-
-  
-/* Product image gallery */
-.product-image-thumbs{display:flex;gap:7px;overflow-x:auto;padding:9px 10px;background:rgba(0,0,0,.035)}
-.product-image-thumb{border:1px solid transparent;background:transparent;padding:0;flex:0 0 42px;width:42px;height:50px;cursor:pointer;opacity:.7}
-.product-image-thumb.active,.product-image-thumb:hover{border-color:#c5a16b;opacity:1}
-.product-image-thumb img{display:block;width:100%;height:100%;object-fit:cover}
-.product-image-thumb:focus-visible{outline:2px solid #c5a16b;outline-offset:2px}
-
-    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
-    .hero-actions .gold-button { margin-top: 0; }
-    .accessories-button {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-height: 48px; padding: 13px 22px; cursor: pointer;
-      background: linear-gradient(120deg, #6b1f3a, #101d35);
-      color: #fff8f0; border: 1px solid #8b7045; border-radius: 2px;
-      font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .accessories-button:hover { transform: translateY(-2px); box-shadow: 0 7px 20px #0003; }
-    .dresses-button { background: #6b1f3a; color: #fff8f0; border-color: #6b1f3a; }
-    .dresses-button:hover { background: #101d35; border-color: #101d35; }
-    @media (max-width: 480px) { .hero-actions { gap: 9px; } .hero-actions .gold-button, .accessories-button { padding: 12px 15px; font-size: 10px; } }
+  position: sticky; top: 0; z-index: 20; background: #20211b; color: #fffefa;
+  padding: 19px 5.5%; box-shadow: 0 8px 25px rgba(0,0,0,.12);
+}
+.logo { font: 26px Georgia,serif; letter-spacing: 3px; }
+.logo span { color: #d5b77f; }
+.header a { font-size: 11px; letter-spacing: 1.3px; text-transform: uppercase; }
+.header a:hover { color: #d5b77f; }
+.wrap { max-width: 1320px; margin: 32px auto; padding: 0 22px; }
+.panel { background: #fffefa; border: 1px solid #e5dfd3; border-radius: 2px; padding: 28px; box-shadow: 0 12px 35px rgba(35,32,24,.035); }
+h1,h2 { font-family: Georgia,'Times New Roman',serif; font-weight: 400; letter-spacing: -.035em; }
+h1 { font-size: clamp(30px,4vw,44px); }
+h2 { font-size: 30px; }
+.muted { color: #77756f; }
+.form { gap: 14px; }
+input,textarea,select {
+  border: 1px solid #ddd6c9; border-radius: 0; background: #fffefa; padding: 13px 14px;
+  color: #22231d; transition: border-color .2s, box-shadow .2s;
+}
+input:focus,textarea:focus,select:focus { outline: none; border-color: #b08c4c; box-shadow: 0 0 0 3px rgba(197,163,107,.13); }
+input[type="checkbox"] { accent-color: #a9874d; }
+button { transition: background .2s, color .2s, transform .2s; }
+button:hover { transform: translateY(-1px); }
+button.primary { background: #20211b; }
+button.primary:hover { background: #3b3c32; }
+button.gold { background: #d5b77f; color: #22231d; letter-spacing: .8px; }
+button.gold:hover { background: #c3a16a; }
+button.secondary { border-color: #d8d0c2; background: #fffefa; }
+button.secondary:hover { background: #f3efe6; }
+button.danger { background: #8f3228; }
+.status { border-left: 3px solid #c5a36b; background: #f3efe6; padding: 15px 17px; }
+.stats { gap: 14px; }
+.stat { background: #fffefa; border: 1px solid #e5dfd3; padding: 22px; position: relative; overflow: hidden; }
+.stat::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #c5a36b; }
+.stat span { text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; }
+.stat strong { font-family: Georgia,serif; font-size: 34px; font-weight: 400; }
+.tabs { border-bottom: 1px solid #e5dfd3; padding-bottom: 13px; }
+.tabs button { letter-spacing: .8px; }
+.tabs button.active { background: #d5b77f; color: #22231d; }
+table { min-width: 690px; }
+th { background: #f3efe6; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+td,th { padding: 14px 12px; border-bottom-color: #eee9df; }
+.product-thumb { width: 54px; height: 66px; background: #f3efe6; }
+.product-name { font-size: 13px; }
+.note { line-height: 1.7; }
+#loginPanel { border-top: 3px solid #c5a36b; }
+#loginPanel h1 { margin-top: 0; }
+@media(max-width:650px) {
+  .header { padding: 16px 4%; }
+  .wrap { padding: 0 10px; margin: 18px auto; }
+  .panel { padding: 17px; }
+  .stats { grid-template-columns: 1fr; }
+  .stat { padding: 17px 20px; }
+}
+
+
+/* VELZO CITY GENTLEMAN — cinematic admin workspace */
+:root { --black:#17191b; --gold:#c5a16b; --cream:#e8e5de; --line:#383b3e; --muted:#a6a7a7; }
+body { background:#202225; color:#eeeae2; }
+.header { background:#121416; border-bottom:1px solid #393b3d; }
+.wrap { max-width:1380px; }
+.panel,.stat { background:#292c2f; color:#eeeae2; border-color:#3b3e40; box-shadow:0 14px 36px rgba(0,0,0,.16); }
+.muted,.note,.stat span { color:#b1b2b2; }
+input,textarea,select { background:#202225; color:#f4f1ea; border-color:#4b4d4f; }
+input::placeholder,textarea::placeholder { color:#9a9c9e; }
+th { background:#202225; color:#d5b77f; }
+td,th { border-bottom-color:#3b3e40; }
+button.secondary { background:#292c2f; color:#eeeae2; border-color:#55585a; }
+button.secondary:hover { background:#3a3d40; }
+button.primary { background:#111315; }
+button.gold { background:#c5a16b; }
+button.danger { background:#8d302b; color:#fff; }
+.status { background:#33302a; color:#f5f0e6; border-left-color:#c5a16b; }
+.stat::after { background:#c5a16b; }
+.tabs { border-bottom-color:#3b3e40; }
+.product-thumb { background:#202225; }
+#loginPanel { border-top-color:#c5a16b; }
+
+.admin-size-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.admin-size-buttons label{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:9px 12px;border:1px solid #555;border-radius:7px;cursor:pointer;background:#171717;color:#eee}.admin-size-buttons label:has(input:checked){background:#d4b16a;color:#111;border-color:#d4b16a}.admin-size-buttons input{position:absolute;opacity:0;width:1px;height:1px}.field-label{display:block;font-size:13px;margin:8px 0;color:inherit}
 </style>
 </head>
-
-<script>
-(() => {
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
-
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    return;
-  }
-
-  const selector = [
-    ".section-heading",
-    ".product",
-    ".benefit",
-    ".about"
-  ].join(",");
-
-  document.body.classList.add("ac-enabled");
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-
-      const element = entry.target;
-      element.classList.add("ac-visible");
-      revealObserver.unobserve(element);
-    });
-  }, {
-    threshold: 0.12,
-    rootMargin: "0px 0px -35px 0px"
-  });
-
-  function prepareElement(element, index) {
-    if (element.dataset.acReveal) return;
-
-    element.dataset.acReveal = "true";
-
-    if (element.classList.contains("product")) {
-      element.style.setProperty(
-        "--ac-delay",
-        `${Math.min(index % 4, 3) * 90}ms`
-      );
-    }
-
-    revealObserver.observe(element);
-  }
-
-  function collectElements(root = document) {
-    if (root instanceof Element && root.matches(selector)) {
-      prepareElement(root, 0);
-    }
-
-    if (root.querySelectorAll) {
-      root.querySelectorAll(selector).forEach((element, index) => {
-        prepareElement(element, index);
-      });
-    }
-  }
-
-  collectElements();
-
-  // Product cards are recreated when a shopper filters or searches.
-  // This observes new cards without changing the store's product logic.
-  const productGrid = document.getElementById("products");
-
-  if (productGrid) {
-    const gridObserver = new MutationObserver(() => {
-      collectElements(productGrid);
-    });
-
-    gridObserver.observe(productGrid, {
-      childList: true
-    });
-  }
-})();
-</script>
-
 <body>
-  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE.</div>
 
-  <header class="header">
-    <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-    <nav class="nav" aria-label="Main navigation">
-      <a href="#shop">Shop</a>
-      <a class="optional-link" href="#about">Our story</a>
-      <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
-        Bag (<span id="cart-count">0</span>)
-      </button>
-      <button class="velzo-account-nav" id="velzo-account-btn" type="button" onclick="velzoOpenAccount()">Register / Login</button>
-      <a class="velzo-care-nav" href="https://wa.me/918500716966?text=Hello%20Velzo%20Collections%2C%20I%20need%20customer%20support." target="_blank" rel="noopener noreferrer">Customer Care</a>
-    </nav>
-  </header>
+<header class="header">
+  <div class="logo">VEL<span>ZO</span> ADMIN</div>
+  <a href="/">← View store</a>
+</header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <div class="eyebrow">NEW DROP · GRAPHIC TEES · PRINTED SHIRTS</div>
-        <h1>Wear<br>your vibe.</h1>
-        <p>Statement prints. Oversized fits. Everyday streetwear made for your own rules. Find your next favourite look at Velzo.</p>
-        <div class="hero-actions">
-          <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-            SHOP THE DROP
-          </button>
-          <button class="accessories-button" onclick="shopAccessories()">
-            ACCESSORIES
-          </button>
-          <button class="accessories-button dresses-button" onclick="shopDresses()">
-            DRESSES
-          </button>
-        </div>
-      </div>
-    </section>
+<main class="wrap">
+  <div id="message" class="status" role="status" aria-live="polite"></div>
 
-    <section class="section" id="shop">
-      <div class="section-heading">
+  <section id="loginPanel" class="panel" style="max-width:460px;margin:45px auto">
+    <h1>Admin sign in</h1>
+    <p class="muted">Sign in with the administrator account you created in Supabase.</p>
+    <form id="loginForm" class="form">
+      <input id="email" type="email" placeholder="Admin email" autocomplete="username" required class="full">
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password" required class="full">
+      <button class="gold full" type="submit">SIGN IN</button>
+    </form>
+    <p class="note">Only an account explicitly authorized in your database can manage this store.</p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="panel">
+      <div class="actions" style="justify-content:space-between">
         <div>
-          <h2>Made for the main character</h2>
-          <p>Graphic tees, printed shirts and street-ready essentials. Find your fit.</p>
+          <h1 style="margin:0">Store dashboard</h1>
+          <p class="muted" id="signedInAs"></p>
         </div>
-        <p id="result-count" aria-live="polite"></p>
+        <button class="secondary" id="logoutBtn">Sign out</button>
       </div>
-
-      <div class="tools">
-        <input id="search" type="search" placeholder="Search tees, printed shirts, streetwear…" aria-label="Search products">
-        <select id="category" aria-label="Filter by category">
-          <option value="">All categories</option>
-        </select>
-        <select id="sort" aria-label="Sort products">
-          <option value="featured">Featured</option>
-          <option value="low">Price: low to high</option>
-          <option value="high">Price: high to low</option>
-          <option value="az">Name: A–Z</option>
-        </select>
-      </div>
-
-      <div class="product-grid" id="products" aria-live="polite"></div>
-    </section>
-
-    <section class="benefits" aria-label="Our promises">
-      <div class="benefit">
-        <strong>Made for the city</strong>
-        <p>Versatile essentials with a confident, urban edge.</p>
-      </div>
-      <div class="benefit">
-        <strong>Sharp by design</strong>
-        <p>Clean details. Timeless layers. No unnecessary noise.</p>
-      </div>
-      <div class="benefit">
-        <strong>Here to help</strong>
-        <p>Contact our store for order and product questions.</p>
-      </div>
-    </section>
-
-    <section class="section" id="about">
-      <div class="about">
-        <div class="eyebrow">Our point of view</div>
-        <h2>Own the streets. Define your style.</h2>
-        <p>Velzo Collections brings together menswear and lifestyle essentials with a cinematic, city-at-night attitude. Think tailored confidence, muted tones and practical pieces made for everyday life.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div>
-      <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
-      <p>Graphic streetwear, printed shirts and everyday fits.</p>
     </div>
-    <div>
-      <small>© <span id="year"></span> Velzo Collections</small>
-      <p>Own your look. Move your way. Velzo Collections.</p>
-    </div>
-  </footer>
 
-  <div class="overlay" id="cart-overlay" onclick="if(event.target===this) closeCart()">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-      <button class="modal-close" onclick="closeCart()" aria-label="Close cart">×</button>
-      <div id="cart-content"></div>
+    <div class="stats">
+      <div class="stat"><span>Products</span><strong id="productTotal">0</strong></div>
+      <div class="stat"><span>Total orders</span><strong id="orderTotal">0</strong></div>
+      <div class="stat"><span>Placed / confirmed</span><strong id="pendingTotal">0</strong></div>
+    </div>
+
+    <section class="panel">
+      <div class="tabs">
+        <button class="primary active" data-tab="products">Products</button>
+        <button class="primary" data-tab="orders">Orders</button>
+      </div>
+
+      <div id="productsTab">
+        <h2 id="formTitle">Add a product</h2>
+        <form id="productForm" class="form">
+          <input id="productId" type="hidden">
+          <input id="productName" placeholder="Product name" required maxlength="150">
+          <select id="productCategory" required aria-label="Product category">
+            <option value="">Choose product category</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Dresses">Dresses</option>
+            <option value="T-Shirts">T-Shirts</option>
+            <option value="Hoodies">Hoodies</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="productCustomCategory" placeholder="Enter custom category" maxlength="60" style="display:none" aria-label="Custom product category">
+          <input id="productPrice" type="number" min="0" max="99999999" step=".01" placeholder="Price in ₹" required>
+          <input id="productTag" placeholder="Badge, e.g. NEW (optional)" maxlength="30">
+          <input id="productImage" type="url" placeholder="Main product image URL (https://)" required class="full">
+          <textarea id="productImageUrls" placeholder="Additional image URLs — one HTTPS URL per line (front, back, details...)" rows="4" class="full"></textarea>
+          <input id="productMeeshoUrl" type="url" placeholder="Meesho supplier/product link (optional)" class="full">
+          <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
+          <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
+          <div class="full size-picker-admin">
+            <span class="field-label">Choose available sizes (tap to select)</span>
+            <div id="productSizeButtons" class="admin-size-buttons">
+              <label><input type="checkbox" value="XS"> XS</label><label><input type="checkbox" value="S"> S</label><label><input type="checkbox" value="M"> M</label><label><input type="checkbox" value="L"> L</label><label><input type="checkbox" value="XL"> XL</label><label><input type="checkbox" value="XXL"> XXL</label><label><input type="checkbox" value="XXXL"> XXXL</label><label><input type="checkbox" value="Free Size"> Free Size</label>
+            </div>
+            <input id="productSizes" placeholder="Other sizes (optional, comma separated)" class="full" maxlength="120">
+          </div>
+          <input id="productSizeChart" type="url" placeholder="Size chart image/link (optional)" class="full">
+          <label class="full"><input id="productOutOfStock" type="checkbox" style="width:auto"> Mark this product OUT OF STOCK</label>
+          <label class="full"><input id="productActive" type="checkbox" checked style="width:auto"> Product is visible in the store</label>
+          <div class="actions full">
+            <button class="gold" type="submit">SAVE PRODUCT</button>
+            <button class="secondary" type="button" id="clearForm">CLEAR FORM</button>
+            <button class="secondary" type="button" id="refreshProducts">REFRESH</button>
+          </div>
+        </form>
+
+        <p class="note">Use a direct HTTPS image URL. Images are hosted externally; this form does not upload image files.</p>
+        <h2 style="margin-top:28px">Your products</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Price</th><th>Stock / Sizes</th><th>Visibility</th><th>Actions</th></tr></thead>
+            <tbody id="productRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="ordersTab" class="hidden">
+        <h2>Customer orders</h2>
+        <p class="muted">Review saved orders and update their status.</p>
+        <div class="actions" style="margin-bottom:15px">
+          <button class="secondary" id="refreshOrders">REFRESH ORDERS</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Status</th><th>Update / Delete</th></tr></thead>
+            <tbody id="orderRows"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </section>
+</main>
 
 <script>
-/*
- * VELZO COLLECTIONS — SUPABASE STOREFRONT
- * Uses the public publishable key, never a secret/service-role key.
- */
-
+/* Use the SAME Supabase project URL and publishable key as index.html. */
 const SUPABASE_URL = "https://csaihfchrupsdpqwvwbh.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f94lFoGclyXB6rmVtNNy8w_PorwUcU9";
-const WHATSAPP_NUMBER = "918500716966";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
 
-let PRODUCTS = [];
-let PAYMENT_SETTINGS = {upi_enabled:true,cod_enabled:true,upi_id:"",payee_name:"Velzo Collections",qr_image_url:"",fixed_amount:null,instructions:""};
-let cart = readCart();
-const selectedSizes = {};
-const selectedColors = {};
+const $ = id => document.getElementById(id);
+let allProducts = [];
+let allOrders = [];
+let signedInUser = null;
 
-function readCart() {
-  try {
-    const items = JSON.parse(
-      localStorage.getItem("velzo-v2-cart") || "[]"
-    );
-    return Array.isArray(items) ? items : [];
-  } catch {
-    return [];
-  }
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   })[ch]);
 }
 
-function money(amount) {
-  return "₹" + Number(amount || 0).toLocaleString("en-IN", {
-    maximumFractionDigits: 2
+function money(v) {
+  return "₹" + Number(v || 0).toLocaleString("en-IN", {
+    maximumFractionDigits:2
   });
 }
 
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(
-    () => toast.classList.remove("show"),
-    3000
-  );
+function message(text) {
+  $("message").textContent = text;
+  $("message").classList.add("show");
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function saveCart() {
-  localStorage.setItem("velzo-v2-cart", JSON.stringify(cart));
-  document.getElementById("cart-count").textContent =
-    cart.reduce((sum, item) => sum + item.qty, 0);
+function clearMessage() {
+  $("message").classList.remove("show");
+  $("message").textContent = "";
+}
+
+async function adminCheck() {
+  const {data: sessionData, error: sessionError} =
+    await db.auth.getSession();
+
+  if (sessionError) throw sessionError;
+
+  const session = sessionData.session;
+  if (!session) {
+    showLogin();
+    return false;
+  }
+
+  signedInUser = session.user;
+
+  const {data, error} = await db.rpc("is_velzo_admin");
+  if (error) throw error;
+
+  if (data !== true) {
+    await db.auth.signOut();
+    signedInUser = null;
+    showLogin();
+    message("This account has not been authorized as a Velzo administrator.");
+    return false;
+  }
+
+  $("loginPanel").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("signedInAs").textContent = "Signed in as " + session.user.email;
+  await refreshAll();
+  return true;
+}
+
+function showLogin() {
+  $("loginPanel").classList.remove("hidden");
+  $("dashboard").classList.add("hidden");
+}
+
+$("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  clearMessage();
+
+  const button = $("loginForm").querySelector("button[type=submit]");
+  button.disabled = true;
+  button.textContent = "SIGNING IN…";
+
+  try {
+    const {error} = await db.auth.signInWithPassword({
+      email: $("email").value.trim(),
+      password: $("password").value
+    });
+
+    if (error) throw error;
+    $("password").value = "";
+    await adminCheck();
+  } catch (error) {
+    console.error(error);
+    message("Sign-in failed: " + (error.message || "Please try again."));
+  } finally {
+    button.disabled = false;
+    button.textContent = "SIGN IN";
+  }
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  await db.auth.signOut();
+  signedInUser = null;
+  showLogin();
+  message("You have signed out.");
+});
+
+async function refreshAll() {
+  clearMessage();
+  await Promise.all([loadProducts(), loadOrders()]);
+  renderStats();
 }
 
 async function loadProducts() {
-  const target = document.getElementById("products");
-  target.innerHTML = '<div class="empty-state">Loading products…</div>';
+  const {data, error} = await db.from("products")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock")
+    .order("created_at", {ascending:false});
 
-  const { data, error } = await db
-    .from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,size_chart_url,meesho_url,out_of_stock")
-    .eq("active", true)
-    .order("created_at", { ascending: false });
+  if (error) throw error;
 
-  if (error) {
-    target.innerHTML =
-      '<div class="empty-state">Could not load products. Please try refreshing.</div>';
-    console.error("Product loading error:", error.message);
-    return;
-  }
-
-  PRODUCTS = data || [];
-
-  // Remove old cart items that no longer exist in the catalogue.
-  cart = cart.filter(item =>
-    PRODUCTS.some(p => p.id === item.id) &&
-    Number.isInteger(item.qty) &&
-    item.qty > 0
-  );
-
-  saveCart();
-  setupCategories();
+  allProducts = data || [];
   renderProducts();
+  renderStats();
 }
 
-function shopAccessories() {
-  const select = document.getElementById("category");
-  const search = document.getElementById("search");
-  const option = [...select.options].find(o => /accessor(y|ies)/i.test(o.textContent + " " + o.value));
-  search.value = "";
-  select.value = option ? option.value : "";
-  window.velzoQuickCategory = option ? "" : "accessor";
-  renderProducts();
-  document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
+async function loadOrders() {
+  const {data, error} = await db.from("orders")
+    .select("id,customer_name,customer_phone,customer_address,items,total,status,created_at")
+    .order("created_at", {ascending:false});
+
+  if (error) throw error;
+
+  allOrders = data || [];
+  renderOrders();
+  renderStats();
 }
 
-function shopDresses() {
-  const select = document.getElementById("category");
-  const search = document.getElementById("search");
-  const option = [...select.options].find(o => /dress|women.?s clothing|women.?s fashion/i.test(o.textContent + " " + o.value));
-  search.value = "";
-  select.value = option ? option.value : "";
-  window.velzoQuickCategory = option ? "" : "dress";
-  renderProducts();
-  document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function setupCategories() {
-  const select = document.getElementById("category");
-  const previous = select.value;
-  const categories = [...new Set(PRODUCTS.map(p => p.category))].sort();
-
-  select.innerHTML =
-    '<option value="">All categories</option>' +
-    categories.map(c =>
-      `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`
-    ).join("");
-
-  select.value = categories.includes(previous) ? previous : "";
+function renderStats() {
+  $("productTotal").textContent = allProducts.length;
+  $("orderTotal").textContent = allOrders.length;
+  $("pendingTotal").textContent = allOrders.filter(o =>
+    ["Placed","Confirmed"].includes(o.status)
+  ).length;
 }
 
 function renderProducts() {
-  const query =
-    document.getElementById("search").value.trim().toLowerCase();
-  const category = document.getElementById("category").value;
-  const sorting = document.getElementById("sort").value;
+  $("productRows").innerHTML = allProducts.map(p => `
+    <tr>
+      <td><div class="product-cell">
+        <img class="product-thumb" src="${esc(p.image_url)}" alt=""
+          onerror="this.style.visibility='hidden'">
+        <div><div class="product-name">${esc(p.name)}</div>
+          <small>${esc(p.category)} · ${Array.isArray(p.image_urls) ? p.image_urls.length : 0} extra images</small>${p.meesho_url ? `<br><a href="${esc(p.meesho_url)}" target="_blank" rel="noopener">Open Meesho link ↗</a>` : ""}</div>
+      </div></td>
+      <td>${money(p.price)}</td>
+      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}</small></td>
+      <td>${p.active ? "Visible" : "Hidden"}</td>
+      <td><div class="actions">
+        <button class="secondary" data-action="edit" data-id="${esc(p.id)}">Edit</button>
+        <button class="${p.active ? "danger" : "gold"}"
+          data-action="visibility" data-id="${esc(p.id)}">
+          ${p.active ? "Hide" : "Show"}
+        </button>
+        <button class="danger" data-action="delete" data-id="${esc(p.id)}">Delete</button>
+      </div></td>
+    </tr>
+  `).join("") || '<tr><td colspan="4">No products found.</td></tr>';
+}
 
-  let items = PRODUCTS.filter(p =>
-    (!category || p.category === category) &&
-    (p.name + " " + p.category + " " + p.description)
-      .toLowerCase().includes(query)
+function resetProductForm() {
+  $("productForm").reset();
+  $("productId").value = "";
+  $("productActive").checked = true;
+  $("productHasSizes").checked = false;
+  $("productSizes").value = "";
+  document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = false);
+  $("productSizeChart").value = "";
+  $("productMeeshoUrl").value = "";
+  $("productOutOfStock").checked = false;
+  $("formTitle").textContent = "Add a product";
+}
+
+const categorySelect = $("productCategory");
+const customCategoryInput = $("productCustomCategory");
+categorySelect.addEventListener("change", () => {
+  const isOther = categorySelect.value === "Other";
+  customCategoryInput.style.display = isOther ? "block" : "none";
+  customCategoryInput.required = isOther;
+  if (!isOther) customCategoryInput.value = "";
+});
+
+$("clearForm").addEventListener("click", resetProductForm);
+
+$("productRows").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+
+  const product = allProducts.find(p => p.id === button.dataset.id);
+  if (!product) return;
+
+  try {
+    if (button.dataset.action === "edit") {
+      $("productId").value = product.id;
+      $("productName").value = product.name;
+      const knownCategories = Array.from($("productCategory").options).map(option => option.value);
+      if (knownCategories.includes(product.category)) {
+        $("productCategory").value = product.category;
+        $("productCustomCategory").value = "";
+        $("productCustomCategory").style.display = "none";
+        $("productCustomCategory").required = false;
+      } else {
+        let legacyOption = Array.from($("productCategory").options).find(option => option.value === product.category);
+        if (!legacyOption) {
+          legacyOption = new Option(product.category, product.category);
+          $("productCategory").add(legacyOption, $("productCategory").options.length - 1);
+        }
+        $("productCategory").value = product.category;
+        $("productCustomCategory").value = "";
+        $("productCustomCategory").style.display = "none";
+        $("productCustomCategory").required = false;
+      }
+      $("productPrice").value = product.price;
+      $("productTag").value = product.tag || "";
+      $("productImage").value = product.image_url;
+      $("productImageUrls").value = Array.isArray(product.image_urls) ? product.image_urls.join("\n") : "";
+      $("productDescription").value = product.description;
+      $("productMeeshoUrl").value = product.meesho_url || "";
+      $("productHasSizes").checked = !!product.has_sizes;
+      const standardSizes = ["XS","S","M","L","XL","XXL","XXXL","Free Size"];
+      document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = Array.isArray(product.sizes) && product.sizes.includes(input.value));
+      $("productSizes").value = Array.isArray(product.sizes) ? product.sizes.filter(size => !standardSizes.includes(size)).join(", ") : "";
+      $("productSizeChart").value = product.size_chart_url || "";
+      $("productOutOfStock").checked = !!product.out_of_stock;
+      $("productActive").checked = product.active;
+      $("formTitle").textContent = "Edit product: " + product.name;
+      $("productsTab").scrollIntoView({behavior:"smooth"});
+      return;
+    }
+
+    if (button.dataset.action === "delete") {
+      if (!confirm(`Permanently delete product "${product.name}"? This cannot be undone.`)) return;
+      const {error} = await db.from("products").delete().eq("id", product.id);
+      if (error) throw error;
+      resetProductForm();
+      await loadProducts();
+      message("Product deleted.");
+      return;
+    }
+
+    const word = product.active ? "hide" : "show";
+    if (!confirm(`Are you sure you want to ${word} "${product.name}"?`)) return;
+
+    const {error} = await db.from("products")
+      .update({active:!product.active, updated_at:new Date().toISOString()})
+      .eq("id", product.id);
+
+    if (error) throw error;
+
+    await loadProducts();
+    message("Product visibility updated.");
+  } catch (error) {
+    console.error(error);
+    message("Could not update product: " + error.message);
+  }
+});
+
+$("productForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  clearMessage();
+
+  const id = $("productId").value ||
+    "VC" + crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase();
+
+  const product = {
+    id,
+    name:$("productName").value.trim(),
+    category:($("productCategory").value === "Other" ? $("productCustomCategory").value : $("productCategory").value).trim(),
+    price:Number($("productPrice").value),
+    tag:$("productTag").value.trim(),
+    description:$("productDescription").value.trim(),
+    image_url:$("productImage").value.trim(),
+    image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
+    has_sizes:$("productHasSizes").checked,
+    sizes:$("productHasSizes").checked ? [...new Set([
+      ...Array.from(document.querySelectorAll("#productSizeButtons input:checked")).map(input => input.value),
+      ...$("productSizes").value.split(",").map(size => size.trim()).filter(Boolean)
+    ])] : [],
+    size_chart_url:$("productSizeChart").value.trim() || null,
+    meesho_url:$("productMeeshoUrl").value.trim() || null,
+    out_of_stock:$("productOutOfStock").checked,
+    active:$("productActive").checked,
+    updated_at:new Date().toISOString()
+  };
+
+  if (!product.name || !product.category ||
+      !Number.isFinite(product.price) || product.price < 0) {
+    return message("Check the product name, category and price.");
+  }
+  if (product.image_urls.length > 12) {
+    return message("Use up to 12 additional image URLs per product.");
+  }
+  if (product.has_sizes && product.sizes.length === 0) {
+    return message("Enter at least one size, e.g. S, M, L, XL, or turn off size selection.");
+  }
+
+  const button = $("productForm").querySelector("button[type=submit]");
+  // This form's primary button has no explicit type attribute, so find it safely.
+  const saveButton = $("productForm").querySelector("button.gold");
+  saveButton.disabled = true;
+  saveButton.textContent = "SAVING…";
+
+  try {
+    let query;
+    if ($("productId").value) {
+      query = db.from("products").update(product).eq("id", id);
+    } else {
+      query = db.from("products").insert(product);
+    }
+
+    const {error} = await query;
+    if (error) throw error;
+
+    resetProductForm();
+    await loadProducts();
+    message("Product saved successfully.");
+  } catch (error) {
+    console.error(error);
+    message("Could not save product: " + error.message);
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = "SAVE PRODUCT";
+  }
+});
+
+function renderOrders() {
+  $("orderRows").innerHTML = allOrders.map(o => {
+    let items = [];
+    try {
+      items = Array.isArray(o.items) ? o.items : [];
+    } catch (_) {}
+
+    const validStatuses = [
+      "Placed","Confirmed","Packed","Shipped","Delivered","Cancelled"
+    ];
+
+    return `
+      <tr>
+        <td><strong>${esc(o.id)}</strong><br>
+          <small>${esc(new Date(o.created_at).toLocaleString())}</small>
+        </td>
+        <td>
+          ${esc(o.customer_name)}<br>
+          ${esc(o.customer_phone)}<br>
+          <small>${esc(o.customer_address)}</small>
+        </td>
+        <td>${items.map(i =>
+          `${esc(i.name)}${i.size ? ` (Size: ${esc(i.size)})` : ""} × ${esc(i.qty)}`
+        ).join("<br>")}</td>
+        <td>${money(o.total)}</td>
+        <td>${esc(o.status)}</td>
+        <td><div class="actions">
+          <select aria-label="Status for order ${esc(o.id)}" data-status="${esc(o.id)}">
+            ${validStatuses.map(s =>
+              `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`
+            ).join("")}
+          </select>
+          <button class="secondary" data-update-order="${esc(o.id)}">Update</button>
+          <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
+        </div></td>
+      </tr>`;
+  }).join("") || '<tr><td colspan="6">No orders yet.</td></tr>';
+}
+
+$("orderRows").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-update-order], button[data-delete-order]");
+  if (!button) return;
+
+  const id = button.dataset.updateOrder || button.dataset.deleteOrder;
+
+  try {
+    if (button.dataset.deleteOrder) {
+      const order = allOrders.find(o => String(o.id) === String(id));
+      if (!confirm(`Permanently delete order ${id}${order?.customer_name ? ` for ${order.customer_name}` : ""}? This cannot be undone.`)) return;
+      const {error} = await db.from("orders").delete().eq("id", id);
+      if (error) throw error;
+      await loadOrders();
+      message("Order deleted.");
+      return;
+    }
+
+    const select = $("orderRows").querySelector(`select[data-status="${CSS.escape(id)}"]`);
+    if (!select) return;
+    const {error} = await db.from("orders")
+      .update({status:select.value})
+      .eq("id",id);
+
+    if (error) throw error;
+
+    await loadOrders();
+    message("Order status updated.");
+  } catch (error) {
+    console.error(error);
+    message("Could not update order: " + error.message);
+  }
+});
+
+document.querySelector(".tabs").addEventListener("click", event => {
+  const button = event.target.closest("button[data-tab]");
+  if (!button) return;
+
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.classList.toggle("active", b === button)
   );
 
-  // Quick hero buttons search all product text, even when the store's category
-  // names differ from the button label. If there are no matches, show the full
-  // catalogue rather than an empty product area.
-  const quickTerm = (window.velzoQuickCategory || "").toLowerCase();
-  if (quickTerm) {
-    const quickMatches = PRODUCTS.filter(p =>
-      (p.name + " " + p.category + " " + p.description).toLowerCase().includes(quickTerm)
-    );
-    items = quickMatches.length ? quickMatches : PRODUCTS.slice();
+  $("productsTab").classList.toggle("hidden", button.dataset.tab !== "products");
+  $("ordersTab").classList.toggle("hidden", button.dataset.tab !== "orders");
+});
+
+$("refreshProducts").addEventListener("click", async () => {
+  try { await loadProducts(); message("Products refreshed."); }
+  catch (e) { message("Could not load products: " + e.message); }
+});
+
+$("refreshOrders").addEventListener("click", async () => {
+  try { await loadOrders(); message("Orders refreshed."); }
+  catch (e) { message("Could not load orders: " + e.message); }
+});
+
+db.auth.onAuthStateChange((_event, session) => {
+  if (!session) {
+    signedInUser = null;
+    showLogin();
   }
+});
 
-  if (sorting === "low") items.sort((a, b) => a.price - b.price);
-  if (sorting === "high") items.sort((a, b) => b.price - a.price);
-  if (sorting === "az") {
-    items.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  document.getElementById("result-count").textContent =
-    `${items.length} product${items.length === 1 ? "" : "s"}`;
-
-  const target = document.getElementById("products");
-
-  if (!items.length) {
-    target.innerHTML =
-      '<div class="empty-state">No matching products found.</div>';
+(async function init() {
+  if (SUPABASE_URL.includes("PASTE_") ||
+      SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")) {
+    message("First add your Supabase Project URL and publishable key in this file.");
     return;
   }
 
-  target.innerHTML = items.map(p => `
-    <article class="product">
-      <div class="product-image-wrap">
-        ${p.tag
-          ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
-          : ""}
-        <img
-          class="product-image product-main-image"
-          data-product-image="${escapeHTML(p.id)}"
-          src="${escapeHTML(p.image_url)}"
-          alt="${escapeHTML(p.name)}"
-          loading="lazy"
-          onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
-        ${(Array.isArray(p.image_urls) && p.image_urls.length) ? `<div class="product-image-thumbs">${[p.image_url, ...p.image_urls].filter(Boolean).slice(0,13).map((url,i)=>`<button type="button" class="product-image-thumb ${i===0?'active':''}" onclick="changeProductImage('${escapeHTML(p.id)}','${escapeHTML(url)}',this)" aria-label="View product image ${i+1}"><img src="${escapeHTML(url)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`).join('')}</div>` : ''}
-      </div>
-      <div class="product-details">
-        <div class="product-category">${escapeHTML(p.category)}</div>
-        <h3>${escapeHTML(p.name)}</h3>
-        <p class="product-description">${escapeHTML(p.description)}</p>
-        <div class="product-price">${money(p.price)}</div>
-        <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
-        ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
-        ${Array.isArray(p.colors) && p.colors.length ? `
-          <label class="subtext" for="color-${escapeHTML(p.id)}">Select colour</label>
-          <select id="color-${escapeHTML(p.id)}" class="product-color-select" onchange="selectProductColor('${escapeHTML(p.id)}',this.value)" ${p.out_of_stock ? 'disabled' : ''}>
-            <option value="">Choose colour</option>
-            ${p.colors.map(color => `<option value="${escapeHTML(color)}" ${selectedColors[p.id] === color ? 'selected' : ''}>${escapeHTML(color)}</option>`).join('')}
-          </select>
-        ` : ''}
-        ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `
-          <label class="subtext" for="size-${escapeHTML(p.id)}">Select size</label>
-          <div class="size-choice-buttons" aria-label="Choose size">${p.sizes.map(size => `<button type="button" class="size-choice ${selectedSizes[p.id] === size ? 'selected' : ''}" onclick="selectProductSize('${escapeHTML(p.id)}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock ? 'disabled' : ''}>${escapeHTML(size)}</button>`).join('')}</div>
-          ${p.size_chart_url ? `<a class="size-chart-link" href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">VIEW SIZE CHART</a>` : ''}
-        ` : ''}
-        <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')" ${p.out_of_stock ? 'disabled' : ''}>
-          ${p.out_of_stock ? 'OUT OF STOCK' : 'ADD TO BAG'}
-        </button>
-      </div>
-    </article>
-  `).join("");
-}
-
-function showProductDetails(id) {
-  const p = PRODUCTS.find(item => String(item.id) === String(id));
-  if (!p) return;
-  const images = [p.image_url, ...(Array.isArray(p.image_urls) ? p.image_urls : [])].filter(Boolean).slice(0, 13);
-  const safeId = escapeHTML(p.id);
-  const content = document.getElementById("product-details-content");
-  content.innerHTML = `
-    <div class="detail-layout">
-      <div>
-        <img id="detail-main-image" src="${escapeHTML(images[0] || '')}" alt="${escapeHTML(p.name)}" onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
-        ${images.length > 1 ? `<div class="detail-gallery">${images.map((url,i) => `<button type="button" class="detail-gallery-thumb ${i===0?'active':''}" aria-label="Show product image ${i+1}" onclick="document.getElementById('detail-main-image').src='${escapeHTML(url)}';this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===this))"><img src="${escapeHTML(url)}" alt="Product view ${i+1}" loading="lazy"></button>`).join('')}</div>` : ''}
-      </div>
-      <div>
-        <div class="detail-meta">${escapeHTML(p.category || 'VELZO COLLECTIONS')}</div>
-        <h2 id="product-details-title">${escapeHTML(p.name)}</h2>
-        <h3>${money(p.price)}</h3>
-        ${p.out_of_stock ? '<p><strong>Currently out of stock</strong></p>' : '<p class="detail-meta">Available to order</p>'}
-        <p>${escapeHTML(p.description || 'Contact us for more product information.')}</p>
-        ${Array.isArray(p.colors) && p.colors.length ? `<label>Choose colour</label><select class="product-color-select" onchange="selectProductColor('${safeId}',this.value)"><option value="">Choose colour</option>${p.colors.map(color=>`<option value="${escapeHTML(color)}" ${selectedColors[p.id]===color?'selected':''}>${escapeHTML(color)}</option>`).join('')}</select>` : ''}
-        ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
-        ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
-        <button class="add-button" onclick="addToCart('${safeId}');if(!${Boolean(p.out_of_stock)})closeProductDetails()" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
-      </div>
-    </div>`;
-  const modal = document.getElementById('product-details-modal');
-  modal.hidden = false;
-  document.body.style.overflow = 'hidden';
-}
-function closeProductDetails() {
-  const modal = document.getElementById('product-details-modal');
-  if (modal) modal.hidden = true;
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closeProductDetails(); });
-
-function changeProductImage(id, url, button) {
-  const main = document.querySelector(`[data-product-image="${CSS.escape(id)}"]`);
-  if (!main) return;
-  main.src = url;
-  const wrap = main.closest(".product-image-wrap");
-  if (wrap) wrap.querySelectorAll(".product-image-thumb").forEach(item => item.classList.toggle("active", item === button));
-}
-
-function selectProductSize(id, size) {
-  selectedSizes[id] = size;
-}
-
-function selectProductColor(id, color) {
-  selectedColors[id] = color;
-  document.querySelectorAll(`[id="color-${CSS.escape(String(id))}"]`).forEach(el => { if (el.value !== color) el.value = color; });
-}
-
-function cartKey(item) {
-  return `${item.id}::${item.size || ""}::${item.color || ""}`;
-}
-
-function addToCart(id) {
-  const product = PRODUCTS.find(p => p.id === id);
-  if (!product) return;
-  if (product.out_of_stock) return showToast("This product is currently out of stock.");
-
-  const size = product.has_sizes ? (selectedSizes[id] || "") : "";
-  const color = Array.isArray(product.colors) && product.colors.length ? (selectedColors[id] || "") : "";
-  if (product.has_sizes && !size) return showToast("Please select a size first.");
-  if (Array.isArray(product.colors) && product.colors.length && !color) return showToast("Please select a colour first.");
-
-  const variant = { id, size, color };
-  const existing = cart.find(i => cartKey(i) === cartKey(variant));
-  if (existing) {
-    if (existing.qty >= 20) return showToast("Maximum quantity reached.");
-    existing.qty++;
-  } else {
-    cart.push({ id, qty: 1, size, color });
-  }
-  saveCart();
-  showToast("Added to your bag.");
-}
-
-function cartTotal() {
-  return cart.reduce((sum, item) => {
-    const p = PRODUCTS.find(product => product.id === item.id);
-    return sum + (p ? Number(p.price) * item.qty : 0);
-  }, 0);
-}
-
-function openCart() {
-  document.getElementById("cart-overlay").classList.add("open");
-  renderCart();
-}
-
-function closeCart() {
-  document.getElementById("cart-overlay").classList.remove("open");
-}
-
-function changeQuantity(key, change) {
-  const item = cart.find(i => cartKey(i) === key);
-  if (!item) return;
-
-  item.qty += change;
-
-  if (item.qty <= 0) {
-    cart = cart.filter(i => cartKey(i) !== key);
-  } else if (item.qty > 20) {
-    item.qty = 20;
-    showToast("Maximum quantity is 20 per product.");
-  }
-
-  saveCart();
-  renderCart();
-}
-
-function removeFromCart(key) {
-  cart = cart.filter(i => cartKey(i) !== key);
-  saveCart();
-  renderCart();
-}
-
-function renderCart() {
-  const target = document.getElementById("cart-content");
-
-  if (!cart.length) {
-    target.innerHTML = `
-      <h2 id="cart-title">Your bag</h2>
-      <div class="empty-state">Your bag is empty.</div>
-      <button class="black-button full-button" onclick="closeCart()">
-        CONTINUE SHOPPING
-      </button>`;
-    return;
-  }
-
-  target.innerHTML = `
-    <h2 id="cart-title">Your bag</h2>
-    ${cart.map(item => {
-      const p = PRODUCTS.find(product => product.id === item.id);
-      if (!p) return "";
-
-      const key = escapeHTML(cartKey(item));
-      return `
-        <div class="cart-line">
-          <img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}">
-          <div>
-            <strong>${escapeHTML(p.name)}</strong>
-            ${item.color ? `<p>Colour: ${escapeHTML(item.color)}</p>` : ''}
-            ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
-            <p>${money(p.price)} each</p>
-            <button
-              style="border:0;background:none;padding:5px 0;text-decoration:underline"
-              onclick="removeFromCart('${key}')">
-              Remove
-            </button>
-          </div>
-          <div class="quantity">
-            <button onclick="changeQuantity('${key}',-1)">−</button>
-            <span>${item.qty}</span>
-            <button onclick="changeQuantity('${key}',1)">+</button>
-          </div>
-        </div>`;
-    }).join("")}
-    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
-    <p class="subtext">Final availability and delivery charges are confirmed by the store.</p>
-    <button class="black-button full-button" onclick="showCheckout()">
-      CONTINUE TO ORDER
-    </button>
-    <button class="full-button" style="background:white;border:1px solid #ddd"
-      onclick="closeCart()">CONTINUE SHOPPING</button>`;
-}
-
-async function showCheckout() {
-  if (!cart.length) return showToast("Your bag is empty.");
-  const target = document.getElementById("cart-content");
-  target.innerHTML = '<h2 id="cart-title">Delivery details</h2><p>Loading payment options…</p>';
   try {
-    const {data, error} = await db.from("velzo_payment_settings")
-      .select("id,upi_id,payee_name,qr_image_url,fixed_amount,instructions,upi_enabled,cod_enabled")
-      .eq("id",1).maybeSingle();
-    if (!error && data) PAYMENT_SETTINGS = {...PAYMENT_SETTINGS, ...data};
-    else if (error) console.warn("Could not load payment settings:", error.message);
-  } catch (e) { console.warn("Payment settings unavailable:", e); }
-
-  const checkoutAmount = Number(cartTotal());
-  const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
-  // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
-  const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:checkoutAmount.toFixed(2),cu:"INR",tn:"Velzo Collections order"}).toString() : "";
-  const qrImage = qrPayload ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrPayload) : "";
-  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + checkoutAmount.toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
-    ${PAYMENT_SETTINGS.cod_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="COD" ${!upiAvailable ? "checked" : ""} style="width:auto"> <span><strong>Cash on Delivery</strong><br><small>Pay when your order arrives.</small></span></label>` : ""}
-    ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${checkoutAmount.toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${checkoutAmount.toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
-  target.innerHTML = `
-    <h2 id="cart-title">Delivery details</h2>
-    <p class="subtext">Your order will be saved before you notify the store.</p>
-    <form class="checkout-fields" onsubmit="submitOrder(event)">
-      <input id="customer-name" autocomplete="name"
-        placeholder="Full name" maxlength="100" required>
-      <input id="customer-phone" type="tel" autocomplete="tel"
-        placeholder="Mobile number" maxlength="20" required>
-      <button class="location-button" type="button" onclick="useCurrentLocation()">
-        ⌖ USE MY CURRENT LOCATION
-      </button>
-      <p class="location-hint">Use your current location to fill these delivery details, then check them before ordering.</p>
-      <input id="customer-street" autocomplete="street-address" placeholder="Street line / house / area" maxlength="250" required>
-      <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
-      <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
-      <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
-      
-      <button class="gold-button full-button" type="submit">
-        PLACE ORDER
-      </button>
-      <button class="full-button" type="button"
-        style="background:white;border:1px solid #ddd"
-        onclick="renderCart()">BACK TO BAG</button>
-    </form>`;
-}
-
-async function useCurrentLocation() {
-  const button = document.querySelector(".location-button");
-  const streetField = document.getElementById("customer-street");
-  const cityField = document.getElementById("customer-city");
-  const pincodeField = document.getElementById("customer-pincode");
-  if (!navigator.geolocation) {
-    showToast("Location is not supported by this browser. Enter your address manually.");
-    return;
-  }
-  if (!window.isSecureContext) {
-    showToast("Location access needs your secure HTTPS website.");
-    return;
-  }
-  button.disabled = true;
-  button.textContent = "FINDING YOUR ADDRESS…";
-  navigator.geolocation.getCurrentPosition(async position => {
-    try {
-      const { latitude, longitude } = position.coords;
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&addressdetails=1`
-      );
-      if (!response.ok) throw new Error("Address lookup failed.");
-      const data = await response.json();
-      const a = data.address || {};
-      const street = [a.house_number, a.road, a.neighbourhood || a.suburb || a.residential].filter(Boolean).join(", ");
-      const city = a.city || a.town || a.village || a.municipality || a.county || "";
-      const pincode = a.postcode || "";
-      if (!street && !city && !pincode) throw new Error("No address details were found.");
-      if (street) streetField.value = street;
-      if (city) cityField.value = city;
-      if (pincode) pincodeField.value = pincode.replace(/\D/g, "").slice(0, 6);
-      showToast("Address filled. Please check it before ordering.");
-    } catch (error) {
-      showToast("Could not find the full address. Please enter it manually.");
-    } finally {
-      button.disabled = false;
-      button.textContent = "⌖ USE MY CURRENT LOCATION";
-    }
-  }, error => {
-    button.disabled = false;
-    button.textContent = "⌖ USE MY CURRENT LOCATION";
-    showToast(error.code === 1
-      ? "Location permission denied. Enter your address manually."
-      : "Could not get your location. Please enter your address manually.");
-  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
-}
-
-async function submitPaymentConfirmation(event) {
-  event.preventDefault();
-  const form = document.getElementById("payment-confirmation-form");
-  const input = document.getElementById("payment-utr");
-  const message = document.getElementById("payment-confirmation-message");
-  const button = form?.querySelector('button[type="submit"]');
-  const orderId = String(window.velzoPendingPaymentOrderId || "");
-  const utr = String(input?.value || "").trim();
-  if (!orderId) { if (message) message.textContent = "Order ID is missing. Please contact the store."; return; }
-  if (utr.length < 6 || utr.length > 100) { if (message) message.textContent = "Enter a valid transaction reference (6–100 characters)."; return; }
-  if (button) { button.disabled = true; button.textContent = "SUBMITTING…"; }
-  try {
-    const {error} = await db.from("payment_confirmations").insert({
-      order_id: orderId,
-      utr: utr,
-      order_amount: Number(window.velzoPendingPaymentAmount || 0),
-      status: "Pending Verification"
-    });
-    if (error) throw error;
-    if (message) message.textContent = "Submitted. Payment status: Pending Verification. The store will check the transaction manually.";
-    if (input) input.disabled = true;
-    if (button) button.remove();
+    await adminCheck();
   } catch (error) {
-    console.error("Payment confirmation submission failed:", error);
-    if (message) message.textContent = error.code === "23505" ? "This transaction reference has already been submitted." : "Could not submit payment details. Please contact the store and quote your order ID.";
-    if (button) { button.disabled = false; button.textContent = "SUBMIT PAYMENT DETAILS"; }
+    console.error(error);
+    showLogin();
+    message("Could not initialize admin dashboard: " + error.message);
   }
-}
-
-async function submitOrder(event) {
-  event.preventDefault();
-
-  const button = event.submitter;
-  if (button) {
-    button.disabled = true;
-    button.textContent = "SAVING ORDER…";
-  }
-
-  const name = document.getElementById("customer-name").value.trim();
-  const phone = document.getElementById("customer-phone").value.trim();
-  const street = document.getElementById("customer-street").value.trim();
-  const city = document.getElementById("customer-city").value.trim();
-  const pincode = document.getElementById("customer-pincode").value.trim();
-  const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value || "Not selected";
-  const utrInput = document.getElementById("payment-utr");
-  const submittedUtr = utrInput ? utrInput.value.trim() : "";
-  const address = `Street line: ${street}, City: ${city}, PIN code: ${pincode}`;
-
-  try {
-    if (!cart.length) throw new Error("Your bag is empty.");
-    if (/upi|phonepe/i.test(String(paymentMethod)) && (submittedUtr.length < 6 || submittedUtr.length > 100)) {
-      throw new Error("After paying by UPI, enter your transaction ID / UTR below the QR code (6–100 characters).");
-    }
-
-    const orderItems = cart.map(item => ({
-      id: item.id,
-      qty: item.qty,
-      ...(item.size ? { size: item.size } : {}),
-      ...(item.color ? { color: item.color } : {})
-    }));
-
-    // The database validates the products and calculates the actual total.
-    const { data, error } = await db.rpc("place_order", {
-      p_customer_name: name,
-      p_customer_phone: phone,
-      p_customer_address: address,
-      p_items: orderItems
-    });
-
-    if (error) throw error;
-
-    const order = data;
-    let utrSaved = false;
-    let utrSaveMessage = "";
-    if (/upi|phonepe/i.test(String(paymentMethod))) {
-      const {error: utrError} = await db.from("payment_confirmations").insert({
-        order_id: String(order.order_id),
-        utr: submittedUtr,
-        order_amount: Number(order.total || cartTotal()),
-        status: "Pending Verification"
-      });
-      if (utrError) {
-        console.error("UTR submission failed:", utrError);
-        utrSaveMessage = "Your order was saved, but the UTR could not be submitted. Please contact the store with your order ID and UTR.";
-      } else {
-        utrSaved = true;
-        utrSaveMessage = "UTR submitted. Payment status: Pending Verification.";
-      }
-    }
-    const savedItems = cart.map(item => {
-      const p = PRODUCTS.find(product => product.id === item.id);
-      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
-    }).filter(Boolean);
-
-    const whatsAppMessage = [
-      "Hello Velzo Collections, I placed an order.",
-      `Order ID: ${order.order_id}`,
-      "",
-      ...savedItems,
-      "",
-      `Total: ${money(order.total)}`,
-      `Payment method selected: ${paymentMethod}`,
-      `Name: ${name}`,
-      `Phone: ${phone}`,
-      `Address: ${address}`,
-      "",
-      "Please confirm my order."
-    ].join("\n");
-
-    const validWhatsApp = /^\d{10,15}$/.test(WHATSAPP_NUMBER);
-    const waUrl = validWhatsApp
-      ? "https://wa.me/" + WHATSAPP_NUMBER +
-        "?text=" + encodeURIComponent(whatsAppMessage)
-      : "";
-
-    cart = [];
-    saveCart();
-
-    const isUpiPayment = /upi|phonepe/i.test(String(paymentMethod));
-    window.velzoPendingPaymentOrderId = String(order.order_id);
-    window.velzoPendingPaymentAmount = Number(order.total || cartTotal());
-    document.getElementById("cart-content").innerHTML = `
-      <h2 id="cart-title">Order placed successfully</h2>
-      <p>Your order has been saved.</p>
-      <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
-      <p><strong>Total:</strong> ${money(order.total)}</p>
-      <p><strong>Payment method:</strong> ${escapeHTML(paymentMethod)}</p>
-      ${isUpiPayment ? `<p class="subtext">${escapeHTML(utrSaveMessage || "The store must verify payment receipt manually.")}</p>` : ""}
-      <p class="subtext">
-        ${validWhatsApp
-          ? "You can also notify the store through WhatsApp."
-          : "Your order is saved. The store's WhatsApp number has not been configured."}
-      </p>
-      ${validWhatsApp ? `
-        <a class="black-button full-button"
-          style="display:block;text-align:center;text-decoration:none"
-          href="${escapeHTML(waUrl)}"
-          target="_blank" rel="noopener noreferrer">
-          NOTIFY STORE ON WHATSAPP
-        </a>` : ""}
-      <button class="full-button" style="margin-top:12px"
-        onclick="closeCart()">CONTINUE SHOPPING</button>`;
-
-    // Refresh prices and catalogue in case stock or products changed.
-    await loadProducts();
-
-  } catch (error) {
-    console.error("Order placement error:", error);
-    alert("Could not place the order: " + (error.message || "Please try again."));
-    if (button) {
-      button.disabled = false;
-      button.textContent = "PLACE ORDER";
-    }
-  }
-}
-
-document.getElementById("search").addEventListener("input", renderProducts);
-document.getElementById("category").addEventListener("change", () => { window.velzoQuickCategory = ""; renderProducts(); });
-document.getElementById("sort").addEventListener("change", renderProducts);
-document.getElementById("year").textContent = new Date().getFullYear();
-
-saveCart();
-loadProducts();
-</script>
-
-<div id="product-details-modal" class="product-details-modal" role="dialog" aria-modal="true" aria-labelledby="product-details-title" hidden>
-  <div class="product-details-backdrop" onclick="closeProductDetails()"></div>
-  <section class="product-details-dialog">
-    <button type="button" class="product-details-close" onclick="closeProductDetails()" aria-label="Close product details">×</button>
-    <div id="product-details-content"></div>
-  </section>
-</div>
-<style>
-.size-choice-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}.size-choice{min-width:42px;min-height:40px;padding:8px 12px;border:1px solid #bbb;border-radius:6px;background:#fff;color:#17191b;font-weight:700}.size-choice.selected{background:#17191b;color:#fff;border-color:#17191b}.size-choice:disabled{opacity:.4;cursor:not-allowed}.details-button{width:100%;margin:8px 0 10px;padding:11px 10px;border:1px solid currentColor;background:transparent;color:inherit;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;min-height:42px}
-.product-details-modal[hidden]{display:none!important}.product-details-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:16px}.product-details-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.76)}.product-details-dialog{position:relative;z-index:1;width:min(760px,100%);max-height:90dvh;overflow:auto;background:#fff;color:#17191b;padding:clamp(18px,4vw,32px);border-radius:12px;box-shadow:0 20px 70px #0006}.product-details-close{position:sticky;float:right;top:0;width:42px;height:42px;border:1px solid #ddd;background:#fff;font-size:28px;cursor:pointer;z-index:2}.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;clear:both}.detail-layout img{width:100%;max-height:460px;object-fit:contain;background:#f5f5f5}.detail-layout h2{font-size:clamp(22px,4vw,32px);margin:8px 0}.detail-layout p{overflow-wrap:anywhere}.detail-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:8px}.detail-gallery-thumb{flex:0 0 62px;width:62px;height:72px;padding:0;overflow:hidden;border:1px solid #ddd;background:#fff;cursor:pointer}.detail-gallery-thumb.active{border:2px solid #b18b43}.detail-gallery-thumb img{width:100%;height:100%;object-fit:cover}.detail-meta{color:#666;font-size:13px}.product-details-dialog .add-button{width:100%;min-height:46px;margin-top:12px}@media(max-width:600px){.detail-layout{grid-template-columns:1fr;gap:12px}.product-details-dialog{padding:14px;max-height:94dvh}.detail-layout img{max-height:300px}.details-button{font-size:10px;padding:9px 5px}.product-image-thumbs{max-width:100%;overflow-x:auto}.product-image-thumb{flex:0 0 38px}}
-/* Mobile usability: prevent cramped navigation and horizontal overflow. */
-html{overflow-x:hidden;scroll-behavior:smooth}body{min-width:0;overflow-x:hidden}img,video{max-width:100%}button,a,input,select,textarea{touch-action:manipulation}button,select,input{min-height:42px}@media(max-width:560px){.header{flex-wrap:wrap;align-items:center;padding:12px 4%;gap:10px}.nav{flex:1;flex-wrap:wrap;justify-content:flex-end;gap:8px}.nav a{font-size:12px}.hero{min-height:430px}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 10px}.product-image{width:100%;object-fit:cover}.tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.tools input,.tools select{width:100%;min-width:0;font-size:14px}.cart-panel,.cart-modal,.checkout-panel{width:100%;max-width:100vw}.product-description{font-size:12px;line-height:1.45}.add-button{padding:11px 6px;font-size:11px}.footer{gap:12px}}
-</style>
-
-
-
-<style>
-/* VELZO STREET EDIT — final visual layer */
-:root { --black:#151515; --gold:#c8ff3d; --cream:#f3f3ef; --muted:#777; --line:#deded8; --white:#fff; }
-body { background:#fff; color:#151515; }
-.announcement { background:#c8ff3d !important; color:#151515 !important; font-weight:800; letter-spacing:1.8px; }
-.header { background:rgba(255,255,255,.92); border-bottom:1px solid #e7e7e2; }
-.logo { font-family:Arial,Helvetica,sans-serif; font-weight:900; letter-spacing:-1px; }
-.logo span { color:#79a900; }
-.logo small { font-weight:700; letter-spacing:3px; }
-.nav a { font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.7px; }
-.cart-button { border-radius:999px; background:#151515; border-color:#151515; font-weight:700; }
-.hero { min-height:clamp(460px,65vw,690px); background-image:linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.35) 58%,rgba(0,0,0,.08)),url("https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=2000&q=85"); }
-.hero-content .eyebrow { color:#c8ff3d; font-weight:800; }
-.hero-content h1 { font-family:Arial,Helvetica,sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-.075em; line-height:.9; }
-.gold-button { background:#c8ff3d; color:#151515; border-color:#c8ff3d; border-radius:999px; font-weight:900; letter-spacing:1px; }
-.gold-button:hover { background:#fff; border-color:#fff; color:#151515; }
-.section-heading h2,.about h2 { font-family:Arial,Helvetica,sans-serif; font-weight:900; letter-spacing:-.055em; }
-#shop.section { background:#f6f6f2; color:#151515; }
-#shop .section-heading h2 { color:#151515; }
-#shop .section-heading p { color:#666; }
-#shop .tools input,#shop .tools select { border-radius:999px; background:#fff; color:#151515; border-color:#d8d8d2; }
-#shop .product { background:#fff; border:1px solid #e5e5df; border-radius:14px; overflow:hidden; padding:0; }
-#shop .product-image-wrap { background:#ededeb; }
-#shop .product-tag { background:#c8ff3d; color:#151515; font-weight:900; border-radius:4px; }
-#shop .product-details { padding:16px 14px 18px; }
-#shop .product-category { color:#688d00; font-weight:900; }
-#shop .product h3 { font-weight:800; }
-#shop .add-button { border-radius:999px; background:#151515; color:#fff; border-color:#151515; font-weight:800; }
-#shop .add-button:hover { background:#c8ff3d; color:#151515; border-color:#c8ff3d; }
-.benefits { background:#c8ff3d; color:#151515; }
-.benefit { border-left-color:rgba(0,0,0,.2); }
-.benefit p { color:#333; }
-.footer { background:#151515; color:#fff; }
-.footer .logo { color:#fff; }
-.footer p,.footer small { color:#bcbcbc; }
-.location-button { width:100%; padding:13px 15px; border:1px solid #151515; border-radius:999px; background:#c8ff3d; color:#151515; font-weight:900; letter-spacing:.5px; cursor:pointer; }
-.location-button:hover { background:#b8ef2e; }
-.location-button:disabled { opacity:.65; cursor:wait; }
-.location-hint { margin:0; color:#666; font-size:12px; line-height:1.55; }
-@media(max-width:620px) {
- .hero { min-height:460px; }
- .hero-content h1 { font-size:clamp(48px,14vw,74px); }
- #shop .product { border-radius:10px; }
- #shop .product-details { padding:12px 9px 14px; }
-}
-@media(prefers-reduced-motion:reduce) { .hero { animation:none; } }
-</style>
-
-
-<style>
-/* Contrast fix: keep text readable on white/light surfaces */
-#cart-content, .cart-panel, .cart-modal, .checkout-panel,
-.product-details-dialog, .detail-layout, .detail-layout h2,
-.detail-layout h3, .detail-layout p, .detail-layout label,
-.cart-panel h2, .cart-modal h2, .checkout-panel h2,
-.cart-panel p, .cart-modal p, .checkout-panel p,
-.cart-panel label, .cart-modal label, .checkout-panel label,
-.cart-panel .subtext, .cart-modal .subtext, .checkout-panel .subtext {
-  color: #151515;
-}
-#cart-content input, #cart-content textarea, #cart-content select,
-.cart-panel input, .cart-panel textarea, .cart-panel select,
-.cart-modal input, .cart-modal textarea, .cart-modal select,
-.checkout-panel input, .checkout-panel textarea, .checkout-panel select {
-  color: #151515;
-  background-color: #fff;
-}
-#cart-content button[style*="background:white"],
-.cart-panel button[style*="background:white"],
-.cart-modal button[style*="background:white"] { color: #151515 !important; }
-.product-details-dialog .detail-meta { color: #555; }
-</style>
-
-
-<style id="velzo-product-text-contrast-fix">
-/* Make product names, descriptions and prices readable on white cards */
-#shop .product h3, .product h3 { color: #151515 !important; opacity: 1 !important; }
-#shop .product-description, .product-description { color: #55585b !important; opacity: 1 !important; }
-#shop .product-price, .product-price { color: #805800 !important; opacity: 1 !important; font-weight: 800 !important; }
-#shop .product-category, .product-category { color: #527500 !important; opacity: 1 !important; }
-</style>
-
-
-<style id="velzo-order-button-visibility-fix">
-/* Keep the checkout/order controls visible and easy to find */
-#cart-content .checkout-fields { display:flex !important; flex-direction:column; gap:12px; width:100%; }
-#cart-content .checkout-fields button[type="submit"] { display:block !important; visibility:visible !important; opacity:1 !important; width:100%; min-height:52px; margin:8px 0 0; background:#c8ff3d !important; color:#151515 !important; border:2px solid #151515 !important; border-radius:999px; font-weight:900; letter-spacing:1px; cursor:pointer; position:relative; z-index:2; }
-#cart-content .checkout-fields button[type="submit"]:disabled { opacity:.7 !important; cursor:wait; }
-#cart-content button[onclick="showCheckout()"] { display:block !important; visibility:visible !important; opacity:1 !important; width:100%; min-height:50px; }
-#cart-content .checkout-fields button[type="button"] { display:block; width:100%; min-height:48px; }
-</style>
-
-<style>
-.product-color-select{display:block;width:100%;margin:9px 0 5px;padding:10px 12px;border:1px solid #c9c9c9;border-radius:8px;background:#fff;color:#151515;font:inherit;min-height:42px}
-.product-details-dialog .product-color-select{margin:10px 0 14px}
-</style>
-
-
-<style id="velzo-header-contrast-fix">
-  /* Improve readability of the logo and navigation on the white header */
-  .header .logo,
-  .header .logo a,
-  .header .logo small {
-    color: #111111 !important;
-    opacity: 1 !important;
-  }
-  .header .logo span {
-    color: #84b900 !important;
-  }
-  .header .nav a:not(.cart-button) {
-    color: #111111 !important;
-    opacity: 1 !important;
-  }
-  .header .nav a:not(.cart-button):hover {
-    color: #84b900 !important;
-  }
-</style>
-
-<style id="velzo-order-nav-button-fix">
-.header .nav { display:flex; align-items:center; gap:16px; }
-.header .order-nav-button { display:inline-flex !important; align-items:center; justify-content:center; min-height:48px; padding:0 22px; border:2px solid #151515; border-radius:999px; background:#c8ff3d; color:#151515; font-size:12px; font-weight:900; letter-spacing:1px; cursor:pointer; visibility:visible; opacity:1; }
-.header .order-nav-button:hover { background:#151515; color:#fff; }
-@media(max-width:560px) { .header .nav { gap:7px; } .header .order-nav-button { min-height:42px; padding:0 12px; font-size:11px; } }
-</style>
-
-<!-- VELZO ACCOUNT AND CUSTOMER CARE -->
-<style id="velzo-account-care-styles">
-.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 13px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;text-decoration:none;cursor:pointer}
-.header .nav .velzo-account-nav{border:1px solid #151515;background:#c8ff3d;color:#151515}
-.header .nav .velzo-care-nav{border:1px solid #151515;background:#151515;color:#fff}
-#velzo-account-overlay{display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.68);align-items:center;justify-content:center;padding:16px}
-#velzo-account-card{position:relative;width:min(430px,100%);max-height:90vh;overflow:auto;background:#fff;color:#151515;border-radius:18px;padding:25px;box-shadow:0 20px 70px #0005}
-#velzo-account-card h2{margin:0 36px 8px 0;color:#151515}
-#velzo-account-card p{color:#555;line-height:1.5}
-#velzo-account-card input{display:block;width:100%;padding:13px;margin:10px 0;border:1px solid #d4d4d4;border-radius:9px;background:#fff;color:#151515}
-#velzo-account-card button{cursor:pointer}
-#velzo-account-close{position:absolute;right:15px;top:15px;border:0;border-radius:50%;width:35px;height:35px;background:#eee;color:#111;font-size:22px}
-#velzo-account-submit{width:100%;padding:14px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900;margin:6px 0}
-.velzo-account-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.velzo-account-actions button{padding:10px 12px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
-#velzo-account-message{overflow-wrap:anywhere;font-size:13px;min-height:20px}
-@media(max-width:700px){.header{gap:8px;padding:13px 3%}.header .logo{font-size:22px}.header .nav{gap:6px;flex-wrap:wrap;justify-content:flex-end}.header .nav a,.header .nav button{font-size:11px}.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{padding:8px 9px;min-height:36px}}
-</style>
-
-<div id="velzo-account-overlay" role="dialog" aria-modal="true" aria-labelledby="velzo-account-title" onclick="if(event.target===this)velzoCloseAccount()">
-  <section id="velzo-account-card">
-    <button id="velzo-account-close" type="button" onclick="velzoCloseAccount()" aria-label="Close">×</button>
-    <h2 id="velzo-account-title">Create your Velzo account</h2>
-    <p id="velzo-account-intro">Register to create your customer account, or sign in if you already have one.</p>
-
-    <div id="velzo-auth-view">
-      <form id="velzo-account-form">
-        <input id="velzo-account-name" type="text" autocomplete="name" placeholder="Full name" maxlength="100">
-        <input id="velzo-account-email" type="email" autocomplete="email" placeholder="Email address" required>
-        <input id="velzo-account-password" type="password" autocomplete="new-password" placeholder="Password (at least 6 characters)" minlength="6" required>
-        <button id="velzo-account-submit" type="submit">CREATE ACCOUNT</button>
-      </form>
-      <div class="velzo-account-actions" id="velzo-auth-actions">
-        <button type="button" onclick="velzoSetAccountMode('register')">Register</button>
-        <button type="button" onclick="velzoSetAccountMode('login')">Login</button>
-        <button type="button" onclick="velzoForgotPassword()">Forgot password?</button>
-      </div>
-    </div>
-
-    <div id="velzo-customer-view" style="display:none">
-      <p id="velzo-signed-in-email" class="velzo-account-email"></p>
-      <div class="velzo-account-actions velzo-account-tabs">
-        <button type="button" onclick="velzoShowAccountSection('orders')">My Orders</button>
-        <button type="button" onclick="velzoShowAccountSection('addresses')">Saved Addresses</button>
-        <button type="button" onclick="velzoSignOut()">Sign out</button>
-      </div>
-      <section id="velzo-account-orders" class="velzo-account-section">
-        <h3>My Orders</h3>
-        <div id="velzo-orders-list"><p>Loading your orders…</p></div>
-      </section>
-      <section id="velzo-account-addresses" class="velzo-account-section" style="display:none">
-        <h3>Saved Addresses</h3>
-        <form id="velzo-address-form">
-          <input id="velzo-address-label" type="text" maxlength="40" placeholder="Address name (e.g. Home)" required>
-          <textarea id="velzo-address-text" maxlength="500" placeholder="House / street, area, city, state and PIN code" required></textarea>
-          <button id="velzo-address-save" type="submit">SAVE ADDRESS</button>
-        </form>
-        <div id="velzo-address-list"><p>Loading saved addresses…</p></div>
-      </section>
-    </div>
-    <p id="velzo-account-message" role="status" aria-live="polite"></p>
-  </section>
-</div>
-
-<style id="velzo-account-sections-style">
-#velzo-account-card .velzo-account-tabs{margin:16px 0}
-#velzo-account-card .velzo-account-tabs button{background:#151515;color:#fff;border-color:#151515}
-#velzo-account-card .velzo-account-section{border-top:1px solid #e8e8e8;margin-top:16px;padding-top:12px}
-#velzo-account-card .velzo-account-section h3{color:#151515;margin:8px 0 12px}
-#velzo-account-card .velzo-account-email{overflow-wrap:anywhere;background:#f5f5f5;border-radius:9px;padding:10px}
-#velzo-account-card textarea{display:block;width:100%;min-height:100px;resize:vertical;padding:13px;margin:10px 0;border:1px solid #d4d4d4;border-radius:9px;background:#fff;color:#151515;font:inherit}
-#velzo-address-save{width:100%;padding:12px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900}
-.velzo-order-card,.velzo-address-card{border:1px solid #e5e5e5;border-radius:12px;padding:13px;margin:10px 0;background:#fff}
-.velzo-order-card p,.velzo-address-card p{margin:5px 0;overflow-wrap:anywhere}
-.velzo-order-card strong{color:#151515}
-.velzo-address-card button{margin-top:8px;padding:8px 11px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515}
-</style>
-
-<script>
-(function(){
-  let mode = 'register';
-  let currentUser = null;
-  const $ = id => document.getElementById(id);
-  const overlay = $('velzo-account-overlay');
-  const msg = $('velzo-account-message');
-  const emailInput = $('velzo-account-email');
-  const passwordInput = $('velzo-account-password');
-  const nameInput = $('velzo-account-name');
-  const submit = $('velzo-account-submit');
-  const title = $('velzo-account-title');
-  const intro = $('velzo-account-intro');
-  const accountButton = $('velzo-account-btn');
-
-  function setSignedInView(session) {
-    currentUser = session && session.user ? session.user : null;
-    const signedIn = !!currentUser;
-    $('velzo-auth-view').style.display = signedIn ? 'none' : 'block';
-    $('velzo-customer-view').style.display = signedIn ? 'block' : 'none';
-    accountButton.textContent = signedIn ? 'My Account' : 'Register / Login';
-    title.textContent = signedIn ? 'My Account' : (mode === 'login' ? 'Welcome back' : 'Create your Velzo account');
-    intro.textContent = signedIn ? 'Manage your orders and saved delivery addresses.' : (mode === 'login' ? 'Sign in using your registered email and password.' : 'Register with your name, email and password.');
-    $('velzo-signed-in-email').textContent = signedIn ? 'Logged in as ' + (currentUser.email || 'your account') : '';
-    if (signedIn) velzoShowAccountSection('orders');
-  }
-
-  window.velzoOpenAccount = async function(){
-    overlay.style.display = 'flex';
-    msg.textContent = '';
-    try {
-      const {data:{session}, error} = await db.auth.getSession();
-      if(error) throw error;
-      if(session) {
-        setSignedInView(session);
-        await velzoLoadOrders();
-      } else {
-        setSignedInView(null);
-        velzoSetAccountMode('register');
-      }
-    } catch(e) {
-      msg.textContent = 'Could not check your session: ' + (e.message || 'Please refresh and try again.');
-    }
-  };
-  window.velzoCloseAccount = function(){overlay.style.display='none';};
-  window.velzoSetAccountMode = function(nextMode){
-    mode = nextMode === 'login' ? 'login' : 'register';
-    title.textContent = mode === 'register' ? 'Create your Velzo account' : 'Welcome back';
-    intro.textContent = mode === 'register' ? 'Register with your name, email and password.' : 'Sign in using your registered email and password.';
-    nameInput.style.display = mode === 'register' ? 'block' : 'none';
-    nameInput.required = mode === 'register';
-    passwordInput.style.display = 'block';
-    passwordInput.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
-    submit.style.display = 'block';
-    submit.textContent = mode === 'register' ? 'CREATE ACCOUNT' : 'LOGIN';
-    $('velzo-auth-view').style.display = 'block';
-    $('velzo-customer-view').style.display = 'none';
-    msg.textContent = '';
-  };
-
-  window.velzoShowAccountSection = async function(section){
-    const orders = section === 'orders';
-    $('velzo-account-orders').style.display = orders ? 'block' : 'none';
-    $('velzo-account-addresses').style.display = orders ? 'none' : 'block';
-    if (orders) await velzoLoadOrders();
-    else await velzoLoadAddresses();
-  };
-
-  window.velzoLoadOrders = async function(){
-    const target = $('velzo-orders-list');
-    if (!currentUser) { target.innerHTML = '<p>Please log in to see your orders.</p>'; return; }
-    target.innerHTML = '<p>Loading your orders…</p>';
-    try {
-      const {data, error} = await db.from('orders').select('id,created_at,items,total,status').eq('user_id', currentUser.id).order('created_at',{ascending:false});
-      if (error) throw error;
-      if (!data || !data.length) {
-        target.innerHTML = '<p>No orders linked to this account yet. Orders placed before customer-account linking may not appear here.</p>';
-        return;
-      }
-      target.innerHTML = data.map(order => {
-        const date = order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable';
-        const items = Array.isArray(order.items) ? order.items.map(i => `${escapeHtml(i.name || 'Item')} × ${Number(i.qty || 1)}`).join(', ') : 'Order items';
-        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Total:</strong> ₹${Number(order.total || 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(order.status || 'Placed')}</p></article>`;
-      }).join('');
-    } catch(e) {
-      target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
-      msg.textContent = e.message || 'Could not load orders.';
-    }
-  };
-
-  window.velzoLoadAddresses = async function(){
-    const target = $('velzo-address-list');
-    if (!currentUser) { target.innerHTML = '<p>Please log in to manage addresses.</p>'; return; }
-    target.innerHTML = '<p>Loading saved addresses…</p>';
-    try {
-      const {data,error} = await db.from('customer_addresses').select('id,label,address,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-      if(error) throw error;
-      if(!data || !data.length){target.innerHTML='<p>No saved addresses yet. Add one above.</p>';return;}
-      target.innerHTML = data.map(a => `<article class="velzo-address-card"><p><strong>${escapeHtml(a.label || 'Address')}</strong></p><p>${escapeHtml(a.address || '')}</p><button type="button" onclick="velzoUseAddress('${String(a.id).replace(/[^a-zA-Z0-9-]/g,'')}')">Use at checkout</button> <button type="button" onclick="velzoDeleteAddress('${String(a.id).replace(/[^a-zA-Z0-9-]/g,'')}')">Delete</button></article>`).join('');
-      window.velzoAddressCache = data;
-    } catch(e) {
-      target.innerHTML = '<p>Saved addresses need the customer_addresses table in Supabase. Run the setup SQL provided with this file.</p>';
-      msg.textContent = e.message || 'Could not load saved addresses.';
-    }
-  };
-
-  window.velzoUseAddress = function(id){
-    const a = (window.velzoAddressCache || []).find(x => String(x.id) === String(id));
-    if(!a) return;
-    // Store the chosen address for the existing checkout flow without changing its layout.
-    try { sessionStorage.setItem('velzo-selected-address', a.address); } catch(e) {}
-    msg.textContent = 'Address selected. Paste/use it in the delivery address field at checkout.';
-    velzoCloseAccount();
-  };
-
-  window.velzoDeleteAddress = async function(id){
-    if(!currentUser || !confirm('Delete this saved address?')) return;
-    try {
-      const {error} = await db.from('customer_addresses').delete().eq('id',id).eq('user_id',currentUser.id);
-      if(error) throw error;
-      msg.textContent = 'Address deleted.';
-      await velzoLoadAddresses();
-    } catch(e) { msg.textContent = e.message || 'Could not delete address.'; }
-  };
-
-  $('velzo-address-form').addEventListener('submit', async function(e){
-    e.preventDefault();
-    if(!currentUser){msg.textContent='Please log in first.';return;}
-    const label = $('velzo-address-label').value.trim();
-    const address = $('velzo-address-text').value.trim();
-    if(label.length < 1 || address.length < 8){msg.textContent='Enter an address name and complete delivery address.';return;}
-    const button = $('velzo-address-save');
-    button.disabled = true;
-    try {
-      const {error} = await db.from('customer_addresses').insert({user_id:currentUser.id,label,address});
-      if(error) throw error;
-      $('velzo-address-form').reset();
-      msg.textContent='Address saved.';
-      await velzoLoadAddresses();
-    } catch(e) { msg.textContent=e.message || 'Could not save address. Check Supabase table and policies.'; }
-    finally { button.disabled=false; }
-  });
-
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  }
-
-  $('velzo-account-form').addEventListener('submit', async function(e){
-    e.preventDefault();
-    submit.disabled = true;
-    submit.style.opacity = '.65';
-    msg.textContent = mode === 'register' ? 'Creating account…' : 'Signing in…';
-    try {
-      let result;
-      if(mode === 'register'){
-        result = await db.auth.signUp({
-          email: emailInput.value.trim(),
-          password: passwordInput.value,
-          options: { data: {full_name: nameInput.value.trim()}, emailRedirectTo: window.location.origin }
-        });
-      } else {
-        result = await db.auth.signInWithPassword({email:emailInput.value.trim(),password:passwordInput.value});
-      }
-      if(result.error) throw result.error;
-      if(mode === 'register' && !result.data.session) {
-        msg.textContent = 'Registration submitted. Check your email to confirm your account, then log in.';
-      } else {
-        msg.textContent = mode === 'register' ? 'Account created successfully.' : 'Login successful.';
-        const {data:{session}} = await db.auth.getSession();
-        if(session) {
-          setSignedInView(session);
-          await velzoLoadOrders();
-        }
-      }
-    } catch(err) {
-      msg.textContent = err.message || 'Something went wrong. Please try again.';
-    } finally {
-      submit.disabled = false;
-      submit.style.opacity = '1';
-    }
-  });
-
-  window.velzoForgotPassword = async function(){
-    const email = emailInput.value.trim();
-    if(!email){msg.textContent='Enter your email address first, then select Forgot password.';emailInput.focus();return;}
-    msg.textContent='Sending reset instructions…';
-    try {
-      const {error} = await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
-      if(error) throw error;
-      msg.textContent='If this email is registered, password reset instructions will be sent. Check your inbox and spam folder.';
-    } catch(err){msg.textContent=err.message || 'Could not send reset email.';}
-  };
-
-  window.velzoSignOut = async function(){
-    try {
-      const {error} = await db.auth.signOut();
-      if(error) throw error;
-      currentUser = null;
-      mode='register';
-      accountButton.textContent='Register / Login';
-      setSignedInView(null);
-      velzoSetAccountMode('login');
-      msg.textContent='You have signed out.';
-    } catch(err){msg.textContent=err.message || 'Sign out failed.';}
-  };
-
-  db.auth.onAuthStateChange((_event, session)=>{
-    currentUser = session && session.user ? session.user : null;
-    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
-  });
-  db.auth.getSession().then(({data})=>{
-    currentUser = data.session && data.session.user ? data.session.user : null;
-    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
-  }).catch(()=>{});
 })();
 </script>
-
-
-<style id="velzo-premium-burgundy-navy-refresh">
-/* VELZO PREMIUM REFRESH — visual styling only; store JavaScript and checkout are untouched */
-:root{
-  --black:#101827; --gold:#D6B77A; --cream:#F8F3EA; --muted:#716B6D;
-  --line:#E8DFD4; --white:#FFFDFA;
-  --velzo-navy:#101D35; --velzo-burgundy:#621D35; --velzo-gold:#D6B77A;
-  --velzo-ivory:#F8F3EA; --velzo-stone:#F1EDE6; --velzo-ink:#20232B;
-}
-html{scroll-behavior:smooth;scroll-padding-top:90px}
-body{background:var(--velzo-ivory)!important;color:var(--velzo-ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit}
-button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--velzo-gold);outline-offset:3px}
-.announcement{background:linear-gradient(90deg,#101D35,#621D35,#101D35)!important;color:#fff8ec!important;border:0!important;letter-spacing:1.7px;padding:11px 14px;font-size:10px}
-.header{background:rgba(248,243,234,.94)!important;color:var(--velzo-navy)!important;border-bottom:1px solid rgba(16,29,53,.12)!important;box-shadow:0 8px 30px rgba(16,29,53,.06)!important;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
-.logo,.footer .logo{color:var(--velzo-navy)!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;letter-spacing:2.6px}
-.logo span,.footer .logo span{color:var(--velzo-burgundy)!important}
-.logo small{color:#8D7149!important;letter-spacing:3.5px}
-.nav a{color:var(--velzo-navy)!important;transition:color .22s ease}
-.nav a:hover{color:var(--velzo-burgundy)!important}
-.nav a::after{background:var(--velzo-gold)!important}
-.cart-button,.black-button{background:var(--velzo-navy)!important;color:#fff!important;border:1px solid var(--velzo-navy)!important;border-radius:999px!important;box-shadow:0 5px 14px rgba(16,29,53,.13);font-weight:650;letter-spacing:.4px;transition:transform .22s ease,background .22s ease,box-shadow .22s ease}
-.cart-button:hover,.black-button:hover{background:var(--velzo-burgundy)!important;border-color:var(--velzo-burgundy)!important;transform:translateY(-2px);box-shadow:0 10px 24px rgba(98,29,53,.22)}
-.hero{isolation:isolate;background-image:linear-gradient(105deg,rgba(12,24,44,.91) 0%,rgba(37,20,37,.68) 48%,rgba(38,17,31,.20) 100%),url("https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=2000&q=88")!important;background-position:center,center 38%;background-size:cover!important}
-.hero::after{background:linear-gradient(0deg,rgba(16,29,53,.34),transparent 55%)!important}
-.hero-content .eyebrow,.eyebrow{color:var(--velzo-gold)!important;letter-spacing:2.7px}
-.hero-content h1{color:#fffaf3;text-wrap:balance;text-shadow:0 4px 25px rgba(0,0,0,.18)}
-.hero-content p{color:#F5EDE8!important}
-.gold-button{background:linear-gradient(135deg,#E4CA91,#C7A563)!important;color:#17233A!important;border:1px solid #E4CA91!important;border-radius:999px!important;padding:15px 23px!important;font-weight:750!important;letter-spacing:1px!important;box-shadow:0 8px 22px rgba(214,183,122,.22);transition:transform .25s ease,box-shadow .25s ease,filter .25s ease}
-.gold-button:hover{background:var(--velzo-burgundy)!important;color:white!important;border-color:var(--velzo-burgundy)!important;box-shadow:0 12px 28px rgba(98,29,53,.3)!important;transform:translateY(-3px)}
-.section{background:var(--velzo-ivory);color:var(--velzo-ink)}
-.section-heading h2,.about h2{color:var(--velzo-navy)!important}
-.section-heading p,.about p{color:#6F6B6C!important}
-.tools input,.tools select{background:#FFFDFA!important;color:var(--velzo-ink)!important;border:1px solid #DCD2C6!important;border-radius:12px!important;transition:border-color .2s ease,box-shadow .2s ease}
-.tools input::placeholder{color:#8C8582!important}
-.tools input:focus,.tools select:focus{border-color:var(--velzo-burgundy)!important;box-shadow:0 0 0 4px rgba(98,29,53,.09)!important;outline:none}
-/* Product gallery uses a light studio background so clothing remains the focus */
-#shop.section{position:relative;isolation:isolate;color:var(--velzo-ink)!important;background:radial-gradient(ellipse at 8% 0%,rgba(214,183,122,.19),transparent 36%),radial-gradient(ellipse at 95% 22%,rgba(98,29,53,.07),transparent 34%),linear-gradient(180deg,#F8F3EA 0%,#F1EDE6 100%)!important}
-#shop.section::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.22;background-image:radial-gradient(rgba(16,29,53,.09) .6px,transparent .6px);background-size:7px 7px}
-#shop .section-heading h2{color:var(--velzo-navy)!important}
-#shop .section-heading p{color:#716B6D!important}
-#shop .tools input,#shop .tools select{color:var(--velzo-ink)!important;background:rgba(255,253,250,.94)!important;border-color:#DCD2C6!important;border-radius:12px!important}
-#shop .tools input::placeholder{color:#8C8582!important}
-#shop .product-grid{gap:28px 20px}
-#shop .product{padding:10px;background:rgba(255,253,250,.96)!important;color:var(--velzo-ink)!important;border:1px solid rgba(16,29,53,.09)!important;border-radius:15px!important;overflow:hidden;box-shadow:0 7px 24px rgba(16,29,53,.055)!important;transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease!important}
-#shop .product:hover{transform:translateY(-6px)!important;border-color:rgba(98,29,53,.3)!important;box-shadow:0 18px 38px rgba(16,29,53,.13)!important}
-#shop .product-image-wrap{background:linear-gradient(145deg,#F7F2EA,#EAE2D7)!important;border-radius:9px!important;overflow:hidden}
-#shop .product-image{transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .35s ease!important}
-#shop .product:hover .product-image{transform:scale(1.045)!important;filter:saturate(1.04)}
-#shop .product-tag{background:var(--velzo-burgundy)!important;color:#fff8ef!important;border-radius:999px!important;box-shadow:0 3px 12px rgba(16,29,53,.12);font-size:9px;letter-spacing:1px}
-#shop .product-details{padding:15px 5px 5px!important}
-#shop .product-category{color:#946C3C!important;font-weight:700;letter-spacing:1.4px}
-#shop .product h3{color:var(--velzo-navy)!important;font-weight:650}
-#shop .product-description{color:#716B6D!important}
-#shop .product-price{color:var(--velzo-burgundy)!important;font-size:17px;font-weight:750}
-#shop .product-size-select{background:var(--velzo-navy)!important;color:#fff!important;border:1px solid #40506A!important;border-radius:9px!important}
-#shop .size-chart-link{color:var(--velzo-burgundy)!important}
-#shop .stock-label{color:var(--velzo-burgundy)!important}
-#shop .add-button{background:var(--velzo-navy)!important;color:#fff!important;border:1px solid var(--velzo-navy)!important;border-radius:999px!important;padding:12px 10px!important;font-weight:700!important;letter-spacing:.7px!important;transition:background .22s ease,transform .22s ease,box-shadow .22s ease!important}
-#shop .add-button:hover{background:var(--velzo-burgundy)!important;border-color:var(--velzo-burgundy)!important;color:#fff!important;transform:translateY(-2px);box-shadow:0 8px 18px rgba(98,29,53,.2)}
-#shop .add-button:disabled{opacity:.48!important}
-#shop .product-image-thumbs{background:#F1EDE6!important;border-radius:0 0 8px 8px}
-#shop .product-image-thumb.active,#shop .product-image-thumb:hover{border-color:var(--velzo-burgundy)!important}
-#shop .empty-state{color:#716B6D!important}
-.benefits{background:linear-gradient(135deg,#101D35,#172744)!important;color:#fff8ef!important;border-top:1px solid rgba(214,183,122,.35);border-bottom:1px solid rgba(214,183,122,.35)}
-.benefit{border-left-color:rgba(214,183,122,.65)!important;transition:transform .25s ease,background .25s ease}
-.benefit:hover{background:rgba(255,255,255,.055)!important;transform:translateY(-3px)}
-.benefit strong{color:var(--velzo-gold)!important}
-.benefit p{color:#E1E4EA!important}
-.about{color:var(--velzo-ink)}
-.about .eyebrow{color:#946C3C!important}
-.footer{background:linear-gradient(125deg,#101D35,#251625)!important;color:#fff8ef!important;border-top:3px solid var(--velzo-gold)!important}
-.footer .logo{color:#fff8ef!important}
-.footer .logo span{color:var(--velzo-gold)!important}
-.footer p,.footer small{color:#D7D9E0!important}
-.overlay{background:rgba(8,14,26,.68)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.modal{background:#FFFDFA!important;color:var(--velzo-ink)!important;border:1px solid rgba(214,183,122,.42)!important;border-radius:18px!important;box-shadow:0 28px 90px rgba(7,13,25,.32)!important}
-.modal h2{color:var(--velzo-navy)!important}
-.modal-close{color:var(--velzo-navy)!important;border-radius:50%!important}
-.cart-line{border-bottom-color:#E8DFD4!important}
-.quantity button{background:#F1EDE6!important;color:var(--velzo-navy)!important;border-color:#DED3C5!important;border-radius:999px!important}
-.checkout-fields input,.checkout-fields textarea{background:#FFFDFA!important;color:var(--velzo-ink)!important;border:1px solid #DCD2C6!important;border-radius:10px!important}
-.checkout-fields input:focus,.checkout-fields textarea:focus{border-color:var(--velzo-burgundy)!important;outline:3px solid rgba(98,29,53,.09)!important}
-.modal .full-button,.full-button{background:var(--velzo-burgundy)!important;color:#fff!important;border:1px solid var(--velzo-burgundy)!important;border-radius:999px!important;font-weight:700;transition:transform .2s ease,background .2s ease}
-.modal .full-button:hover,.full-button:hover{background:var(--velzo-navy)!important;border-color:var(--velzo-navy)!important;transform:translateY(-1px)}
-.toast{background:var(--velzo-navy)!important;color:#fff!important;border:1px solid rgba(214,183,122,.6);border-radius:999px!important;box-shadow:0 10px 28px rgba(16,29,53,.24)}
-/* Give account, order and support controls the same palette without changing their behavior */
-#velzo-account-overlay button,#velzo-account-overlay input,#velzo-account-overlay textarea,.velzo-order-card button,.velzo-address-card button{border-radius:10px}
-#velzo-account-overlay button,.velzo-order-card button,.velzo-address-card button{transition:background .2s ease,color .2s ease,border-color .2s ease}
-/* Keep WhatsApp/customer-care actions visible and on-brand */
-a[href*="wa.me"],a[href*="whatsapp"],button[aria-label*="WhatsApp"],a[aria-label*="WhatsApp"]{transition:transform .2s ease,box-shadow .2s ease}
-a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:hover,a[aria-label*="WhatsApp"]:hover{transform:translateY(-2px)}
-@keyframes velzoSoftRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.hero-content .eyebrow,.hero-content h1,.hero-content p{animation:velzoSoftRise .75s both}
-.hero-content h1{animation-delay:.12s}.hero-content p{animation-delay:.22s}.hero-content .gold-button{animation:velzoSoftRise .75s .32s both}
-@media(max-width:800px){#shop .product-grid{gap:22px 13px}#shop .product{padding:8px;border-radius:12px!important}.hero{background-position:center,58% center!important}}
-@media(max-width:560px){.announcement{font-size:9px;letter-spacing:1.2px}.header{gap:9px}.hero{min-height:460px;padding:44px 6%}.hero-content h1{font-size:clamp(42px,12vw,64px)}.section{padding:54px 5%}#shop .product-grid{gap:19px 10px}#shop .product{padding:6px;border-radius:11px!important}#shop .product-details{padding:12px 4px 4px!important}#shop .add-button{font-size:10px;padding:11px 7px!important}.benefits{grid-template-columns:1fr;padding:28px 7%}.benefit{border-left:2px solid var(--velzo-gold)!important}.modal{padding:22px 17px!important}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
-</style>
-
-
-<style id="velzo-wear-your-vibe-hero-image">
-/* Change ONLY the image behind the existing “Wear Your Vibe” hero text.
-   Upload velzo-hero.png beside index.html in the repository root. */
-.hero {
-  background-image: linear-gradient(90deg, rgba(8, 12, 22, .78) 0%, rgba(16, 29, 53, .48) 44%, rgba(16, 29, 53, .08) 100%), url("velzo-hero.png") !important;
-  background-position: center center !important;
-  background-size: cover !important;
-  background-repeat: no-repeat !important;
-}
-@media (max-width: 620px) {
-  .hero { background-position: 54% center !important; }
-}
-</style>
-
-
-<style id="velzo-account-and-category-slider">
-/* Burgundy + navy account button */
-.header .nav .velzo-account-nav {
-  background: linear-gradient(135deg, #621D35, #101D35) !important;
-  color: #FFF8EF !important;
-  border: 1px solid #D6B77A !important;
-  box-shadow: 0 5px 16px rgba(98,29,53,.18) !important;
-}
-.header .nav .velzo-account-nav:hover {
-  background: #D6B77A !important;
-  color: #101D35 !important;
-  transform: translateY(-1px);
-}
-/* Swipeable category slider */
-.velzo-category-slider{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 14px;margin:4px 0 18px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#D6B77A #F1EDE6}
-.velzo-category-slider button{flex:0 0 auto;scroll-snap-align:start;border:1px solid #D8C8B7;background:#FFFDFA;color:#101D35;border-radius:999px;padding:10px 17px;font-size:12px;font-weight:700;letter-spacing:.25px;cursor:pointer;transition:all .22s ease}
-.velzo-category-slider button:hover,.velzo-category-slider button.active{background:linear-gradient(120deg,#621D35,#101D35);border-color:#D6B77A;color:#FFF8EF;box-shadow:0 5px 15px rgba(16,29,53,.12)}
-.velzo-category-slider button:focus-visible{outline:2px solid #D6B77A;outline-offset:3px}
-@media(max-width:600px){.velzo-category-slider{gap:8px}.velzo-category-slider button{padding:9px 14px;font-size:11px}}
-/* Final brand logo palette: burgundy + midnight navy */
-.logo { color: #6B1F3A !important; }
-.logo span { color: #101D35 !important; }
-.logo small { color: #101D35 !important; }
-.footer .logo { color: #6B1F3A !important; }
-.footer .logo span { color: #101D35 !important; }
-.footer .logo small { color: #101D35 !important; }
-</style>
-<script id="velzo-category-slider-script">
-(function(){
-  function setupVelzoCategorySlider(){
-    const shop=document.getElementById('shop');
-    const select=document.getElementById('category');
-    const grid=document.getElementById('products');
-    if(!shop||!select||!grid||shop.querySelector('.velzo-category-slider')) return;
-    const slider=document.createElement('div');
-    slider.className='velzo-category-slider';
-    slider.setAttribute('aria-label','Swipe to browse product categories');
-    slider.setAttribute('role','group');
-    slider.innerHTML='<button type="button" data-category="" class="active">All styles</button>';
-    const addCategory=(label,value)=>{
-      if(!label || !value) return;
-      const b=document.createElement('button'); b.type='button'; b.dataset.category=value; b.textContent=label;
-      slider.appendChild(b);
-    };
-    // These are quick filters; the original product data and checkout remain unchanged.
-    const categories=[...select.options].filter(o=>o.value).map(o=>({label:o.textContent.trim(),value:o.value}));
-    const wanted=categories.filter(c=>/accessor|dress|cloth|fashion|women|men/i.test(c.label));
-    const chosen=[...wanted.filter(c=>/accessor/i.test(c.label)),...wanted.filter(c=>/dress/i.test(c.label)),...wanted.filter(c=>!/accessor|dress/i.test(c.label))];
-    chosen.forEach(c=>addCategory(c.label,c.value));
-    select.parentElement.insertAdjacentElement('afterend',slider);
-    // Sync the swipeable chips with the site's existing category filter.
-    slider.addEventListener('click',e=>{
-      const b=e.target.closest('button[data-category]'); if(!b) return;
-      select.value=b.dataset.category; select.dispatchEvent(new Event('change',{bubbles:true}));
-      slider.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));
-    });
-    select.addEventListener('change',()=>slider.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.category===select.value)));
-    // If categories load asynchronously, refresh the chips once the select receives its options.
-    const observer=new MutationObserver(()=>{
-      const existing=new Set([...slider.querySelectorAll('button')].map(b=>b.dataset.category));
-      [...select.options].filter(o=>o.value&&!existing.has(o.value)).forEach(o=>addCategory(o.textContent.trim(),o.value));
-    });
-    observer.observe(select,{childList:true});
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setupVelzoCategorySlider); else setupVelzoCategorySlider();
-  setTimeout(setupVelzoCategorySlider,800);
-})();
-</script>
-
 </body>
 </html>
-<style id="velzo-logo-final-colors">
-  /* Header logo: burgundy + midnight navy */
-  .header .logo,
-  header .logo { color: #6B1F3A !important; }
-  .header .logo span,
-  header .logo span { color: #101D35 !important; }
-  .header .logo small,
-  header .logo small { color: #6B1F3A !important; }
-
-  /* Footer logo: all burgundy */
-  .footer .logo,
-  footer .logo,
-  .footer .logo span,
-  footer .logo span,
-  .footer .logo small,
-  footer .logo small { color: #6B1F3A !important; }
-</style>
