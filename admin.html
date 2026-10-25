@@ -184,18 +184,27 @@ button.danger { background:#8d302b; color:#fff; }
     </div>
 
     <section class="panel" id="featuredProductPanel">
-      <h2>Homepage Concave Carousel</h2>
-      <p class="muted">Choose and order up to three active products for the curved 3D-style gallery. Priority 1 is the centre product. This does not change product prices, stock, or orders.</p>
+      <h2>Homepage featured look</h2>
+      <p class="muted">Choose which active product appears in the animated featured section on your storefront. This does not change product prices, stock, or orders.</p>
       <div class="form">
-        <label class="field-label" for="featuredProductSelect1">Priority 1 — Centre product</label>
-        <select id="featuredProductSelect1" class="full featured-product-select" aria-label="Priority 1 centre product"><option value="">No product</option></select>
-        <label class="field-label" for="featuredProductSelect2">Priority 2 — Left product</label>
-        <select id="featuredProductSelect2" class="full featured-product-select" aria-label="Priority 2 left product"><option value="">No product</option></select>
-        <label class="field-label" for="featuredProductSelect3">Priority 3 — Right product</label>
-        <select id="featuredProductSelect3" class="full featured-product-select" aria-label="Priority 3 right product"><option value="">No product</option></select>
-        <button class="gold full" type="button" id="saveFeaturedProduct">SAVE 3 PRIORITY PRODUCTS</button>
+        <select id="featuredProductSelect" class="full" aria-label="Choose featured product">
+          <option value="">No featured product</option>
+        </select>
+        <button class="gold full" type="button" id="saveFeaturedProduct">SAVE FEATURED LOOK</button>
       </div>
-      <p class="note">Select up to three different active products. Priority 1 appears in the centre. You can change the order anytime.</p>
+      <p class="note">Tip: add both dresses in Products first. Then select either dress here whenever you want to change the homepage.</p>
+    </section>
+
+    <section class="panel" id="shippingSettingsPanel">
+      <h2>Shipping charges</h2>
+      <p class="muted">Set a flat shipping charge in rupees. Enter 0 for free shipping.</p>
+      <div class="form">
+        <label for="shippingCharge">Shipping charge (₹)</label>
+        <input id="shippingCharge" type="number" min="0" max="99999" step="0.01" value="0" required>
+        <button class="gold full" type="button" id="saveShippingCharge">SAVE SHIPPING CHARGE</button>
+        <p class="note">First run this once in Supabase → SQL Editor, then refresh Admin: <code>alter table public.store_settings add column if not exists shipping_charge numeric not null default 0;</code></p>
+        <p class="note">The checkout display/UPI amount uses this setting; the saved order total also needs the database order function updated to add this fee.</p>
+      </div>
     </section>
 
     <section class="panel">
@@ -386,60 +395,62 @@ $("logoutBtn").addEventListener("click", async () => {
   message("You have signed out.");
 });
 
+async function loadShippingCharge() {
+  const input = $("shippingCharge");
+  if (!input) return;
+  const {data,error} = await db.from("store_settings").select("shipping_charge").eq("id",1).maybeSingle();
+  if (error) throw error;
+  input.value = Number(data?.shipping_charge || 0);
+}
+$("saveShippingCharge").addEventListener("click", async () => {
+  const button = $("saveShippingCharge");
+  const amount = Number($("shippingCharge").value);
+  if (!Number.isFinite(amount) || amount < 0) return message("Enter a valid shipping charge (0 or more).");
+  button.disabled = true;
+  try {
+    const {error} = await db.from("store_settings").upsert({id:1,shipping_charge:amount},{onConflict:"id"});
+    if (error) throw error;
+    message("Shipping charge saved. Refresh the storefront to load the new setting.");
+  } catch (e) {
+    message("Could not save shipping charge: " + e.message + ". Run the SQL setup shown below in Supabase first.");
+  } finally { button.disabled = false; }
+});
+
 async function refreshAll() {
   clearMessage();
   await Promise.all([loadProducts(), loadOrders()]);
   await loadFeaturedProductSetting();
+  await loadShippingCharge();
   renderStats();
 }
 
 async function loadFeaturedProductSetting() {
+  const select = $("featuredProductSelect");
+  if (!select) return;
   const {data, error} = await db.from("store_settings").select("featured_product_id").eq("id", 1).maybeSingle();
   if (error) throw error;
-  let ids = [];
-  const raw = data?.featured_product_id;
-  if (Array.isArray(raw)) ids = raw.map(String).slice(0,3);
-  else if (typeof raw === "string" && raw.trim().startsWith("[")) {
-    try { ids = JSON.parse(raw).map(String).slice(0,3); } catch (_) { ids = raw ? [raw] : []; }
-  } else if (raw) ids = [String(raw)];
-  [1,2,3].forEach((n,i) => { const el = $("featuredProductSelect"+n); if (el) el.value = ids[i] || ""; });
-  updateFeaturedProductSelectOptions();
+  select.value = data?.featured_product_id || "";
 }
-function updateFeaturedProductSelectOptions() {
-  const selects = [1,2,3].map(n => $("featuredProductSelect"+n));
-  const selected = selects.map(el => el.value);
-  selects.forEach((select, i) => {
-    if (!select) return;
-    const previous = selected[i];
-    select.innerHTML = '<option value="">No product</option>' + allProducts.filter(p => p.active).map(p =>
-      `<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.price)}</option>`
-    ).join("");
-    if ([...select.options].some(o => o.value === previous)) select.value = previous;
-  });
-  const unique = new Set();
-  selects.forEach((select, i) => {
-    const chosen = select.value;
-    [...select.options].forEach(option => {
-      if (!option.value) return;
-      option.disabled = option.value !== chosen && unique.has(option.value);
-    });
-    if (chosen) unique.add(chosen);
-  });
+function fillFeaturedProductOptions() {
+  const select = $("featuredProductSelect");
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">No featured product</option>' + allProducts.filter(p => p.active).map(p =>
+    `<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.price)}</option>`
+  ).join("");
+  if ([...select.options].some(o => o.value === selected)) select.value = selected;
 }
-[1,2,3].forEach(n => $("featuredProductSelect"+n).addEventListener("change", updateFeaturedProductSelectOptions));
 $("saveFeaturedProduct").addEventListener("click", async () => {
   const button = $("saveFeaturedProduct");
   button.disabled = true;
   try {
-    const ids = [1,2,3].map(n => $("featuredProductSelect"+n).value).filter(Boolean);
-    if (new Set(ids).size !== ids.length) throw new Error("Choose three different products, or leave a priority blank.");
-    const storedValue = ids.length ? JSON.stringify(ids) : null;
-    const {error} = await db.from("store_settings").upsert({id:1,featured_product_id:storedValue},{onConflict:"id"});
+    const productId = $("featuredProductSelect").value || null;
+    const {error} = await db.from("store_settings").upsert({id:1,featured_product_id:productId},{onConflict:"id"});
     if (error) throw error;
-    message("Three priority products saved. Refresh the storefront to see the carousel.");
+    message("Homepage featured look saved. Refresh the storefront to see the change.");
   } catch (error) {
     console.error(error);
-    message("Could not save priority products: " + error.message + ". Check the store_settings table policies in Supabase.");
+    message("Could not save featured look: " + error.message + ". Check the store_settings table policies in Supabase.");
   } finally { button.disabled = false; }
 });
 
@@ -451,7 +462,7 @@ async function loadProducts() {
   if (error) throw error;
 
   allProducts = data || [];
-  updateFeaturedProductSelectOptions();
+  fillFeaturedProductOptions();
   renderProducts();
   renderStats();
 }
