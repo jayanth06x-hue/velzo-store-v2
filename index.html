@@ -1791,16 +1791,32 @@ body { background:#e9e7e2; }
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer velzo-policy-footer">
     <div>
       <a class="logo" href="#">VEL<span>ZO</span><small>COLLECTIONS</small></a>
       <p>Graphic streetwear, printed shirts and everyday fits.</p>
+      <a class="velzo-support-button" href="https://wa.me/918500716966?text=Hi%20Velzo%20Collections%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener noreferrer"><span aria-hidden="true">✆</span> Customer Service</a>
+    </div>
+    <div class="velzo-policy-links">
+      <strong>HELP & POLICIES</strong>
+      <a href="#" onclick="openVelzoPolicy('shipping');return false">Shipping & Delivery</a>
+      <a href="#" onclick="openVelzoPolicy('returns');return false">Returns & Refunds</a>
+      <a href="#" onclick="openVelzoPolicy('cancellation');return false">Cancellation Policy</a>
+      <a href="#" onclick="openVelzoPolicy('privacy');return false">Privacy Policy</a>
+      <a href="#" onclick="openVelzoPolicy('terms');return false">Terms & Conditions</a>
+      <a href="https://wa.me/918500716966" target="_blank" rel="noopener noreferrer">Contact Us</a>
     </div>
     <div>
       <small>© <span id="year"></span> Velzo Collections</small>
       <p>Own your look. Move your way. Velzo Collections.</p>
     </div>
   </footer>
+  <div class="overlay" id="velzo-policy-overlay" onclick="if(event.target===this)closeVelzoPolicy()" style="z-index:10001">
+    <section class="modal velzo-policy-modal" role="dialog" aria-modal="true" aria-labelledby="velzo-policy-title">
+      <button class="modal-close" onclick="closeVelzoPolicy()" aria-label="Close policy">×</button>
+      <h2 id="velzo-policy-title">Store policy</h2><div id="velzo-policy-body"></div>
+    </section>
+  </div>
 
   <div class="overlay" id="cart-overlay" onclick="if(event.target===this) closeCart()">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
@@ -2055,6 +2071,7 @@ function renderProducts() {
         <p class="product-description">${escapeHTML(p.description)}</p>
         <div class="product-price">${money(p.price)}</div>
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
+        <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${escapeHTML(p.id)}')" aria-label="Share ${escapeHTML(p.name)}">↗ Share product</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
         ${Array.isArray(p.colors) && p.colors.length ? `
           <label class="subtext" for="color-${escapeHTML(p.id)}">Select colour</label>
@@ -2074,6 +2091,35 @@ function renderProducts() {
       </div>
     </article>
   `).join("");
+}
+
+const VELZO_POLICIES = {
+  shipping: {title:"Shipping & Delivery", body:"Delivery timelines and shipping charges are shown at checkout or communicated before fulfilment where applicable. Orders are sent for production and dispatch after the order and payment/fulfilment arrangements are confirmed. Delivery times are estimates and may vary by location, courier, holidays or production delays. Please check your address and phone number carefully before ordering. For an order update, contact Customer Service on WhatsApp."},
+  returns: {title:"Returns & Refunds", body:"Please inspect your order after delivery and contact Customer Service promptly if the item is damaged, defective or incorrect. Share your order details and clear photos so the issue can be reviewed. Return or replacement eligibility depends on the issue and the applicable fulfilment terms. Do not send an item back before receiving return instructions. Refunds, when approved, are processed to the original payment method or another agreed method. Change-of-mind returns are not guaranteed for made-to-order/print-on-demand items."},
+  cancellation: {title:"Cancellation Policy", body:"Please contact Customer Service as soon as possible if you need to cancel an order. Cancellation may not be possible once an order has entered production or dispatch. Any eligible refund will be communicated after the order status is checked."},
+  privacy: {title:"Privacy Policy", body:"We use the details you provide, such as your name, contact number, delivery address and order information, to process orders, provide customer support and manage fulfilment. Do not submit payment passwords, OTPs or other confidential banking credentials. Information may be shared with service providers involved in payment, production and delivery where necessary to fulfil your order. Contact Customer Service for privacy-related questions."},
+  terms: {title:"Terms & Conditions", body:"Product images are illustrative; colours can look slightly different across screens. Please review the product description, size information, price, delivery details and checkout total before placing an order. Orders are subject to product availability and fulfilment confirmation. Prices, designs and product details may change. Nothing in these terms limits rights that cannot legally be excluded under applicable Indian law. Contact Customer Service if you have questions before ordering."}
+};
+function openVelzoPolicy(key) {
+  const policy = VELZO_POLICIES[key]; if (!policy) return;
+  document.getElementById('velzo-policy-title').textContent = policy.title;
+  document.getElementById('velzo-policy-body').textContent = policy.body;
+  document.getElementById('velzo-policy-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeVelzoPolicy() {
+  document.getElementById('velzo-policy-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+async function shareVelzoProduct(id) {
+  const p = PRODUCTS.find(item => String(item.id) === String(id)); if (!p) return;
+  const url = new URL(window.location.href); url.hash = 'product-' + encodeURIComponent(p.id);
+  const shareData = {title: p.name + ' | Velzo Collections', text: p.name + ' — ' + money(p.price) + ' at Velzo Collections', url: url.href};
+  try {
+    if (navigator.share) { await navigator.share(shareData); }
+    else if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(shareData.url); showToast('Product link copied. Share it with friends!'); }
+    else { const field=document.createElement('textarea'); field.value=shareData.url; field.style.position='fixed';field.style.opacity='0';document.body.appendChild(field);field.select();const ok=document.execCommand('copy');field.remove();showToast(ok?'Product link copied.':'Copy this product link: '+shareData.url); }
+  } catch (error) { if (error && error.name !== 'AbortError') showToast('Could not open sharing. Please try again.'); }
 }
 
 function showProductDetails(id) {
@@ -2160,6 +2206,16 @@ function cartTotal() {
     return sum + (p ? Number(p.price) * item.qty : 0);
   }, 0);
 }
+let VELZO_SHIPPING_CHARGE = 0;
+let VELZO_SHIPPING_LOADED = false;
+async function loadVelzoShippingCharge() {
+  try {
+    const {data,error}=await db.from("store_settings").select("shipping_charge").eq("id",1).maybeSingle();
+    if (!error && data && Number.isFinite(Number(data.shipping_charge))) VELZO_SHIPPING_CHARGE=Math.max(0,Number(data.shipping_charge));
+  } catch(e) { console.warn("Shipping setting unavailable",e); }
+  VELZO_SHIPPING_LOADED=true;
+}
+
 
 function openCart() {
   document.getElementById("cart-overlay").classList.add("open");
@@ -2234,7 +2290,7 @@ function renderCart() {
           </div>
         </div>`;
     }).join("")}
-    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>
+    <div class="cart-total">Subtotal: ${money(cartTotal())}</div>\n    <div class="cart-total">Shipping: ${VELZO_SHIPPING_LOADED ? (VELZO_SHIPPING_CHARGE ? money(VELZO_SHIPPING_CHARGE) : "FREE") : "confirmed at checkout"}</div>
     <p class="subtext">Final availability and delivery charges are confirmed by the store.</p>
     <button class="black-button full-button" onclick="showCheckout()">
       CONTINUE TO ORDER
@@ -2255,7 +2311,7 @@ async function showCheckout() {
     else if (error) console.warn("Could not load payment settings:", error.message);
   } catch (e) { console.warn("Payment settings unavailable:", e); }
 
-  const checkoutAmount = Number(cartTotal());
+  if (!VELZO_SHIPPING_LOADED) await loadVelzoShippingCharge();\n  const checkoutAmount = Number(cartTotal()) + VELZO_SHIPPING_CHARGE;
   const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
   // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
   const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:checkoutAmount.toFixed(2),cu:"INR",tn:"Velzo Collections order"}).toString() : "";
@@ -2279,7 +2335,7 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
+      <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>\n      <p><strong>Shipping charge: ${VELZO_SHIPPING_CHARGE ? money(VELZO_SHIPPING_CHARGE) : "FREE"}</strong></p>\n      <p><strong>Estimated total including shipping: ${money(cartTotal()+VELZO_SHIPPING_CHARGE)}</strong></p>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2687,6 +2743,7 @@ body { background:#fff; color:#151515; }
       <div class="velzo-account-actions velzo-account-tabs">
         <button type="button" onclick="velzoShowAccountSection('orders')">My Orders</button>
         <button type="button" onclick="velzoShowAccountSection('addresses')">Saved Addresses</button>
+        <a class="velzo-account-support" href="https://wa.me/918500716966?text=Hi%20Velzo%20Collections%2C%20I%20need%20customer%20support." target="_blank" rel="noopener">Customer Service ↗</a>
         <button type="button" onclick="velzoSignOut()">Sign out</button>
       </div>
       <section id="velzo-account-orders" class="velzo-account-section">
@@ -2710,6 +2767,7 @@ body { background:#fff; color:#151515; }
 <style id="velzo-account-sections-style">
 #velzo-account-card .velzo-account-tabs{margin:16px 0}
 #velzo-account-card .velzo-account-tabs button{background:#151515;color:#fff;border-color:#151515}
+.velzo-account-support{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;background:#6B1F3A;color:#fff;text-decoration:none;font-weight:700}
 #velzo-account-card .velzo-account-section{border-top:1px solid #e8e8e8;margin-top:16px;padding-top:12px}
 #velzo-account-card .velzo-account-section h3{color:#151515;margin:8px 0 12px}
 #velzo-account-card .velzo-account-email{overflow-wrap:anywhere;background:#f5f5f5;border-radius:9px;padding:10px}
@@ -3145,6 +3203,21 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
   setTimeout(setupVelzoCategorySlider,800);
 })();
 </script>
+
+
+<style id="velzo-support-policy-share-styles">
+.velzo-policy-footer{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:28px;align-items:start}
+.velzo-policy-links{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.velzo-policy-links strong{font-size:11px;letter-spacing:1.5px;color:#D6B77A;margin-bottom:4px}
+.velzo-policy-links a{color:inherit;text-decoration:none;font-size:13px;opacity:.9}
+.velzo-policy-links a:hover{text-decoration:underline;color:#D6B77A}
+.velzo-support-button{display:inline-flex;align-items:center;gap:9px;margin-top:12px;padding:12px 16px;border:1px solid #D6B77A;border-radius:4px;background:linear-gradient(135deg,#621D35,#101D35);color:#fff8ef!important;text-decoration:none;font-weight:700;font-size:13px;box-shadow:0 5px 16px rgba(16,29,53,.18)}
+.velzo-support-button:hover{filter:brightness(1.12)}
+.velzo-share-button{width:100%;margin-top:8px;padding:10px 12px;border:1px solid #621D35;background:#fff;color:#621D35;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer}
+.velzo-share-button:hover{background:#101D35;color:#fff8ef;border-color:#D6B77A}
+.velzo-policy-modal{max-height:85vh;overflow:auto}.velzo-policy-modal h2{margin-right:32px;color:#621D35}.velzo-policy-modal #velzo-policy-body{white-space:normal;line-height:1.75;color:var(--muted)}
+@media(max-width:650px){.velzo-policy-footer{grid-template-columns:1fr;gap:22px}.velzo-policy-links{display:grid;grid-template-columns:1fr 1fr;gap:12px}.velzo-policy-links strong{grid-column:1/-1}.velzo-support-button{min-height:44px}.velzo-share-button{min-height:42px}}
+</style>
 
 </body>
 </html>
