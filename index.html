@@ -3210,6 +3210,33 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 @media(max-width:650px){.velzo-policy-footer{grid-template-columns:1fr;gap:22px}.velzo-policy-links{display:grid;grid-template-columns:1fr 1fr;gap:12px}.velzo-policy-links strong{grid-column:1/-1}.velzo-support-button{min-height:44px}.velzo-share-button{min-height:42px}}
 </style>
 
+
+<!-- VELZO PRIORITY PRODUCTS: scroll-driven mask reveal. Store logic unchanged. -->
+<style id="velzo-priority-scroll-mask-v2">
+#velzo-featured .velzo-featured-visual{overflow:hidden;position:relative}
+#velzo-featured .velzo-concave-track{position:relative;z-index:1}
+#velzo-featured .velzo-concave-card{clip-path:inset(var(--mask-top,100%) 0 0 0);transform:translateY(var(--mask-y,34px));opacity:var(--mask-opacity,1);will-change:clip-path,transform;transition:box-shadow .25s ease}
+#velzo-featured .velzo-concave-card img{transform:scale(1.08);transition:transform .12s linear;will-change:transform}
+#velzo-featured .velzo-concave-card span,#velzo-featured .velzo-concave-card strong{opacity:var(--mask-text,0);transform:translateY(10px);transition:opacity .15s linear,transform .15s linear}
+@media(prefers-reduced-motion:reduce){#velzo-featured .velzo-concave-card,#velzo-featured .velzo-concave-card img{transition:none!important;transform:none!important}}
+</style>
+<script id="velzo-priority-scroll-mask-v2-script">
+(()=>{
+ const section=document.getElementById('velzo-featured'); if(!section)return;
+ let cards=[], raf=0;
+ function collect(){cards=[...section.querySelectorAll('.velzo-concave-card')]; update();}
+ function update(){raf=0;if(!cards.length)return;const vh=window.innerHeight||800;const rect=section.getBoundingClientRect();
+ // Progress begins as Priority Products enters the lower viewport and completes while scrolling through it.
+ const progress=Math.max(0,Math.min(1,(vh-rect.top)/(vh*0.82+Math.max(260,rect.height*.55))));
+ cards.forEach((card,i)=>{const stagger=i*.19;const p=Math.max(0,Math.min(1,(progress-stagger)/(1-stagger)));card.style.setProperty('--mask-top',(100-p*100)+'%');card.style.setProperty('--mask-y',((1-p)*34)+'px');card.style.setProperty('--mask-opacity','1');card.style.setProperty('--mask-text',String(p));const img=card.querySelector('img');if(img)img.style.transform='scale('+(1.08-p*.08)+')';});
+ }
+ function requestUpdate(){if(!raf)raf=requestAnimationFrame(update)}
+ window.addEventListener('scroll',requestUpdate,{passive:true});window.addEventListener('resize',requestUpdate,{passive:true});
+ const mo=new MutationObserver(()=>{if(section.querySelector('.velzo-concave-card'))collect()});mo.observe(section,{childList:true,subtree:true});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',collect,{once:true});else collect();
+})();
+</script>
+
 </body>
 </html>
 <style id="velzo-logo-final-colors">
