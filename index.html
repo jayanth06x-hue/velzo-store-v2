@@ -1620,9 +1620,9 @@ body { background:#e9e7e2; }
 
 <style id="velzo-video-hero-styles">
   .hero.velzo-video-hero { position:relative; isolation:isolate; overflow:hidden; background:#101D35; }
-  .velzo-hero-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
-  .velzo-hero-overlay { position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(16,29,53,.88),rgba(16,29,53,.48) 55%,rgba(107,31,58,.24)); pointer-events:none; }
-  .hero.velzo-video-hero .hero-content { position:relative; z-index:1; }
+  .hero.velzo-video-hero .velzo-hero-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; display:block; }
+  .hero.velzo-video-hero .velzo-hero-overlay { position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,rgba(16,29,53,.72),rgba(16,29,53,.38) 55%,rgba(107,31,58,.18)); pointer-events:none; }
+  .hero.velzo-video-hero .hero-content { position:relative; z-index:2; }
   @media(max-width:620px) { .hero.velzo-video-hero { min-height:470px; } .velzo-hero-video { object-position:center; } }
   @media(prefers-reduced-motion:reduce) { .velzo-hero-video { display:none; } .hero.velzo-video-hero { background:#101D35; } }
 </style>
