@@ -1627,6 +1627,16 @@ body { background:#e9e7e2; }
   @media(prefers-reduced-motion:reduce) { .velzo-hero-video { display:none; } .hero.velzo-video-hero { background:#101D35; } }
 </style>
 
+
+<style id="velzo-3d-tile-reveal-style">
+/* Velzo Collections — subtle 3D tile reveal. Progressive enhancement: products remain visible without JS/Observer. */
+#products .product.velzo-tile-reveal{opacity:1;transform:perspective(1100px) translate3d(0,0,0) rotateX(0) rotateY(0);transform-style:preserve-3d;transition:opacity .72s cubic-bezier(.2,.75,.25,1),transform .82s cubic-bezier(.2,.75,.25,1),box-shadow .35s ease;will-change:transform,opacity;backface-visibility:hidden}
+#products.velzo-reveal-enabled .product.velzo-tile-reveal:not(.velzo-tile-visible){opacity:0;transform:perspective(1100px) translate3d(0,38px,-24px) rotateX(7deg) rotateY(var(--velzo-tilt, 0deg)) scale(.965)}
+#products .product.velzo-tile-visible{opacity:1;transform:perspective(1100px) translate3d(0,0,0) rotateX(0) rotateY(0) scale(1)}
+@media(hover:hover) and (pointer:fine){#products .product.velzo-tile-visible:hover{transform:perspective(1100px) translate3d(0,-5px,12px) rotateX(1deg) rotateY(var(--velzo-hover-tilt, 1deg)) scale(1.008);box-shadow:0 18px 38px rgba(15,18,25,.13)}}
+@media(prefers-reduced-motion:reduce){#products .product.velzo-tile-reveal,#products.velzo-reveal-enabled .product.velzo-tile-reveal:not(.velzo-tile-visible),#products .product.velzo-tile-visible{transition:none!important;transform:none!important;opacity:1!important;will-change:auto}}
+</style>
+
 </head>
 
 <script>
@@ -2054,7 +2064,7 @@ function renderProducts() {
   }
 
   target.innerHTML = items.map(p => `
-    <article class="product">
+    <article class="product velzo-tile-reveal">
       <div class="product-image-wrap">
         ${p.tag
           ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
@@ -2094,6 +2104,32 @@ function renderProducts() {
       </div>
     </article>
   `).join("");
+  // Observe freshly-rendered cards after every search/category/sort update.
+  // Enable hiding only after the observer is ready, so cards never stay invisible if unsupported.
+  const revealCards = Array.from(target.querySelectorAll('.product.velzo-tile-reveal'));
+  target.classList.remove('velzo-reveal-enabled');
+  revealCards.forEach((card, index) => {
+    card.classList.remove('velzo-tile-visible');
+    card.style.setProperty('--velzo-tilt', index % 2 ? '2deg' : '-2deg');
+    card.style.setProperty('--velzo-hover-tilt', index % 2 ? '-1deg' : '1deg');
+  });
+  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    target.classList.add('velzo-reveal-enabled');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('velzo-tile-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { root: null, rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
+    revealCards.forEach((card, index) => {
+      card.style.transitionDelay = Math.min(index % 4, 3) * 65 + 'ms';
+      revealObserver.observe(card);
+    });
+  } else {
+    revealCards.forEach(card => card.classList.add('velzo-tile-visible'));
+  }
 }
 
 const VELZO_POLICIES = {
