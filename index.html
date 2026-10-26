@@ -1723,22 +1723,16 @@ body { background:#e9e7e2; }
   </header>
 
   <main>
-    <section class="hero velzo-video-hero">
-      <video class="velzo-hero-video" autoplay muted loop playsinline preload="metadata" aria-label="Velzo Collections fashion video">
+    <section class="hero velzo-video-hero" aria-label="Velzo Collections fashion video">
+      <video class="velzo-hero-video" autoplay muted loop playsinline preload="auto" poster="/velzo-hero.png" aria-label="Velzo Collections fashion video">
         <source src="/velzo-hero.mp4" type="video/mp4">
       </video>
       <div class="velzo-hero-overlay" aria-hidden="true"></div>
-      <div class="hero-content">
-        <div class="eyebrow">NEW DROP · GRAPHIC TEES · PRINTED SHIRTS</div>
-        <h1>Wear<br>your vibe.</h1>
-        <p>Statement prints. Oversized fits. Everyday streetwear made for your own rules. Find your next favourite look at Velzo.</p>
-        <div class="hero-actions">
-          <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">SHOP THE DROP</button>
-          <button class="accessories-button" onclick="shopAccessories()">ACCESSORIES</button>
-          <button class="accessories-button dresses-button" onclick="shopDresses()">DRESSES</button>
-        </div>
-      </div>
     </section>
+    <nav class="velzo-video-categories" aria-label="Shop categories">
+      <button type="button" onclick="shopAccessories()">ACCESSORIES</button>
+      <button type="button" onclick="shopDresses()">DRESSES</button>
+    </nav>
 
     <section class="velzo-featured" id="velzo-featured" aria-live="polite" hidden>
       <div class="velzo-featured-copy">
@@ -3234,4 +3228,14 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
   footer .logo span,
   .footer .logo small,
   footer .logo small { color: #6B1F3A !important; }
+
+/* Video-only homepage hero and category links below it */
+.hero.velzo-video-hero { position:relative !important; isolation:isolate; display:block; width:100%; height:clamp(280px, 52vw, 650px); min-height:0 !important; padding:0 !important; margin:0 !important; overflow:hidden; background:#101d35 !important; animation:none !important; }
+.hero.velzo-video-hero::before, .hero.velzo-video-hero::after { display:none !important; content:none !important; }
+.hero.velzo-video-hero .velzo-hero-video { position:absolute !important; inset:0; z-index:0 !important; display:block !important; width:100%; height:100%; object-fit:cover; object-position:center; }
+.hero.velzo-video-hero .velzo-hero-overlay { position:absolute; inset:0; z-index:1; background:transparent !important; pointer-events:none; }
+.velzo-video-categories { display:flex; justify-content:center; align-items:center; gap:14px; padding:22px 16px 30px; background:#f8f4eb; }
+.velzo-video-categories button { min-width:150px; padding:15px 24px; border:1px solid #6b1f3a; background:#6b1f3a; color:#fffaf2; font-weight:700; letter-spacing:1.5px; cursor:pointer; }
+.velzo-video-categories button:hover { background:#101d35; border-color:#101d35; }
+@media(max-width:520px) { .hero.velzo-video-hero { height:58vw; min-height:230px !important; } .velzo-video-categories { gap:10px; padding:16px 12px 22px; } .velzo-video-categories button { min-width:0; flex:1; padding:13px 8px; font-size:11px; } }
 </style>
