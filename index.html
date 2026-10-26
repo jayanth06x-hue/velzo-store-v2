@@ -1616,6 +1616,17 @@ body { background:#e9e7e2; }
 .velzo-featured{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(24px,5vw,72px);margin:clamp(20px,4vw,52px) auto;padding:clamp(24px,5vw,68px);max-width:1400px;background:radial-gradient(circle at 78% 40%,#34302b 0,transparent 38%),linear-gradient(125deg,#111211,#24211d 72%,#171716);color:#f7f3eb;border:1px solid rgba(213,183,127,.3);border-radius:4px;isolation:isolate}
 .velzo-featured[hidden]{display:none!important}.velzo-featured-copy{position:relative;z-index:2}.velzo-featured-kicker{color:#d5b77f;font-size:10px;letter-spacing:.22em}.velzo-featured-label{color:#c6bda9;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:25px 0 8px}.velzo-featured-copy h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,58px);line-height:1.05;letter-spacing:-.04em;margin:0 0 16px}.velzo-featured-copy>p:not(.velzo-featured-label){max-width:460px;color:#d1ccc2;line-height:1.8}.velzo-featured-bottom{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:28px}.velzo-featured-bottom strong{font-size:20px}.velzo-featured-bottom button{background:#d5b77f;color:#151512;border:0;padding:14px 19px;letter-spacing:.1em;font-size:10px;font-weight:700;cursor:pointer}.velzo-featured-visual{position:relative;min-height:300px;display:grid;place-items:center;perspective:1000px}.velzo-featured-visual img{position:relative;z-index:1;width:min(100%,430px);height:clamp(300px,43vw,500px);object-fit:contain;filter:drop-shadow(0 30px 30px #0008);transform:rotateY(-8deg) rotateX(2deg);animation:velzoFloat 6s ease-in-out infinite;transition:transform .45s ease}.velzo-featured-visual:hover img{transform:rotateY(0) rotateX(0) scale(1.035)}.velzo-featured-orbit{position:absolute;width:min(90%,390px);aspect-ratio:1;border:1px solid #d5b77f55;border-radius:50%;box-shadow:0 0 0 28px #d5b77f08,0 0 0 58px #d5b77f05;animation:velzoOrbit 18s linear infinite}.velzo-featured-orbit:after{content:"";position:absolute;top:13%;left:14%;width:8px;height:8px;border-radius:50%;background:#d5b77f;box-shadow:0 0 20px #d5b77f}.@keyframes velzoFloat{0%,100%{translate:0 0}50%{translate:0 -10px}}@keyframes velzoOrbit{to{transform:rotate(360deg)}}@media(max-width:700px){.velzo-featured{grid-template-columns:1fr;padding:28px 20px;gap:8px}.velzo-featured-copy h2{font-size:36px}.velzo-featured-visual{min-height:260px}.velzo-featured-visual img{height:310px}.velzo-featured-bottom{gap:14px}}
 </style>
+
+
+<style id="velzo-video-hero-styles">
+  .hero.velzo-video-hero { position:relative; isolation:isolate; overflow:hidden; background:#101D35; }
+  .velzo-hero-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
+  .velzo-hero-overlay { position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(16,29,53,.88),rgba(16,29,53,.48) 55%,rgba(107,31,58,.24)); pointer-events:none; }
+  .hero.velzo-video-hero .hero-content { position:relative; z-index:1; }
+  @media(max-width:620px) { .hero.velzo-video-hero { min-height:470px; } .velzo-hero-video { object-position:center; } }
+  @media(prefers-reduced-motion:reduce) { .velzo-hero-video { display:none; } .hero.velzo-video-hero { background:#101D35; } }
+</style>
+
 </head>
 
 <script>
@@ -1712,21 +1723,19 @@ body { background:#e9e7e2; }
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero velzo-video-hero">
+      <video class="velzo-hero-video" autoplay muted loop playsinline preload="metadata" aria-label="Velzo Collections fashion video">
+        <source src="/velzo-hero.mp4" type="video/mp4">
+      </video>
+      <div class="velzo-hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
         <div class="eyebrow">NEW DROP · GRAPHIC TEES · PRINTED SHIRTS</div>
         <h1>Wear<br>your vibe.</h1>
         <p>Statement prints. Oversized fits. Everyday streetwear made for your own rules. Find your next favourite look at Velzo.</p>
         <div class="hero-actions">
-          <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">
-            SHOP THE DROP
-          </button>
-          <button class="accessories-button" onclick="shopAccessories()">
-            ACCESSORIES
-          </button>
-          <button class="accessories-button dresses-button" onclick="shopDresses()">
-            DRESSES
-          </button>
+          <button class="gold-button" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">SHOP THE DROP</button>
+          <button class="accessories-button" onclick="shopAccessories()">ACCESSORIES</button>
+          <button class="accessories-button dresses-button" onclick="shopDresses()">DRESSES</button>
         </div>
       </div>
     </section>
