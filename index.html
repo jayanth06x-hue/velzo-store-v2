@@ -1639,83 +1639,6 @@ body { background:#e9e7e2; }
 
 </head>
 
-<script>
-(() => {
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
-
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    return;
-  }
-
-  const selector = [
-    ".section-heading",
-    ".product",
-    ".benefit",
-    ".about"
-  ].join(",");
-
-  document.body.classList.add("ac-enabled");
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-
-      const element = entry.target;
-      element.classList.add("ac-visible");
-      revealObserver.unobserve(element);
-    });
-  }, {
-    threshold: 0.12,
-    rootMargin: "0px 0px -35px 0px"
-  });
-
-  function prepareElement(element, index) {
-    if (element.dataset.acReveal) return;
-
-    element.dataset.acReveal = "true";
-
-    if (element.classList.contains("product")) {
-      element.style.setProperty(
-        "--ac-delay",
-        `${Math.min(index % 4, 3) * 90}ms`
-      );
-    }
-
-    revealObserver.observe(element);
-  }
-
-  function collectElements(root = document) {
-    if (root instanceof Element && root.matches(selector)) {
-      prepareElement(root, 0);
-    }
-
-    if (root.querySelectorAll) {
-      root.querySelectorAll(selector).forEach((element, index) => {
-        prepareElement(element, index);
-      });
-    }
-  }
-
-  collectElements();
-
-  // Product cards are recreated when a shopper filters or searches.
-  // This observes new cards without changing the store's product logic.
-  const productGrid = document.getElementById("products");
-
-  if (productGrid) {
-    const gridObserver = new MutationObserver(() => {
-      collectElements(productGrid);
-    });
-
-    gridObserver.observe(productGrid, {
-      childList: true
-    });
-  }
-})();
-</script>
-
 <body>
   <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE.</div>
 
@@ -1744,22 +1667,34 @@ body { background:#e9e7e2; }
       <button type="button" onclick="shopDresses()">DRESSES</button>
     </nav>
 
+    <div class="velzo-campaign-ribbon" aria-label="Velzo new collection">
+      <span class="velzo-ribbon-mark">V / C</span>
+      <span class="velzo-ribbon-rule"></span>
+      <span>AN EDIT OF EVERYDAY ICONS</span>
+      <span class="velzo-ribbon-dot">✦</span>
+      <span class="velzo-ribbon-secondary">DEFINED BY DETAIL. WORN YOUR WAY.</span>
+      <span class="velzo-ribbon-rule"></span>
+      <span class="velzo-ribbon-edition">VOL. 01 — THE COLLECTION</span>
+    </div>
+
     <section class="velzo-featured" id="velzo-featured" aria-live="polite" hidden>
       <div class="velzo-featured-copy">
-        <span class="velzo-featured-kicker">VELZO EDIT · FEATURED LOOK</span>
-        <p class="velzo-featured-label">Selected for you</p>
+        <span class="velzo-featured-kicker"><span class="velzo-featured-spark"></span> THE CURATED EDIT / 001</span>
+        <p class="velzo-featured-label">Handpicked for your rotation</p>
         <h2 id="velzo-featured-name">The featured piece</h2>
         <p id="velzo-featured-description">A signature look from Velzo Collections.</p>
         <div class="velzo-featured-bottom"><strong id="velzo-featured-price"></strong><button type="button" id="velzo-featured-shop">DISCOVER THE LOOK ↗</button></div>
       </div>
       <div class="velzo-featured-visual"><div class="velzo-featured-orbit"></div><img id="velzo-featured-image" alt="Featured Velzo product" loading="eager"></div>
+      <div class="velzo-featured-corner" aria-hidden="true">VELZO / SELECTION 01—03</div>
     </section>
 
     <section class="section" id="shop">
+      <div class="velzo-shop-kicker"><span class="velzo-shop-kicker-line"></span> THE COMPLETE COLLECTION <span class="velzo-shop-kicker-number">/ VELZO 2026</span></div>
       <div class="section-heading">
         <div>
-          <h2>Made for the main character</h2>
-          <p>Graphic tees, printed shirts and street-ready essentials. Find your fit.</p>
+          <h2>Wear your <em>own story.</em></h2>
+          <p>Statement graphics. Everyday essentials. Pieces that make the look yours.</p>
         </div>
         <p id="result-count" aria-live="polite"></p>
       </div>
@@ -1778,6 +1713,7 @@ body { background:#e9e7e2; }
       </div>
 
       <div class="product-grid" id="products" aria-live="polite"></div>
+      <div class="velzo-shop-afterword"><span>GOOD STYLE IS PERSONAL.</span><a href="#about">THE VELZO STORY <span aria-hidden="true">↗</span></a></div>
     </section>
 
     <section class="benefits" aria-label="Our promises">
@@ -1946,7 +1882,10 @@ function renderFeaturedProduct() {
   visual.innerHTML = '<div class="velzo-featured-orbit"></div><div class="velzo-concave-track" aria-label="Priority products">' + chosen.map((p, i) =>
     `<button type="button" class="velzo-concave-card card-${i+1}" data-featured-id="${escapeHTML(p.id)}" aria-label="View ${escapeHTML(p.name)}"><img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="eager"><span>${escapeHTML(p.name)}</span><strong>${money(p.price)}</strong></button>`
   ).join("") + '</div>';
-  visual.querySelectorAll("[data-featured-id]").forEach(card => card.addEventListener("click", () => {
+  const selectionCards = Array.from(visual.querySelectorAll("[data-featured-id]"));
+  selectionCards[0]?.classList.add('velzo-is-selected');
+  selectionCards.forEach(card => card.addEventListener("click", () => {
+    selectionCards.forEach(item => item.classList.toggle('velzo-is-selected', item === card));
     const product = chosen.find(p => String(p.id) === card.dataset.featuredId);
     if (!product) return;
     document.getElementById("velzo-featured-name").textContent = product.name || "Featured look";
@@ -2104,29 +2043,19 @@ function renderProducts() {
       </div>
     </article>
   `).join("");
-  // Observe freshly-rendered cards after every search/category/sort update.
-  // Enable hiding only after the observer is ready, so cards never stay invisible if unsupported.
+  // Progressive enhancement: cards are ALWAYS visible, even when JS or the observer fails.
+  // The observer only ADDS a small entrance animation; it never controls visibility.
   const revealCards = Array.from(target.querySelectorAll('.product.velzo-tile-reveal'));
-  target.classList.remove('velzo-reveal-enabled');
-  revealCards.forEach((card, index) => {
-    card.classList.remove('velzo-tile-visible');
-    card.style.setProperty('--velzo-tilt', index % 2 ? '2deg' : '-2deg');
-    card.style.setProperty('--velzo-hover-tilt', index % 2 ? '-1deg' : '1deg');
-  });
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    target.classList.add('velzo-reveal-enabled');
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
+    const cardObserver = new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
           entry.target.classList.add('velzo-tile-visible');
           observer.unobserve(entry.target);
         }
-      });
-    }, { root: null, rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
-    revealCards.forEach((card, index) => {
-      card.style.transitionDelay = Math.min(index % 4, 3) * 65 + 'ms';
-      revealObserver.observe(card);
-    });
+      }
+    }, { rootMargin: '0px 0px -35px 0px', threshold: .05 });
+    revealCards.forEach(card => cardObserver.observe(card));
   } else {
     revealCards.forEach(card => card.classList.add('velzo-tile-visible'));
   }
@@ -3247,34 +3176,6 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 </style>
 
 
-<!-- VELZO PRIORITY PRODUCTS: scroll-driven mask reveal. Store logic unchanged. -->
-<style id="velzo-priority-scroll-mask-v2">
-#velzo-featured .velzo-featured-visual{overflow:hidden;position:relative}
-#velzo-featured .velzo-concave-track{position:relative;z-index:1}
-#velzo-featured .velzo-concave-card{clip-path:inset(var(--mask-top,100%) 0 0 0);transform:translateY(var(--mask-y,34px));opacity:var(--mask-opacity,1);will-change:clip-path,transform;transition:box-shadow .25s ease}
-#velzo-featured .velzo-concave-card img{transform:scale(1.08);transition:transform .12s linear;will-change:transform}
-#velzo-featured .velzo-concave-card span,#velzo-featured .velzo-concave-card strong{opacity:var(--mask-text,0);transform:translateY(10px);transition:opacity .15s linear,transform .15s linear}
-@media(prefers-reduced-motion:reduce){#velzo-featured .velzo-concave-card,#velzo-featured .velzo-concave-card img{transition:none!important;transform:none!important}}
-</style>
-<script id="velzo-priority-scroll-mask-v2-script">
-(()=>{
- const section=document.getElementById('velzo-featured'); if(!section)return;
- let cards=[], raf=0;
- function collect(){cards=[...section.querySelectorAll('.velzo-concave-card')]; update();}
- function update(){raf=0;if(!cards.length)return;const vh=window.innerHeight||800;const rect=section.getBoundingClientRect();
- // Progress begins as Priority Products enters the lower viewport and completes while scrolling through it.
- const progress=Math.max(0,Math.min(1,(vh-rect.top)/(vh*0.82+Math.max(260,rect.height*.55))));
- cards.forEach((card,i)=>{const stagger=i*.19;const p=Math.max(0,Math.min(1,(progress-stagger)/(1-stagger)));card.style.setProperty('--mask-top',(100-p*100)+'%');card.style.setProperty('--mask-y',((1-p)*34)+'px');card.style.setProperty('--mask-opacity','1');card.style.setProperty('--mask-text',String(p));const img=card.querySelector('img');if(img)img.style.transform='scale('+(1.08-p*.08)+')';});
- }
- function requestUpdate(){if(!raf)raf=requestAnimationFrame(update)}
- window.addEventListener('scroll',requestUpdate,{passive:true});window.addEventListener('resize',requestUpdate,{passive:true});
- const mo=new MutationObserver(()=>{if(section.querySelector('.velzo-concave-card'))collect()});mo.observe(section,{childList:true,subtree:true});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',collect,{once:true});else collect();
-})();
-</script>
-
-</body>
-</html>
 <style id="velzo-logo-final-colors">
   /* Header logo: burgundy + midnight navy */
   .header .logo,
@@ -3302,3 +3203,251 @@ a[href*="wa.me"]:hover,a[href*="whatsapp"]:hover,button[aria-label*="WhatsApp"]:
 .velzo-video-categories button:hover { background:#101d35; border-color:#101d35; }
 @media(max-width:520px) { .hero.velzo-video-hero { height:58vw; min-height:230px !important; } .velzo-video-categories { gap:10px; padding:16px 12px 22px; } .velzo-video-categories button { min-width:0; flex:1; padding:13px 8px; font-size:11px; } }
 </style>
+<style id="velzo-cinematic-luxury-2026">
+/* VELZO / CINEMATIC LUXURY — PRODUCT SECTIONS ONLY
+   Commerce, authentication, payment, and admin code are untouched.
+   Dark editorial UI with progressive (never-required) animations. */
+:root{--vl-ink:#0d0c0e;--vl-night:#171115;--vl-burgundy:#651e38;--vl-rose:#b2778b;--vl-champagne:#dbc9b8;--vl-paper:#f6f0e9;--vl-soft:#b4a6a7}
+html{scroll-padding-top:94px}
+/* A quiet transition from the existing hero to the new collection. */
+.velzo-campaign-ribbon{display:flex;align-items:center;justify-content:center;gap:clamp(12px,2vw,32px);padding:20px clamp(20px,5vw,76px);background:#0c0b0d;color:#d9cad0;border-block:1px solid rgba(215,191,199,.14);font-size:10px;font-weight:600;letter-spacing:.22em;text-align:center}
+.velzo-ribbon-mark{font:italic 24px Georgia,serif;letter-spacing:-.05em;white-space:nowrap;color:#e7d2d9}
+.velzo-ribbon-rule{flex:1;max-width:95px;height:1px;background:linear-gradient(90deg,transparent,rgba(190,146,165,.42),transparent)}
+.velzo-ribbon-dot{color:#bd7b92;font-size:13px}.velzo-ribbon-edition{color:#8b7c83;font-size:9px}.velzo-ribbon-secondary{color:#9b8993}
+/* Featured priority trio / editorial display */
+#velzo-featured.velzo-featured{width:calc(100% - clamp(24px,6vw,96px));max-width:1450px;min-height:540px;margin:clamp(30px,5vw,72px) auto;grid-template-columns:minmax(250px,.77fr) minmax(0,1.23fr);gap:clamp(16px,3vw,48px);padding:clamp(30px,5vw,80px)!important;border:1px solid rgba(221,162,185,.17)!important;border-radius:22px!important;overflow:hidden!important;background:radial-gradient(ellipse at 76% 38%,rgba(104,29,56,.33),transparent 48%),radial-gradient(ellipse at 20% 100%,rgba(84,24,43,.24),transparent 44%),linear-gradient(132deg,#1b1017,#0d0c10 68%,#1a1016)!important;color:#f7eaf0!important;box-shadow:0 30px 85px rgba(30,8,20,.18);isolation:isolate}
+#velzo-featured::before{content:"";position:absolute;inset:16px;pointer-events:none;border:1px solid rgba(243,201,217,.07);border-radius:14px}
+#velzo-featured::after{content:"V";position:absolute;right:1%;top:-24%;font:italic 500px Georgia,serif;color:rgba(176,99,126,.045);pointer-events:none;z-index:0}
+#velzo-featured .velzo-featured-copy{z-index:4;min-width:0}
+#velzo-featured .velzo-featured-kicker{display:inline-flex;align-items:center;gap:10px;color:#d8a2b6!important;font-size:10px!important;letter-spacing:.23em!important;font-weight:700}
+.velzo-featured-spark{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d99ab0;box-shadow:0 0 17px rgba(233,125,164,.65)}
+#velzo-featured .velzo-featured-label{margin:30px 0 14px!important;color:#ab929c!important;font-size:11px!important;letter-spacing:.2em!important;text-transform:uppercase}
+#velzo-featured .velzo-featured-copy h2{margin:0 0 21px!important;color:#fff8f9!important;font:normal clamp(37px,4.4vw,71px)/1.04 Georgia,'Times New Roman',serif!important;letter-spacing:-.06em!important;text-wrap:balance;overflow-wrap:anywhere}
+#velzo-featured #velzo-featured-description{color:#cbbdc4!important;font-size:14px;line-height:1.9!important;max-width:440px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+#velzo-featured .velzo-featured-bottom{gap:19px;margin-top:30px!important;align-items:center}
+#velzo-featured .velzo-featured-bottom strong{color:#f4dce4!important;font:normal 26px Georgia,serif!important}
+#velzo-featured #velzo-featured-shop{min-height:48px;border:1px solid #d3aab8!important;border-radius:2px!important;padding:14px 19px!important;background:#f1dfe5!important;color:#2c1220!important;font-size:10px;letter-spacing:.14em;font-weight:800;transition:background .3s,transform .3s,box-shadow .3s}
+#velzo-featured #velzo-featured-shop:hover{background:#fff7f9!important;transform:translateY(-3px);box-shadow:0 14px 28px rgba(0,0,0,.18)}
+#velzo-featured .velzo-featured-corner{position:absolute;bottom:24px;right:30px;color:#7c6570;font-size:9px;letter-spacing:.22em;pointer-events:none}
+#velzo-featured .velzo-featured-visual{min-width:0;width:100%;min-height:385px;perspective:1100px;overflow:visible!important;isolation:isolate}
+#velzo-featured .velzo-featured-orbit{border-color:rgba(205,141,163,.18)!important;box-shadow:0 0 0 37px rgba(164,66,99,.035),0 0 0 78px rgba(164,66,99,.018)!important;animation:velzo-lux-orbit 32s linear infinite}
+#velzo-featured .velzo-featured-orbit:after{background:#e6a7bd!important;box-shadow:0 0 22px #ca6b8b!important}
+@keyframes velzo-lux-orbit{to{transform:rotate(360deg)}}
+/* Three physically distinct cards, each remains visible when JS/observer unavailable. */
+#velzo-featured .velzo-concave-track{display:flex!important;align-items:center!important;justify-content:center!important;gap:clamp(3px,.7vw,11px);width:100%!important;height:clamp(320px,35vw,475px)!important;position:relative!important;z-index:2!important;perspective:1200px;transform-style:preserve-3d}
+#velzo-featured .velzo-concave-card{width:auto;flex:1 1 0!important;min-width:0;max-width:235px;height:80%!important;margin:0!important;padding:clamp(8px,1vw,14px)!important;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;border:1px solid rgba(232,174,194,.19)!important;border-radius:13px!important;background:linear-gradient(155deg,#33202a 0%,#241820 45%,#151116 100%)!important;box-shadow:0 19px 36px rgba(0,0,0,.36)!important;color:#f9edf1!important;clip-path:none!important;opacity:1!important;overflow:hidden;transform:rotateY(0) translate3d(0,0,0)!important;transition:transform .55s cubic-bezier(.2,.75,.2,1),border-color .3s,box-shadow .4s,background .35s!important;backface-visibility:hidden;will-change:auto!important}
+#velzo-featured .velzo-concave-card.card-1{transform:perspective(950px) rotateY(13deg) translateY(20px) scale(.94)!important}
+#velzo-featured .velzo-concave-card.card-2{transform:perspective(950px) translateY(-9px) scale(1.06)!important;z-index:4!important}
+#velzo-featured .velzo-concave-card.card-3{transform:perspective(950px) rotateY(-13deg) translateY(20px) scale(.94)!important}
+#velzo-featured .velzo-concave-card.velzo-is-selected{border-color:rgba(239,168,195,.65)!important;box-shadow:0 22px 46px rgba(0,0,0,.42),0 0 0 1px rgba(205,127,156,.25),0 0 25px rgba(154,58,99,.14)!important}
+#velzo-featured .velzo-concave-card img{display:block;width:100%;height:75%!important;flex:1 1 auto;min-height:0;object-fit:contain!important;border-radius:7px;background:radial-gradient(ellipse at center,rgba(214,151,171,.09),rgba(12,10,12,.02) 65%);padding:7px;filter:drop-shadow(0 13px 15px rgba(0,0,0,.42));clip-path:none!important;transform:none!important;animation:none!important;transition:transform .6s ease!important}
+#velzo-featured .velzo-concave-card span{display:block;margin:10px 0 3px;max-width:100%;font-size:11px;font-weight:600;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f1e7eb;opacity:1!important;transform:none!important}
+#velzo-featured .velzo-concave-card strong{font-size:13px;color:#eebed0!important;opacity:1!important;transform:none!important}
+@media(hover:hover) and (pointer:fine){#velzo-featured .velzo-concave-card:is(:hover,:focus-visible){transform:perspective(950px) translateY(-18px) scale(1.07)!important;z-index:7!important;border-color:#d29aaf!important;box-shadow:0 34px 65px rgba(0,0,0,.55)!important}#velzo-featured .velzo-concave-card:hover img{transform:scale(1.035)!important}}
+#velzo-featured .velzo-concave-card:focus-visible{outline:2px solid #efbacc;outline-offset:4px}
+/* Visible-by-default mask-sweep highlight, never a clipping dependency. */
+#velzo-featured .velzo-concave-card::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:8;transform:translateX(-175%) skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(253,198,218,.17),transparent);width:50%;opacity:0}
+#velzo-featured.velzo-featured-in .velzo-concave-card::after{animation:velzo-lux-sweep 1.2s .1s both}
+#velzo-featured.velzo-featured-in .velzo-concave-card:nth-child(2)::after{animation-delay:.24s}
+#velzo-featured.velzo-featured-in .velzo-concave-card:nth-child(3)::after{animation-delay:.4s}
+@keyframes velzo-lux-sweep{0%{transform:translateX(-180%) skewX(-18deg);opacity:0}25%{opacity:1}85%{opacity:1}100%{transform:translateX(340%) skewX(-18deg);opacity:0}}
+/* Editorial all-products catalogue */
+#shop.section{width:100%;max-width:none!important;margin:0!important;padding:clamp(55px,7vw,110px) clamp(18px,5.6vw,100px) clamp(58px,7vw,110px)!important;position:relative;isolation:isolate;color:#f6edf0!important;background:radial-gradient(ellipse at 95% 0%,rgba(111,27,57,.22),transparent 32%),linear-gradient(170deg,#141016 0%,#0d0d10 45%,#181016 100%)!important;overflow:hidden}
+#shop.section::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.24;pointer-events:none;background-image:linear-gradient(90deg,rgba(250,210,228,.05) 1px,transparent 1px);background-size:90px 100%}
+#shop .velzo-shop-kicker{display:flex;align-items:center;gap:13px;color:#cd9baa;font-size:10px;font-weight:700;letter-spacing:.23em;margin:0 0 23px}
+#shop .velzo-shop-kicker-line{width:30px;height:1px;background:#cf829d}
+#shop .velzo-shop-kicker-number{margin-left:auto;color:#897681;font-size:9px}
+#shop .section-heading{margin-bottom:clamp(27px,4vw,46px);display:flex;align-items:end;gap:24px}
+#shop .section-heading h2{font:normal clamp(40px,5.8vw,83px)/.99 Georgia,'Times New Roman',serif!important;letter-spacing:-.065em!important;text-transform:none!important;color:#fff9fa!important;max-width:760px;margin:0 0 14px}
+#shop .section-heading h2 em{font-weight:400;font-style:italic;color:#d598af}
+#shop .section-heading p:not(#result-count){color:#b5a5ad!important;font-size:14px;line-height:1.85;max-width:520px}
+#shop #result-count{align-self:end;white-space:nowrap;color:#e3b9c7!important;border:1px solid rgba(226,172,194,.22);border-radius:100px;padding:10px 15px;font-size:10px;letter-spacing:.1em}
+#shop .tools{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(2,minmax(0,.9fr));gap:12px;margin:0 0 17px}
+#shop .tools input,#shop .tools select{min-width:0;width:100%;height:52px!important;min-height:52px;appearance:auto;padding:0 17px!important;border:1px solid rgba(226,190,203,.2)!important;border-radius:8px!important;background:#241a22!important;color:#fff4f7!important;box-shadow:none!important;font-size:12px;outline-offset:2px;transition:border-color .2s,background .2s}
+#shop .tools input::placeholder{color:#b1a0a8!important;opacity:1}
+#shop .tools input:focus,#shop .tools select:focus{border-color:#bd7c94!important;outline:2px solid rgba(216,150,175,.2)!important}
+#shop .velzo-category-slider{margin:0 0 32px;padding:9px 1px 14px;gap:10px;scrollbar-color:#683b50 #1a1218}
+#shop .velzo-category-slider button{border:1px solid rgba(235,190,207,.24)!important;background:#1c151b!important;color:#d9c4ce!important;border-radius:100px!important;font-size:11px;letter-spacing:.08em;padding:12px 17px!important;box-shadow:none!important}
+#shop .velzo-category-slider button.active,#shop .velzo-category-slider button:hover{background:#e6ced8!important;color:#2c1420!important;border-color:#e6ced8!important}
+#shop .product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(17px,2vw,31px) clamp(12px,1.7vw,25px)!important;overflow:visible!important;perspective:1400px}
+#shop .product{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden!important;border:1px solid rgba(239,203,220,.16)!important;border-radius:12px!important;padding:0!important;background:linear-gradient(155deg,#281e26,#1c181e)!important;color:#fdf6f9!important;box-shadow:0 16px 35px rgba(0,0,0,.23)!important;opacity:1!important;filter:none!important;transform:none!important;animation:none!important;will-change:auto!important;transition:box-shadow .35s,border-color .35s,translate .35s!important}
+#shop .product.velzo-tile-visible{animation:velzo-lux-card-enter .65s cubic-bezier(.2,.75,.25,1) both!important}
+@keyframes velzo-lux-card-enter{from{opacity:.72;translate:0 20px}to{opacity:1;translate:0 0}}
+@media(hover:hover) and (pointer:fine){#shop .product:hover{translate:0 -7px!important;border-color:rgba(229,152,185,.58)!important;box-shadow:0 27px 55px rgba(0,0,0,.38),0 0 0 1px rgba(181,88,127,.13)!important}}
+#shop .product-image-wrap{position:relative;overflow:hidden!important;border-radius:0!important;background:radial-gradient(circle at 50% 36%,#f1e7df,#d7c7c4 85%)!important;isolation:isolate}
+#shop .product-image-wrap::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 68%,rgba(23,8,17,.08));pointer-events:none}
+#shop .product-image{display:block;width:100%;aspect-ratio:3/3.5!important;max-height:420px;object-fit:contain!important;object-position:center;transform:none!important;filter:none!important;transition:transform .65s cubic-bezier(.18,.75,.23,1),filter .5s!important}
+@media(hover:hover) and (pointer:fine){#shop .product:hover .product-image{transform:scale(1.065)!important;filter:contrast(1.025)!important}}
+#shop .product-tag{left:12px;top:12px;z-index:3;border:1px solid rgba(255,255,255,.15)!important;border-radius:4px!important;background:#4e2135!important;color:#fff3f7!important;letter-spacing:.12em;font-size:9px!important;padding:8px 11px;box-shadow:none!important}
+#shop .product-details{display:flex;flex:1;flex-direction:column;padding:19px clamp(12px,1.3vw,20px) 21px!important;min-width:0}
+#shop .product-category{color:#d8a2b6!important;font-size:10px;letter-spacing:.16em;font-weight:700}
+#shop .product h3{color:#fff9fa!important;font-size:clamp(14px,1.14vw,17px);letter-spacing:-.015em;line-height:1.38;font-weight:650;margin:10px 0 7px!important;overflow-wrap:anywhere}
+#shop .product-description{color:#b9abb1!important;line-height:1.65;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:2px 0 12px}
+#shop .product-price{color:#f8dce6!important;font:normal 22px Georgia,serif!important;margin:0 0 13px}
+#shop .details-button,#shop .velzo-share-button{min-height:42px;border:1px solid rgba(221,171,193,.3)!important;border-radius:4px!important;background:transparent!important;color:#eedde5!important;font-size:10px;letter-spacing:.08em;font-weight:650;transition:background .2s,border-color .2s}
+#shop .details-button{margin:0 0 7px!important}
+#shop .details-button:hover,#shop .velzo-share-button:hover{background:#3d2533!important;border-color:#e5acbf!important;color:#fff!important}
+#shop .velzo-share-button{margin:0 0 13px!important}
+#shop .product-color-select,#shop .product-size-select{width:100%;margin-top:7px;min-height:42px;border:1px solid rgba(236,189,207,.35)!important;border-radius:5px;background:#291e26!important;color:#fff2f7!important}
+#shop label.subtext{color:#d1b8c3!important;font-size:11px;margin-top:8px}
+#shop .size-choice{min-width:38px;min-height:38px;padding:7px 9px;border:1px solid #624356!important;border-radius:5px!important;color:#f7e6ec!important;background:#241b24!important;font-size:12px}
+#shop .size-choice.selected{border-color:#eec7d6!important;background:#eec7d6!important;color:#28121d!important}
+#shop .size-chart-link{color:#e5a9bf!important;font-size:11px}
+#shop .stock-label{color:#eda6ae!important;font-size:10px}
+#shop .add-button{margin-top:auto!important;min-height:48px!important;padding:12px 10px!important;position:relative;display:block;width:100%;background:#e7ced8!important;color:#2c1522!important;border:1px solid #e7ced8!important;border-radius:5px!important;font-size:10px!important;letter-spacing:.14em!important;font-weight:800!important;box-shadow:none!important;transform:none!important;transition:background .25s,color .25s,border-color .25s!important}
+#shop .add-button:hover:not(:disabled){background:#fff5f9!important;border-color:#fff5f9!important;color:#2c1522!important;transform:none!important}
+#shop .add-button:disabled{opacity:.43!important;cursor:not-allowed}
+#shop .product-image-thumbs{background:#e2d8d3!important;display:flex;gap:6px;overflow-x:auto;max-width:100%}
+#shop .product-image-thumb{flex-shrink:0}
+#shop .product-image-thumb.active{border-color:#7b3151!important}
+#shop .empty-state{grid-column:1/-1;min-height:250px;display:grid;place-items:center;color:#d1b7c4!important;border:1px solid rgba(229,185,204,.24);border-radius:12px}
+#shop .velzo-shop-afterword{display:flex;gap:15px;justify-content:space-between;align-items:center;padding:35px 0 0;margin-top:44px;border-top:1px solid rgba(255,217,232,.12);font-size:10px;letter-spacing:.2em;color:#897982}
+#shop .velzo-shop-afterword a{color:#e7b9cb;text-decoration:none;font-size:10px;letter-spacing:.17em;transition:color .2s}
+#shop .velzo-shop-afterword a:hover{color:#fff}
+/* Mobile-first polish: 2 product cards per row and no inaccessible transforms. */
+@media(max-width:1050px){#shop .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#velzo-featured.velzo-featured{grid-template-columns:minmax(220px,.9fr) minmax(0,1.1fr);padding:34px!important}}
+@media(max-width:800px){#shop.section{padding:65px 5%!important}#shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#velzo-featured.velzo-featured{grid-template-columns:1fr;gap:22px;padding:38px 28px!important;min-height:0}#velzo-featured .velzo-featured-visual{min-height:310px}#velzo-featured .velzo-featured-corner{bottom:15px;right:21px}}
+@media(max-width:600px){
+ .velzo-campaign-ribbon{padding:17px 13px;gap:10px;font-size:9px;letter-spacing:.11em;justify-content:space-between}
+ .velzo-ribbon-secondary,.velzo-ribbon-edition,.velzo-ribbon-rule:last-of-type{display:none}
+ #velzo-featured.velzo-featured{width:calc(100% - 24px);margin:18px auto 32px;padding:29px 17px 33px!important;border-radius:12px!important;gap:12px}
+ #velzo-featured .velzo-featured-copy h2{font-size:clamp(35px,9vw,52px)!important}
+ #velzo-featured #velzo-featured-description{font-size:12px;line-height:1.7!important;-webkit-line-clamp:3}
+ #velzo-featured .velzo-featured-bottom{margin-top:18px!important}
+ #velzo-featured .velzo-concave-track{height:270px!important;gap:4px!important}
+ #velzo-featured .velzo-featured-visual{min-height:280px!important}
+ #velzo-featured .velzo-concave-card{height:83%!important;padding:7px!important;border-radius:9px!important}
+ #velzo-featured .velzo-concave-card.card-1{transform:perspective(800px) rotateY(8deg) translateY(10px) scale(.94)!important}
+ #velzo-featured .velzo-concave-card.card-2{transform:translateY(-6px) scale(1.045)!important}
+ #velzo-featured .velzo-concave-card.card-3{transform:perspective(800px) rotateY(-8deg) translateY(10px) scale(.94)!important}
+ #velzo-featured .velzo-concave-card span{font-size:9px!important;margin:6px 0 1px!important}
+ #velzo-featured .velzo-concave-card strong{font-size:10px!important}
+ #velzo-featured .velzo-featured-corner{font-size:7px}
+ #shop.section{padding:55px 4% 60px!important}
+ #shop .velzo-shop-kicker{gap:9px;font-size:9px;letter-spacing:.15em}
+ #shop .section-heading{gap:13px;align-items:start;flex-direction:column}
+ #shop .section-heading h2{font-size:clamp(40px,10vw,58px)!important;max-width:100%}
+ #shop #result-count{align-self:start}
+ #shop .tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}
+ #shop .tools input{grid-column:1/-1}
+ #shop .tools input,#shop .tools select{font-size:11px;padding:0 11px!important;height:46px!important;min-height:46px}
+ #shop .product-grid{gap:15px 9px!important}
+ #shop .product{border-radius:8px!important}
+ #shop .product-image{aspect-ratio:3/4!important}
+ #shop .product-tag{font-size:8px!important;left:6px;top:6px;padding:6px 7px}
+ #shop .product-details{padding:12px 8px 14px!important}
+ #shop .product-category{font-size:8px;letter-spacing:.07em}
+ #shop .product h3{font-size:12px!important;line-height:1.4;margin:7px 0!important}
+ #shop .product-description{font-size:10px;-webkit-line-clamp:2}
+ #shop .product-price{font-size:18px!important;margin-bottom:10px}
+ #shop .details-button,#shop .velzo-share-button{font-size:9px;letter-spacing:0;min-height:39px;padding:8px 5px}
+ #shop .size-choice-buttons{gap:4px}
+ #shop .size-choice{min-width:31px;min-height:34px;padding:6px;font-size:10px}
+ #shop .add-button{min-height:43px!important;font-size:9px!important;letter-spacing:.06em!important;padding:8px 5px!important}
+ #shop .velzo-shop-afterword{flex-wrap:wrap;gap:14px}
+}
+@media(prefers-reduced-motion:reduce){#shop .product.velzo-tile-visible{animation:none!important}#velzo-featured .velzo-featured-orbit,#velzo-featured .velzo-concave-card::after{animation:none!important}#shop .product,#velzo-featured .velzo-concave-card{transition:none!important}#shop .product:hover{translate:none!important}}
+</style>
+<script id="velzo-cinematic-safe-motion">
+/* Visual enhancements only: no product hiding or cart/backend overrides. */
+(()=>{
+  const featured=document.getElementById('velzo-featured');
+  if (!featured) return;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+  if (!('IntersectionObserver' in window)) { featured.classList.add('velzo-featured-in'); return; }
+  const watch=new IntersectionObserver((entries,obs)=>{
+    for (const entry of entries) if(entry.isIntersecting){entry.target.classList.add('velzo-featured-in');obs.unobserve(entry.target);}
+  },{threshold:.05,rootMargin:'0px 0px 50px 0px'});
+  watch.observe(featured);
+})();
+</script>
+
+
+
+<style id="velzo-full-charcoal-forest-crimson-v2">
+/* VELZO FULL-SITE PALETTE — charcoal / forest green / crimson only.
+   Commerce markup and JS are preserved. Overrides old white/gold/blue/pink themes. */
+:root{--black:#111715!important;--gold:#C81D3A!important;--cream:#1C3026!important;--muted:#A9BDB1!important;--line:#345142!important;--white:#F2F6F1!important;--vz-charcoal:#111715;--vz-green:#143D2B;--vz-crimson:#C81D3A;--vz-text:#F2F6F1}
+html{background:#101614!important}
+body{background:#101614!important;color:#F2F6F1!important}
+a{accent-color:#C81D3A}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #E93C58!important;outline-offset:3px}
+.announcement{background:#C81D3A!important;color:#fff!important;border:0!important}
+.header{background:rgba(14,24,19,.97)!important;border-bottom:1px solid #345142!important;color:#F2F6F1!important;box-shadow:0 8px 30px rgba(0,0,0,.22)!important}
+.logo,.header .logo,.nav a,.header a{color:#F2F6F1!important}.logo span,.header .logo span,.nav a:hover,.header a:hover{color:#F14561!important}
+.nav a::after{background:#C81D3A!important}
+.cart-button,.black-button{background:#143D2B!important;border:1px solid #386D50!important;color:#fff!important;box-shadow:none!important}
+.cart-button:hover,.black-button:hover{background:#C81D3A!important;border-color:#C81D3A!important;color:#fff!important}
+.hero{background-color:#111715!important;background-blend-mode:multiply,normal!important}
+.hero::after{background:linear-gradient(0deg,rgba(9,19,13,.52),transparent 65%)!important}
+.hero .eyebrow,.eyebrow{color:#F14561!important}.hero h1,.hero p{color:#fff!important}
+.gold-button,.hero .gold-button{background:#C81D3A!important;border-color:#C81D3A!important;color:#fff!important;border-radius:3px!important;box-shadow:0 9px 24px rgba(200,29,58,.18)!important}
+.gold-button:hover,.hero .gold-button:hover{background:#143D2B!important;border-color:#57A478!important;color:#fff!important}
+.section,.section#shop,#about.section{background:#111A15!important;color:#F2F6F1!important}
+.section-heading h2,.about h2,.section h2{color:#F2F6F1!important}.section-heading p,.about p,.section p{color:#B3C5B8!important}
+.tools input,.tools select,#shop .tools input,#shop .tools select{background:#1B3024!important;border:1px solid #42634D!important;color:#F2F6F1!important;box-shadow:none!important}
+.tools input::placeholder,#shop .tools input::placeholder{color:#A8B9AD!important}.tools input:focus,.tools select:focus{border-color:#C81D3A!important;box-shadow:0 0 0 3px rgba(200,29,58,.18)!important}
+#shop.section{background:radial-gradient(ellipse at 6% 0%,rgba(30,104,64,.36),transparent 44%),radial-gradient(ellipse at 92% 45%,rgba(200,29,58,.16),transparent 38%),linear-gradient(150deg,#182B20,#0D1511 72%)!important}
+#shop .section-heading h2,#shop .velzo-shop-title{color:#F2F6F1!important}
+#shop .section-heading p,#shop #result-count,#shop .velzo-shop-kicker{color:#B7D4C0!important}
+#shop .product{background:linear-gradient(160deg,#21392B,#14251B 85%)!important;border:1px solid #35513D!important;color:#F2F6F1!important;box-shadow:0 14px 35px rgba(0,0,0,.27)!important}
+#shop .product:hover{border-color:#C81D3A!important;box-shadow:0 20px 46px rgba(0,0,0,.42),0 0 0 1px rgba(200,29,58,.25)!important}
+#shop .product-image-wrap,#shop .product-image-thumbs{background:#284533!important}
+#shop .product-tag{background:#C81D3A!important;color:#fff!important;border-color:#C81D3A!important}
+#shop .product-category{color:#8DD2A4!important}
+#shop .product h3,#shop .product-price{color:#F2F6F1!important}
+#shop .product-description,#shop label.subtext{color:#B9D0BE!important}
+#shop .product-size-select,#shop .product-color-select{background:#1A3325!important;border-color:#456B50!important;color:#F2F6F1!important}
+#shop .size-choice{background:#183124!important;color:#E9F3E9!important;border-color:#456B50!important}
+#shop .size-choice.selected{background:#C81D3A!important;border-color:#C81D3A!important;color:#fff!important}
+#shop .size-chart-link,#shop .stock-label{color:#F47D8E!important}
+#shop .details-button,#shop .velzo-share-button{background:#1C3B2A!important;border-color:#4A7657!important;color:#F2F6F1!important}
+#shop .details-button:hover,#shop .velzo-share-button:hover{background:#C81D3A!important;border-color:#C81D3A!important;color:#fff!important}
+#shop .add-button{background:#C81D3A!important;border:1px solid #C81D3A!important;color:#fff!important;box-shadow:none!important}
+#shop .add-button:hover:not(:disabled){background:#E33150!important;border-color:#E33150!important;color:#fff!important}
+#shop .product-image-thumb.active{border-color:#C81D3A!important}
+#shop .empty-state{color:#BBD3C1!important;border-color:#3C5B45!important}
+#shop .velzo-shop-afterword{border-top-color:#36523E!important;color:#AFC5B5!important}
+#shop .velzo-shop-afterword a{color:#F47D8E!important}
+/* Featured product editorial and carousel */
+#velzo-featured.velzo-featured{background:radial-gradient(circle at 80% 20%,rgba(27,107,60,.35),transparent 46%),linear-gradient(135deg,#1B3425,#0E1913)!important;border:1px solid #3E6748!important;color:#F2F6F1!important}
+#velzo-featured .velzo-featured-copy h2,#velzo-featured h2{color:#F2F6F1!important}
+#velzo-featured .velzo-featured-copy p,#velzo-featured #velzo-featured-description{color:#BBD1C1!important}
+#velzo-featured .velzo-concave-card{background:linear-gradient(155deg,#2B5138,#183225 55%,#101D16)!important;border-color:#52745A!important;color:#F2F6F1!important}
+#velzo-featured .velzo-concave-card.velzo-is-selected{border-color:#C81D3A!important;box-shadow:0 22px 46px rgba(0,0,0,.42),0 0 25px rgba(200,29,58,.28)!important}
+#velzo-featured .velzo-concave-card strong{color:#F47D8E!important}
+#velzo-featured .velzo-concave-card span{color:#F2F6F1!important}
+#velzo-featured .velzo-featured-orbit:after{background:#C81D3A!important;box-shadow:0 0 22px #C81D3A!important}
+#velzo-featured button,#velzo-featured a.velzo-featured-cta{accent-color:#C81D3A}
+.velzo-campaign-ribbon{background:#C81D3A!important;color:#fff!important;border-color:#C81D3A!important}
+.velzo-campaign-ribbon *{color:#fff!important;border-color:rgba(255,255,255,.38)!important}
+/* Other site sections */
+.benefits{background:#1A3324!important;color:#F2F6F1!important;border-color:#3C6347!important}
+.benefit{border-left-color:#C81D3A!important;background:transparent!important;color:#F2F6F1!important}
+.benefit:hover{background:#234530!important}.benefit strong{color:#F2F6F1!important}.benefit p{color:#B9D0BE!important}
+.about,.about h2{color:#F2F6F1!important}
+.footer{background:#0A120E!important;color:#F2F6F1!important;border-top:1px solid #365340!important}
+.footer .logo,.footer .logo span{color:#F2F6F1!important}.footer .logo span{color:#F14561!important}
+.footer p,.footer small,.footer a{color:#BED2C2!important}
+/* Cart, checkout, popups, and notifications */
+.overlay{background:rgba(5,12,8,.78)!important}
+.modal{background:#15271B!important;color:#F2F6F1!important;border:1px solid #41634B!important;box-shadow:0 20px 65px rgba(0,0,0,.55)!important}
+.modal h2,.modal strong,.modal label{color:#F2F6F1!important}
+.modal p,.modal .subtext,.cart-line p{color:#B9D0BE!important}
+.modal-close{color:#F2F6F1!important;background:#213D2A!important}
+.cart-line{border-bottom-color:#365340!important}
+.cart-line img{background:#244431!important}
+.quantity button{background:#23412D!important;color:#fff!important;border-color:#50775B!important}
+.modal input,.modal textarea,.modal select,.checkout-fields input,.checkout-fields textarea{background:#1D3425!important;color:#fff!important;border:1px solid #50775B!important}
+.modal input::placeholder,.modal textarea::placeholder{color:#AFC3B3!important}
+.modal .full-button,.modal .black-button,.full-button{background:#C81D3A!important;color:#fff!important;border:1px solid #C81D3A!important}
+.modal .full-button:hover,.full-button:hover{background:#E33150!important;color:#fff!important}
+.toast{background:#C81D3A!important;color:#fff!important;border:1px solid #E33150!important}
+/* Catch remaining components from earlier stylesheet versions */
+[class*="category-chip"],[class*="category-pill"],[class*="filter-chip"]{border-color:#47694E!important;color:#E9F4EB!important}
+[class*="category-chip"].active,[class*="category-pill"].active,[class*="filter-chip"].active{background:#C81D3A!important;color:#fff!important;border-color:#C81D3A!important}
+@media(prefers-reduced-motion:reduce){#shop .product,.hero,#velzo-featured .velzo-concave-card{animation:none!important;transition:none!important}}
+</style>
+
+</body>
+</html>
