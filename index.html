@@ -1661,6 +1661,7 @@ body { background:#e9e7e2; }
         <source src="/velzo-hero.mp4" type="video/mp4">
       </video>
       <div class="velzo-hero-overlay" aria-hidden="true"></div>
+      <a class="velzo-shop-now-overlay" href="#shop" aria-label="Shop Velzo collection">SHOP NOW <span aria-hidden="true">→</span></a>
     </section>
     <nav class="velzo-video-categories" aria-label="Shop categories">
       <button type="button" onclick="shopAccessories()">ACCESSORIES</button>
@@ -3590,6 +3591,44 @@ button:focus-visible,a:focus-visible{outline:3px solid #F65A73!important;outline
   .hero, .hero * { animation: none !important; }
 }
 
+
+/* SHOP NOW — positioned over the existing hero, matching the screenshot. */
+.hero.velzo-video-hero { position: relative !important; }
+.hero.velzo-video-hero .velzo-shop-now-overlay {
+  position: absolute !important;
+  left: 2.5% !important;
+  top: 75% !important;
+  transform: translateY(-50%) !important;
+  z-index: 20 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  width: clamp(160px, 19vw, 286px) !important;
+  min-height: clamp(48px, 4.7vw, 72px) !important;
+  padding: 12px 18px !important;
+  background: #ae1730 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-decoration: none !important;
+  font: 700 clamp(11px, 1.1vw, 17px)/1.2 Arial, sans-serif !important;
+  letter-spacing: .2em !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.2) !important;
+}
+.hero.velzo-video-hero .velzo-shop-now-overlay:hover,
+.hero.velzo-video-hero .velzo-shop-now-overlay:focus-visible { background: #153c29 !important; }
+@media (max-width: 620px) {
+  .hero.velzo-video-hero .velzo-shop-now-overlay {
+    left: 3% !important; top: 76% !important;
+    width: 142px !important; min-height: 45px !important;
+    padding: 10px !important; font-size: 10px !important; gap: 7px !important;
+  }
+}
 </style>
 
 </body>
