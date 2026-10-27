@@ -3447,6 +3447,72 @@ a{accent-color:#C81D3A}button:focus-visible,a:focus-visible,input:focus-visible,
 [class*="category-chip"],[class*="category-pill"],[class*="filter-chip"]{border-color:#47694E!important;color:#E9F4EB!important}
 [class*="category-chip"].active,[class*="category-pill"].active,[class*="filter-chip"].active{background:#C81D3A!important;color:#fff!important;border-color:#C81D3A!important}
 @media(prefers-reduced-motion:reduce){#shop .product,.hero,#velzo-featured .velzo-concave-card{animation:none!important;transition:none!important}}
+
+/* VELZO accessibility fix: keep actionable buttons visible at every viewport */
+.header{display:flex!important;flex-wrap:wrap;gap:12px;min-height:72px}
+.nav{display:flex!important;flex-wrap:wrap!important;align-items:center;justify-content:flex-end;gap:10px!important;min-width:0}
+.nav a,.nav button,.header .cart-button{visibility:visible!important;opacity:1!important;white-space:normal;min-height:40px;display:inline-flex!important;align-items:center;justify-content:center;text-align:center}
+.nav .optional-link{display:inline-flex!important}
+button:not([hidden]),a.gold-button:not([hidden]),a.black-button:not([hidden]),a.velzo-featured-cta:not([hidden]){visibility:visible!important;opacity:1;max-width:100%;overflow-wrap:anywhere}
+button:focus-visible,a:focus-visible{outline:3px solid #F65A73!important;outline-offset:3px!important}
+#shop .product{overflow:visible!important;min-width:0}
+#shop .product-details{min-width:0;overflow:visible!important}
+#shop .add-button,#shop .details-button,#shop .velzo-share-button,#velzo-featured button,#velzo-featured a.velzo-featured-cta,.modal .full-button{display:flex!important;align-items:center;justify-content:center;min-height:44px!important;width:100%;white-space:normal!important;line-height:1.35!important;text-align:center;overflow:visible!important;opacity:1!important;visibility:visible!important}
+#shop .add-button:disabled{opacity:.55!important;cursor:not-allowed}
+#shop .product-size-select,#shop .product-color-select{max-width:100%;min-width:0}
+#velzo-featured .velzo-featured-bottom{display:flex!important;flex-wrap:wrap;align-items:center}
+#velzo-featured .velzo-featured-bottom button{width:auto;min-width:150px}
+.product-details-dialog button,.modal button{min-height:40px}
+@media(max-width:620px){
+ .header{padding:12px 4%!important;justify-content:space-between;align-items:center}
+ .header .logo{flex:0 0 auto;max-width:100%}
+ .nav{flex:1 1 100%;justify-content:space-between!important;gap:6px!important}
+ .nav a,.nav button,.header .cart-button{font-size:11px!important;padding:9px 8px!important;min-width:0}
+ .nav .optional-link{display:inline-flex!important}
+ #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important}
+ #shop .product{padding:7px!important}
+ #shop .product-details{padding:10px 5px!important}
+ #shop .add-button,#shop .details-button,#shop .velzo-share-button{font-size:10px!important;letter-spacing:0!important;padding:10px 5px!important}
+ .tools{width:100%;max-width:100%}
+}
+@media(max-width:370px){#shop .product-grid{grid-template-columns:1fr!important}.nav{justify-content:center!important}}
+
+/* VELZO NAV FIX: visible without hover, including touch screens */
+.header .nav a[href="#shop"],
+.header .nav a.velzo-care-nav,
+.header .nav button.velzo-account-nav,
+.header .nav .cart-button {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  visibility:visible!important;opacity:1!important;
+  background:#C81D3A!important;color:#FFFFFF!important;
+  border:1px solid #E84A62!important;
+  text-decoration:none!important;font-weight:700!important;
+  border-radius:8px!important;min-height:44px!important;
+  padding:10px 14px!important;text-shadow:none!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.24)!important;
+  -webkit-text-fill-color:#FFFFFF!important;
+}
+.header .nav a[href="#shop"]:hover,
+.header .nav a.velzo-care-nav:hover,
+.header .nav button.velzo-account-nav:hover,
+.header .nav .cart-button:hover,
+.header .nav a[href="#shop"]:focus-visible,
+.header .nav a.velzo-care-nav:focus-visible {
+  background:#143D2B!important;color:#FFFFFF!important;
+  -webkit-text-fill-color:#FFFFFF!important;border-color:#65A27C!important;
+}
+.header .nav a[href="#shop"]::after,
+.header .nav a.velzo-care-nav::after {display:none!important}
+@media(max-width:620px){
+  .header .nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;width:100%!important}
+  .header .nav a[href="#shop"],.header .nav a.velzo-care-nav,
+  .header .nav button.velzo-account-nav,.header .nav .cart-button{
+    width:100%!important;min-width:0!important;min-height:46px!important;
+    font-size:12px!important;line-height:1.25!important;padding:9px 7px!important;
+    white-space:normal!important;overflow-wrap:break-word!important;
+  }
+  .header .nav a.optional-link{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;align-self:center!important;text-align:center!important}
+}
 </style>
 
 </body>
