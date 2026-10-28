@@ -1637,16 +1637,29 @@ body { background:#e9e7e2; }
 @media(prefers-reduced-motion:reduce){#products .product.velzo-tile-reveal,#products.velzo-reveal-enabled .product.velzo-tile-reveal:not(.velzo-tile-visible),#products .product.velzo-tile-visible{transition:none!important;transform:none!important;opacity:1!important;will-change:auto}}
 </style>
 
+<style id="velzo-app-install-style">
+.velzo-app-nav,.velzo-app-announcement{display:inline-flex!important;align-items:center;justify-content:center;text-decoration:none!important;font-weight:900!important;letter-spacing:.06em!important;background:#b7233c!important;color:#fff!important;border:1px solid #e04a60!important;border-radius:6px!important;padding:11px 13px!important;white-space:nowrap!important;font-size:11px!important}
+.velzo-app-announcement{margin-left:16px;padding:5px 10px!important;font-size:10px!important}
+.velzo-app-nav:hover,.velzo-app-announcement:hover{background:#e13953!important}
+@media(max-width:650px){.velzo-app-announcement{display:inline-flex!important;margin:7px auto 0!important}.announcement{display:flex;flex-direction:column;align-items:center}.velzo-app-nav{padding:9px!important;font-size:10px!important}}
+</style>
+<style id="velzo-visible-page-button">
+.velzo-page-announcement,.header .nav a.velzo-page-nav{display:inline-flex!important;align-items:center!important;justify-content:center!important;background:#123e30!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #3a9976!important;border-radius:6px!important;padding:10px 14px!important;font-size:12px!important;font-weight:900!important;letter-spacing:.055em!important;text-decoration:none!important;white-space:nowrap!important;opacity:1!important;visibility:visible!important}
+.velzo-page-announcement{margin-left:12px;padding:6px 12px!important}
+.velzo-page-announcement:hover,.header .nav a.velzo-page-nav:hover{background:#1d624b!important}
+@media(max-width:650px){.velzo-page-announcement{display:inline-flex!important;margin:7px auto 0!important}.header .nav a.velzo-page-nav{display:inline-flex!important;padding:9px!important;font-size:10px!important}}
+</style>
 </head>
 
 <body>
-  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE.</div>
+  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎ OUR PAGE</a> <a class="velzo-app-announcement" href="/Velzo-Collections-1.0.0-1-demo.apk" download>↓ DOWNLOAD ANDROID APP</a></div>
 
   <header class="header">
     <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
-      <a class="optional-link" href="#about">Our story</a>
+      <a class="optional-link velzo-page-nav" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">Our Page ↗</a>
+      <a class="velzo-app-nav" href="/Velzo-Collections-1.0.0-1-demo.apk" download>↓ DOWNLOAD APP</a>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
       </button>
@@ -1714,7 +1727,7 @@ body { background:#e9e7e2; }
       </div>
 
       <div class="product-grid" id="products" aria-live="polite"></div>
-      <div class="velzo-shop-afterword"><span>GOOD STYLE IS PERSONAL.</span><a href="#about">THE VELZO STORY <span aria-hidden="true">↗</span></a></div>
+      <div class="velzo-shop-afterword"><span>GOOD STYLE IS PERSONAL.</span><a href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">OUR INSTAGRAM PAGE <span aria-hidden="true">↗</span></a></div>
     </section>
 
     <section class="benefits" aria-label="Our promises">
