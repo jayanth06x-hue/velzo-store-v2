@@ -263,6 +263,17 @@ button.danger { background:#8d302b; color:#fff; }
         <div class="actions" style="margin-bottom:15px">
           <button class="secondary" id="refreshOrders">REFRESH ORDERS</button>
         </div>
+        <div class="panel" style="margin:18px 0;background:#202225">
+          <div class="actions" style="justify-content:space-between;margin-bottom:12px">
+            <div><h2 style="margin:0 0 6px">Customer UTR Payments</h2><p class="note" style="margin:0">Customer-submitted references are not proof of payment. Verify against your bank or payment provider before fulfilling.</p></div>
+            <button class="secondary" id="refreshPayments" type="button">REFRESH UTR DETAILS</button>
+          </div>
+          <p id="paymentLoadStatus" class="note" role="status" aria-live="polite"></p>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Submitted</th><th>Order</th><th>Customer</th><th>UTR / Transaction ID</th><th>Amount</th><th>Verification</th></tr></thead>
+            <tbody id="paymentRows"><tr><td colspan="6">Loading payment references…</td></tr></tbody>
+          </table></div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Status</th><th>Update / Delete</th></tr></thead>
@@ -287,6 +298,7 @@ const db = window.supabase.createClient(
 const $ = id => document.getElementById(id);
 let allProducts = [];
 let allOrders = [];
+let allPaymentConfirmations = [];
 let signedInUser = null;
 
 function esc(v) {
@@ -388,7 +400,7 @@ $("logoutBtn").addEventListener("click", async () => {
 
 async function refreshAll() {
   clearMessage();
-  await Promise.all([loadProducts(), loadOrders()]);
+  await Promise.all([loadProducts(), loadOrders(), loadPaymentConfirmations()]);
   await loadFeaturedProductSetting();
   renderStats();
 }
@@ -465,8 +477,66 @@ async function loadOrders() {
 
   allOrders = data || [];
   renderOrders();
+  if (allPaymentConfirmations.length) renderPaymentConfirmations();
   renderStats();
 }
+
+// Read customer-submitted UTR records separately; the orders table does not contain them.
+// Use select('*') so existing payment_confirmations column names are supported.
+async function loadPaymentConfirmations() {
+  const status = $("paymentLoadStatus");
+  status.textContent = "Loading customer payment references…";
+  const {data, error} = await db.from("payment_confirmations").select("*").limit(1000);
+  if (error) {
+    allPaymentConfirmations = [];
+    $("paymentRows").innerHTML = '<tr><td colspan="6">Unable to load UTR submissions. Check Supabase table permissions.</td></tr>';
+    status.textContent = "UTR details unavailable: " + error.message;
+    return;
+  }
+  allPaymentConfirmations = (data || []).sort((a,b) =>
+    new Date(b.created_at || b.submitted_at || 0) - new Date(a.created_at || a.submitted_at || 0));
+  renderPaymentConfirmations();
+  status.textContent = allPaymentConfirmations.length + " UTR submission(s) loaded (latest 1,000 maximum).";
+}
+
+function paymentField(record, names) {
+  for (const name of names) {
+    const value = record[name];
+    if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+  }
+  return null;
+}
+
+function renderPaymentConfirmations() {
+  const rows = allPaymentConfirmations.map(p => {
+    const orderId = paymentField(p, ["order_id","order_number","order_ref","order_reference"]);
+    const order = allOrders.find(o => String(o.id) === String(orderId));
+    const utr = paymentField(p, ["utr","utr_number","utr_no","utr_id","transaction_id","transaction_reference","upi_transaction_id","upi_ref","upi_reference","reference_number","payment_reference"]);
+    const customer = paymentField(p, ["customer_name","name","payer_name"]) || order?.customer_name || "—";
+    const phone = paymentField(p, ["customer_phone","phone","mobile","payer_phone"]) || order?.customer_phone;
+    const amount = paymentField(p, ["amount","payment_amount","total","paid_amount"]) ?? order?.total;
+    const submitted = paymentField(p, ["created_at","submitted_at","updated_at"]);
+    const rawStatus = paymentField(p, ["verification_status","payment_status","status"]);
+    const label = rawStatus ? String(rawStatus) : "Not verified";
+    return `<tr>
+      <td>${submitted && !Number.isNaN(new Date(submitted).getTime()) ? esc(new Date(submitted).toLocaleString("en-IN")) : "—"}</td>
+      <td>${esc(orderId || "Not linked")}</td>
+      <td>${esc(customer)}${phone ? `<br><small>${esc(phone)}</small>` : ""}</td>
+      <td><strong style="overflow-wrap:anywhere">${esc(utr || "Not recorded")}</strong>${utr ? `<br><button class="secondary" type="button" data-copy-utr="${esc(utr)}">Copy UTR</button>` : ""}</td>
+      <td>${amount !== undefined && amount !== null && Number.isFinite(Number(amount)) ? money(amount) : "—"}</td>
+      <td>${esc(label)}<br><small>Check bank records independently</small></td>
+    </tr>`;
+  });
+  $("paymentRows").innerHTML = rows.join("") || '<tr><td colspan="6">No customer UTR submissions found.</td></tr>';
+}
+
+$("paymentRows").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-copy-utr]");
+  if (!button) return;
+  try { await navigator.clipboard.writeText(button.dataset.copyUtr); button.textContent = "Copied"; }
+  catch (_) { message("Could not copy UTR automatically. Select the number and copy it manually."); }
+});
+$("refreshPayments").addEventListener("click", loadPaymentConfirmations);
 
 function renderStats() {
   $("productTotal").textContent = allProducts.length;
@@ -761,7 +831,7 @@ $("refreshProducts").addEventListener("click", async () => {
 });
 
 $("refreshOrders").addEventListener("click", async () => {
-  try { await loadOrders(); message("Orders refreshed."); }
+  try { await Promise.all([loadOrders(), loadPaymentConfirmations()]); message("Orders and UTR details refreshed."); }
   catch (e) { message("Could not load orders: " + e.message); }
 });
 
