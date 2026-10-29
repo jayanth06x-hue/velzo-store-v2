@@ -523,7 +523,7 @@ function renderPaymentConfirmations() {
     const phone = paymentField(p, ["customer_phone","phone","mobile","payer_phone"]) || order?.customer_phone;
     const amount = paymentField(p, ["amount","payment_amount","total","paid_amount"]) ?? order?.total;
     const submitted = paymentField(p, ["created_at","submitted_at","updated_at"]);
-    const rawStatus = paymentField(p, ["verification_status","payment_status","status"]);
+    const rawStatus = paymentField(p, ["status","verification_status","payment_status"]);
     const label = rawStatus ? String(rawStatus) : "Not verified";
     return `<tr>
       <td>${submitted && !Number.isNaN(new Date(submitted).getTime()) ? esc(new Date(submitted).toLocaleString("en-IN")) : "—"}</td>
@@ -532,7 +532,7 @@ function renderPaymentConfirmations() {
       <td><strong style="overflow-wrap:anywhere">${esc(utr || "Not recorded")}</strong>${utr ? `<br><button class="secondary" type="button" data-copy-utr="${esc(utr)}">Copy UTR</button>` : ""}</td>
       <td>${amount !== undefined && amount !== null && Number.isFinite(Number(amount)) ? money(amount) : "—"}</td>
       <td><strong>${esc(label)}</strong><br><small>Check bank records independently</small>
-      ${p.id != null ? `<div class="actions" style="margin-top:8px"><button type="button" class="gold" data-payment-action="Verified" data-payment-index="${idx}">Verify</button><button type="button" class="danger" data-payment-action="Rejected" data-payment-index="${idx}">Reject</button></div>` : `<small>Missing payment record ID</small>`}</td>
+      ${p.id != null ? `<div class="actions" style="margin-top:8px"><button type="button" class="gold" data-payment-action="Paid" data-payment-index="${idx}">Verify</button><button type="button" class="danger" data-payment-action="Rejected" data-payment-index="${idx}">Reject</button></div>` : `<small>Missing payment record ID</small>`}</td>
     </tr>`;
   });
   $("paymentRows").innerHTML = rows.join("") || '<tr><td colspan="6">No customer UTR submissions found.</td></tr>';
@@ -543,9 +543,9 @@ $("paymentRows").addEventListener("click", async event => {
   if (verifyButton) {
     const record = allPaymentConfirmations[Number(verifyButton.dataset.paymentIndex)];
     const status = verifyButton.dataset.paymentAction;
-    if (!record || record.id == null || !["Verified", "Rejected"].includes(status)) return;
+    if (!record || record.id == null || !["Paid", "Rejected"].includes(status)) return;
     const utr = paymentField(record, ["utr","transaction_id","upi_transaction_id"]);
-    if (!confirm(`${status === "Verified" ? "Have you independently checked your bank/UPI receipt for this amount and UTR?" : "Reject this payment submission?"}\nUTR: ${utr || "Not recorded"}`)) return;
+    if (!confirm(`${status === "Paid" ? "Have you independently checked your bank/UPI receipt for this amount and UTR?" : "Reject this payment submission?"}\nUTR: ${utr || "Not recorded"}`)) return;
     verifyButton.disabled = true;
     try {
       const {error} = await db.from("payment_confirmations").update({status}).eq("id", record.id);
