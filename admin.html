@@ -214,6 +214,8 @@ button.danger { background:#8d302b; color:#fff; }
             <option value="Accessories">Accessories</option>
             <option value="Dresses">Dresses</option>
             <option value="T-Shirts">T-Shirts</option>
+            <option value="Sweatpants">Sweatpants</option>
+            <option value="Combos">Combos</option>
             <option value="Hoodies">Hoodies</option>
             <option value="Other">Other</option>
           </select>
@@ -227,6 +229,15 @@ button.danger { background:#8d302b; color:#fff; }
             <label for="productColors" class="field-label" style="font-weight:700;font-size:14px">PRODUCT COLOUR OPTIONS</label>
             <input id="productColors" style="width:100%;margin-top:7px" placeholder="e.g. Black, White, Navy Blue" maxlength="300" autocomplete="off">
             <p class="note" style="margin:7px 0 0">Type colours separated by commas. Example: Black, White, Navy Blue. Leave empty if this product has no colour choices.</p>
+          </div>
+          <div class="full" id="comboOptionsPanel" style="padding:16px;border:1px solid #c5a16b;border-radius:8px;background:rgba(197,161,107,.08);display:none">
+            <h3 style="margin:0 0 8px">T-shirt + Sweatpants Combo Options</h3>
+            <p class="note">These are independent colour choices for combo products. Enter two or more options separated by commas.</p>
+            <label class="field-label" for="comboShirtColors">T-shirt colours</label>
+            <input id="comboShirtColors" placeholder="Black, White" maxlength="300">
+            <label class="field-label" for="comboPantColors">Sweatpants colours</label>
+            <input id="comboPantColors" placeholder="Black, Grey" maxlength="300">
+            <p class="note">The storefront must read combo_options to show both selectors to customers.</p>
           </div>
           <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
           <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
@@ -463,7 +474,7 @@ $("saveFeaturedProduct").addEventListener("click", async () => {
 
 async function loadProducts() {
   const {data, error} = await db.from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -615,7 +626,7 @@ function renderProducts() {
           <small>${esc(p.category)} · ${Array.isArray(p.image_urls) ? p.image_urls.length : 0} extra images</small>${p.meesho_url ? `<br><a href="${esc(p.meesho_url)}" target="_blank" rel="noopener">Open Meesho link ↗</a>` : ""}</div>
       </div></td>
       <td>${money(p.price)}</td>
-      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}<br>${Array.isArray(p.colors) && p.colors.length ? "Colours: " + esc(p.colors.join(", ")) : "No colour options"}</small></td>
+      <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}<br>${Array.isArray(p.colors) && p.colors.length ? "Colours: " + esc(p.colors.join(", ")) : "No colour options"}${p.combo_options?.shirt_colors?.length ? `<br>Combo shirt: ${esc(p.combo_options.shirt_colors.join(", "))}<br>Combo pants: ${esc((p.combo_options.pant_colors || []).join(", "))}` : ""}</small></td>
       <td>${p.active ? "Visible" : "Hidden"}</td>
       <td><div class="actions">
         <button class="secondary" data-action="edit" data-id="${esc(p.id)}">Edit</button>
@@ -636,6 +647,9 @@ function resetProductForm() {
   $("productHasSizes").checked = false;
   $("productSizes").value = "";
   $("productColors").value = "";
+  $("comboShirtColors").value = "";
+  $("comboPantColors").value = "";
+  toggleComboOptions();
   document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = false);
   $("productSizeChart").value = "";
   $("productMeeshoUrl").value = "";
@@ -645,13 +659,21 @@ function resetProductForm() {
 
 const categorySelect = $("productCategory");
 const customCategoryInput = $("productCustomCategory");
+function toggleComboOptions() {
+  const isCombo = categorySelect.value === "Combos";
+  $("comboOptionsPanel").style.display = isCombo ? "block" : "none";
+  $("comboShirtColors").required = isCombo;
+  $("comboPantColors").required = isCombo;
+}
 categorySelect.addEventListener("change", () => {
+  toggleComboOptions();
   const isOther = categorySelect.value === "Other";
   customCategoryInput.style.display = isOther ? "block" : "none";
   customCategoryInput.required = isOther;
   if (!isOther) customCategoryInput.value = "";
 });
 
+toggleComboOptions();
 $("clearForm").addEventListener("click", resetProductForm);
 
 $("productRows").addEventListener("click", async event => {
@@ -689,6 +711,9 @@ $("productRows").addEventListener("click", async event => {
       $("productDescription").value = product.description;
       $("productMeeshoUrl").value = product.meesho_url || "";
       $("productColors").value = Array.isArray(product.colors) ? product.colors.join(", ") : "";
+      $("comboShirtColors").value = (product.combo_options?.shirt_colors || []).join(", ");
+      $("comboPantColors").value = (product.combo_options?.pant_colors || []).join(", ");
+      toggleComboOptions();
       $("productHasSizes").checked = !!product.has_sizes;
       const standardSizes = ["XS","S","M","L","XL","XXL","XXXL","Free Size"];
       document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = Array.isArray(product.sizes) && product.sizes.includes(input.value));
@@ -743,6 +768,10 @@ $("productForm").addEventListener("submit", async event => {
     tag:$("productTag").value.trim(),
     description:$("productDescription").value.trim(),
     colors:[...new Set($("productColors").value.split(",").map(color => color.trim()).filter(Boolean))],
+    combo_options: $("productCategory").value === "Combos" ? {
+      shirt_colors:[...new Set($("comboShirtColors").value.split(",").map(x=>x.trim()).filter(Boolean))],
+      pant_colors:[...new Set($("comboPantColors").value.split(",").map(x=>x.trim()).filter(Boolean))]
+    } : null,
     image_url:$("productImage").value.trim(),
     image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
     has_sizes:$("productHasSizes").checked,
@@ -760,6 +789,9 @@ $("productForm").addEventListener("submit", async event => {
   if (!product.name || !product.category ||
       !Number.isFinite(product.price) || product.price < 0) {
     return message("Check the product name, category and price.");
+  }
+  if (product.combo_options && (!product.combo_options.shirt_colors.length || !product.combo_options.pant_colors.length || product.combo_options.shirt_colors.length > 20 || product.combo_options.pant_colors.length > 20)) {
+    return message("For combos, enter 1–20 T-shirt colours and 1–20 sweatpants colours.");
   }
   if (product.colors.length > 20) {
     return message("Use up to 20 colour options per product.");
@@ -822,7 +854,7 @@ function renderOrders() {
           <small>${esc(o.customer_address)}</small>
         </td>
         <td>${items.map(i =>
-          `${esc(i.name)}${i.size ? ` (Size: ${esc(i.size)})` : ""} × ${esc(i.qty)}`
+          `${esc(i.name)}${i.size ? ` (Size: ${esc(i.size)})` : ""}${i.shirt_color || i.shirtColor ? ` (Shirt: ${esc(i.shirt_color || i.shirtColor)})` : ""}${i.pant_color || i.pantColor ? ` (Pants: ${esc(i.pant_color || i.pantColor)})` : ""} × ${esc(i.qty)}`
         ).join("<br>")}</td>
         <td>${money(o.total)}</td>
         <td>${esc(o.status)}</td>
