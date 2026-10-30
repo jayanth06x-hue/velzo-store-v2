@@ -880,11 +880,32 @@ function renderOrders() {
             ).join("")}
           </select>
           <button class="secondary" data-update-order="${esc(o.id)}">Update</button>
+           <button class="gold" data-mf-preview="${esc(o.id)}" type="button">CHECK MERCH FACTORY</button>
           <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
         </div></td>
       </tr>`;
   }).join("") || '<tr><td colspan="6">No orders yet.</td></tr>';
 }
+
+// Merch Factory preflight: read-only. No production orders are placed.
+$("orderRows").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-mf-preview]");
+  if (!button) return;
+  button.disabled = true;
+  try {
+    const {data: {session}} = await db.auth.getSession();
+    if (!session) throw new Error("Sign in again.");
+    const response = await fetch("/api/merch-factory", {
+      method:"POST",
+      headers:{"Content-Type":"application/json",Authorization:"Bearer " + session.access_token},
+      body:JSON.stringify({order_id:button.dataset.mfPreview})
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Preflight failed");
+    alert("MERCH FACTORY CHECK — NO ORDER SENT\n" + JSON.stringify(result, null, 2));
+  } catch (error) { message("Merch Factory check: " + error.message); }
+  finally { button.disabled = false; }
+});
 
 $("orderRows").addEventListener("click", async event => {
   const button = event.target.closest("button[data-update-order], button[data-delete-order]");
