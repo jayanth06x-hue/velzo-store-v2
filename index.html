@@ -1607,6 +1607,14 @@ body { background:#e9e7e2; }
     .dresses-button { background: #6b1f3a; color: #fff8f0; border-color: #6b1f3a; }
     .dresses-button:hover { background: #101d35; border-color: #101d35; }
     @media (max-width: 480px) { .hero-actions { gap: 9px; } .hero-actions .gold-button, .accessories-button { padding: 12px 15px; font-size: 10px; } }
+
+/* Separate combo choices */
+.velzo-combo-options{margin:15px 0;padding:13px;border:1px solid #9d8b71;border-radius:7px;background:rgba(255,255,255,.055)}
+.velzo-combo-options>strong{display:block;margin-bottom:12px;font-size:12px;letter-spacing:1px}
+.velzo-combo-options label{display:block;margin:10px 0;font-size:12px;font-weight:600}
+.velzo-combo-select{display:block;width:100%;min-height:43px;margin-top:5px;padding:10px;border:1px solid #aaa;border-radius:5px;background:#fff;color:#161616}
+#shop .velzo-combo-options{color:#f4eee8}
+#shop .velzo-combo-select{background:#fff!important;color:#171717!important;border:1px solid #aaa!important}
 </style>
 <style id="velzo-concave-carousel-styles">
 .velzo-concave-gallery{min-width:0;overflow:visible!important;perspective:1100px}.velzo-concave-track{position:relative;z-index:2;width:100%;height:clamp(300px,40vw,460px);display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;gap:clamp(0px,1vw,12px)}.velzo-concave-card{position:relative;flex:0 1 34%;height:76%;min-width:0;padding:10px 8px 14px;border:1px solid #d5b77f44;border-radius:18px;background:linear-gradient(160deg,#292722,#111);color:#f7f3eb;box-shadow:0 24px 45px #0006;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .5s ease,opacity .5s ease,box-shadow .5s ease;overflow:hidden}.velzo-concave-card img{width:100%;height:78%;object-fit:contain;filter:drop-shadow(0 14px 14px #0007)}.velzo-concave-card span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;margin-top:8px}.velzo-concave-card strong{font-size:12px;margin-top:4px;color:#d5b77f}.velzo-concave-card.card-1{transform:rotateY(25deg) translateX(18%) scale(.82);z-index:1;opacity:.83}.velzo-concave-card.card-2{transform:translateZ(55px) scale(1.04);z-index:3}.velzo-concave-card.card-3{transform:rotateY(-25deg) translateX(-18%) scale(.82);z-index:1;opacity:.83}.velzo-concave-card:hover,.velzo-concave-card:focus-visible{transform:translateZ(75px) scale(1.08);z-index:5;opacity:1;box-shadow:0 30px 55px #0009;outline:1px solid #d5b77f}.velzo-concave-track:has(.velzo-concave-card:only-child) .velzo-concave-card{flex-basis:75%;height:90%;transform:none}.velzo-concave-track:has(.velzo-concave-card:nth-child(2):last-child) .card-1{transform:rotateY(18deg) translateX(10%) scale(.88)}.velzo-concave-track:has(.velzo-concave-card:nth-child(2):last-child) .card-2{transform:rotateY(-18deg) translateX(-10%) scale(.88)}@media(max-width:700px){.velzo-concave-track{height:300px;gap:0}.velzo-concave-card{flex-basis:39%;height:78%;padding:6px 4px 10px}.velzo-concave-card img{height:75%}.velzo-concave-card span{font-size:9px}.velzo-concave-card strong{font-size:10px}.velzo-concave-card.card-1{transform:rotateY(20deg) translateX(12%) scale(.78)}.velzo-concave-card.card-2{transform:translateZ(28px) scale(1)}.velzo-concave-card.card-3{transform:rotateY(-20deg) translateX(-12%) scale(.78)}}@media(prefers-reduced-motion:reduce){.velzo-concave-card{transition:none}}
@@ -1809,6 +1817,7 @@ let PAYMENT_SETTINGS = {upi_enabled:true,cod_enabled:true,upi_id:"",payee_name:"
 let cart = readCart();
 const selectedSizes = {};
 const selectedColors = {};
+const selectedCombo = {};
 
 function readCart() {
   try {
@@ -1914,7 +1923,7 @@ async function loadProducts() {
 
   const { data, error } = await db
     .from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,size_chart_url,meesho_url,out_of_stock")
+    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock")
     .eq("active", true)
     .order("created_at", { ascending: false });
 
@@ -1976,6 +1985,35 @@ function setupCategories() {
   select.value = categories.includes(previous) ? previous : "";
 }
 
+function isCombo(p) {
+  const o = p?.combo_options;
+  return !!(o && typeof o === "object" && ["shirt_colors","pant_colors","shirt_sizes","pant_sizes"].some(k => Array.isArray(o[k]) && o[k].length));
+}
+function comboPicker(p) {
+  if (!isCombo(p)) return "";
+  const options = p.combo_options;
+  const chosen = selectedCombo[p.id] || {};
+  return `<div class="velzo-combo-options" aria-label="Choose T-shirt and sweatpants options">
+    <strong>BUILD YOUR COMBO</strong>
+    ${[["shirt_color","T-shirt colour",options.shirt_colors],["pant_color","Sweatpants colour",options.pant_colors],["shirt_size","T-shirt size",options.shirt_sizes],["pant_size","Sweatpants size",options.pant_sizes]].map(([key,label,values]) => {
+      const choices = Array.isArray(values) ? values : [];
+      return `<label>${label}<select class="velzo-combo-select" data-combo-product="${escapeHTML(p.id)}" data-combo-field="${key}" onchange="selectComboOption(this.dataset.comboProduct,this.dataset.comboField,this.value)" ${p.out_of_stock ? "disabled" : ""}>
+        <option value="">Select ${label.toLowerCase()}</option>${choices.map(v => `<option value="${escapeHTML(v)}" ${chosen[key] === v ? "selected" : ""}>${escapeHTML(v)}</option>`).join("")}
+      </select></label>`;
+    }).join("")}
+  </div>`;
+}
+function selectComboOption(id, key, value) {
+  if (!["shirt_color","pant_color","shirt_size","pant_size"].includes(key)) return;
+  selectedCombo[id] ||= {};
+  selectedCombo[id][key] = value;
+  document.querySelectorAll("[data-combo-product]").forEach(el => {
+    if (el.dataset.comboProduct === String(id) && el.dataset.comboField === key && el.value !== value) el.value = value;
+  });
+}
+function comboSummary(item) {
+  return `${item.shirt_color ? `T-shirt: ${item.shirt_color}${item.shirt_size ? " / " + item.shirt_size : ""}` : ""}${item.pant_color ? ` | Sweatpants: ${item.pant_color}${item.pant_size ? " / " + item.pant_size : ""}` : ""}`;
+}
 function renderProducts() {
   const query =
     document.getElementById("search").value.trim().toLowerCase();
@@ -2039,18 +2077,19 @@ function renderProducts() {
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${escapeHTML(p.id)}')" aria-label="Share ${escapeHTML(p.name)}">↗ Share product</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
-        ${Array.isArray(p.colors) && p.colors.length ? `
+        ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `
           <label class="subtext" for="color-${escapeHTML(p.id)}">Select colour</label>
           <select id="color-${escapeHTML(p.id)}" class="product-color-select" onchange="selectProductColor('${escapeHTML(p.id)}',this.value)" ${p.out_of_stock ? 'disabled' : ''}>
             <option value="">Choose colour</option>
             ${p.colors.map(color => `<option value="${escapeHTML(color)}" ${selectedColors[p.id] === color ? 'selected' : ''}>${escapeHTML(color)}</option>`).join('')}
           </select>
         ` : ''}
-        ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `
+        ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `
           <label class="subtext" for="size-${escapeHTML(p.id)}">Select size</label>
           <div class="size-choice-buttons" aria-label="Choose size">${p.sizes.map(size => `<button type="button" class="size-choice ${selectedSizes[p.id] === size ? 'selected' : ''}" onclick="selectProductSize('${escapeHTML(p.id)}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock ? 'disabled' : ''}>${escapeHTML(size)}</button>`).join('')}</div>
           ${p.size_chart_url ? `<a class="size-chart-link" href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">VIEW SIZE CHART</a>` : ''}
         ` : ''}
+        ${comboPicker(p)}
         <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')" ${p.out_of_stock ? 'disabled' : ''}>
           ${p.out_of_stock ? 'OUT OF STOCK' : 'ADD TO BAG'}
         </button>
@@ -2122,8 +2161,9 @@ function showProductDetails(id) {
         <h3>${money(p.price)}</h3>
         ${p.out_of_stock ? '<p><strong>Currently out of stock</strong></p>' : '<p class="detail-meta">Available to order</p>'}
         <p>${escapeHTML(p.description || 'Contact us for more product information.')}</p>
-        ${Array.isArray(p.colors) && p.colors.length ? `<label>Choose colour</label><select class="product-color-select" onchange="selectProductColor('${safeId}',this.value)"><option value="">Choose colour</option>${p.colors.map(color=>`<option value="${escapeHTML(color)}" ${selectedColors[p.id]===color?'selected':''}>${escapeHTML(color)}</option>`).join('')}</select>` : ''}
-        ${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
+        ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `<label>Choose colour</label><select class="product-color-select" onchange="selectProductColor('${safeId}',this.value)"><option value="">Choose colour</option>${p.colors.map(color=>`<option value="${escapeHTML(color)}" ${selectedColors[p.id]===color?'selected':''}>${escapeHTML(color)}</option>`).join('')}</select>` : ''}
+        ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
+        ${comboPicker(p)}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
         <button class="add-button" onclick="addToCart('${safeId}');if(!${Boolean(p.out_of_stock)})closeProductDetails()" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
       </div>
@@ -2157,7 +2197,7 @@ function selectProductColor(id, color) {
 }
 
 function cartKey(item) {
-  return `${item.id}::${item.size || ""}::${item.color || ""}`;
+  return [item.id,item.size,item.color,item.shirt_color,item.pant_color,item.shirt_size,item.pant_size].map(v => v || "").join("::");
 }
 
 function addToCart(id) {
@@ -2165,18 +2205,24 @@ function addToCart(id) {
   if (!product) return;
   if (product.out_of_stock) return showToast("This product is currently out of stock.");
 
-  const size = product.has_sizes ? (selectedSizes[id] || "") : "";
-  const color = Array.isArray(product.colors) && product.colors.length ? (selectedColors[id] || "") : "";
-  if (product.has_sizes && !size) return showToast("Please select a size first.");
-  if (Array.isArray(product.colors) && product.colors.length && !color) return showToast("Please select a colour first.");
-
-  const variant = { id, size, color };
+  const combo = isCombo(product);
+  const size = !combo && product.has_sizes ? (selectedSizes[id] || "") : "";
+  const color = !combo && Array.isArray(product.colors) && product.colors.length ? (selectedColors[id] || "") : "";
+  if (!combo && product.has_sizes && !size) return showToast("Please select a size first.");
+  if (!combo && Array.isArray(product.colors) && product.colors.length && !color) return showToast("Please select a colour first.");
+  const chosen = combo ? (selectedCombo[id] || {}) : {};
+  if (combo) {
+    for (const [key,label,source] of [["shirt_color","T-shirt colour","shirt_colors"],["pant_color","sweatpants colour","pant_colors"],["shirt_size","T-shirt size","shirt_sizes"],["pant_size","sweatpants size","pant_sizes"]]) {
+      if (!chosen[key] || !(product.combo_options[source] || []).includes(chosen[key])) return showToast("Please select a valid " + label + ".");
+    }
+  }
+  const variant = { id, size, color, ...(combo ? {shirt_color:chosen.shirt_color,pant_color:chosen.pant_color,shirt_size:chosen.shirt_size,pant_size:chosen.pant_size} : {}) };
   const existing = cart.find(i => cartKey(i) === cartKey(variant));
   if (existing) {
     if (existing.qty >= 20) return showToast("Maximum quantity reached.");
     existing.qty++;
   } else {
-    cart.push({ id, qty: 1, size, color });
+    cart.push({ ...variant, qty: 1 });
   }
   saveCart();
   showToast("Added to your bag.");
@@ -2248,6 +2294,8 @@ function renderCart() {
             <strong>${escapeHTML(p.name)}</strong>
             ${item.color ? `<p>Colour: ${escapeHTML(item.color)}</p>` : ''}
             ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
+            ${item.shirt_color ? `<p>T-shirt: ${escapeHTML(item.shirt_color)} / ${escapeHTML(item.shirt_size)}</p>` : ""}
+            ${item.pant_color ? `<p>Sweatpants: ${escapeHTML(item.pant_color)} / ${escapeHTML(item.pant_size)}</p>` : ""}
             <p>${money(p.price)} each</p>
             <button
               style="border:0;background:none;padding:5px 0;text-decoration:underline"
@@ -2423,7 +2471,8 @@ async function submitOrder(event) {
       id: item.id,
       qty: item.qty,
       ...(item.size ? { size: item.size } : {}),
-      ...(item.color ? { color: item.color } : {})
+      ...(item.color ? { color: item.color } : {}),
+      ...(item.shirt_color ? {shirt_color:item.shirt_color,pant_color:item.pant_color,shirt_size:item.shirt_size,pant_size:item.pant_size} : {})
     }));
 
     // The database validates the products and calculates the actual total.
@@ -2456,7 +2505,7 @@ async function submitOrder(event) {
     }
     const savedItems = cart.map(item => {
       const p = PRODUCTS.find(product => product.id === item.id);
-      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
+      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""}${item.shirt_color ? ` (${comboSummary(item)})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
     }).filter(Boolean);
 
     const whatsAppMessage = [
