@@ -1,7 +1,6 @@
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Content-Type", "application/json");
 
   if (req.method !== "GET") {
     return res.status(405).json({
@@ -16,14 +15,47 @@ export default async function handler(req, res) {
   if (!clientId || !clientSecret) {
     return res.status(500).json({
       ok: false,
-      message: "Qikink credentials are missing in Vercel"
+      message: "Qikink credentials are missing"
     });
   }
 
-  return res.status(200).json({
-    ok: true,
-    message: "VELZO Qikink backend setup is ready",
-    authenticationTested: false,
-    orderCreated: false
-  });
+  try {
+    const body = new URLSearchParams({
+      ClientId: clientId,
+      client_secret: clientSecret
+    });
+
+    const response = await fetch(
+      "https://sandbox.qikink.com/api/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: body.toString(),
+        signal: AbortSignal.timeout(10000)
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.Accesstoken) {
+      return res.status(200).json({
+        ok: true,
+        message: "Qikink sandbox authentication successful",
+        orderCreated: false
+      });
+    }
+
+    return res.status(502).json({
+      ok: false,
+      message: "Qikink rejected the authentication request",
+      qikinkStatus: response.status
+    });
+  } catch (error) {
+    return res.status(502).json({
+      ok: false,
+      message: "Unable to complete Qikink sandbox authentication"
+    });
+  }
 }
