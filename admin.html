@@ -237,7 +237,11 @@ button.danger { background:#8d302b; color:#fff; }
             <input id="comboShirtColors" placeholder="Black, White" maxlength="300">
             <label class="field-label" for="comboPantColors">Sweatpants colours</label>
             <input id="comboPantColors" placeholder="Black, Grey" maxlength="300">
-            <p class="note">The storefront must read combo_options to show both selectors to customers.</p>
+            <label class="field-label" for="comboShirtSizes">T-shirt sizes (comma separated)</label>
+            <input id="comboShirtSizes" placeholder="S, M, L, XL, XXL" maxlength="200">
+            <label class="field-label" for="comboPantSizes">Sweatpants sizes (comma separated)</label>
+            <input id="comboPantSizes" placeholder="S, M, L, XL, XXL" maxlength="200">
+            <p class="note">Customers must choose shirt and pant colours and sizes separately. The storefront must support these fields too.</p>
           </div>
           <textarea id="productDescription" placeholder="Product description" required maxlength="1000" class="full"></textarea>
           <label class="full"><input id="productHasSizes" type="checkbox" style="width:auto"> Enable size selection for this product</label>
@@ -649,6 +653,8 @@ function resetProductForm() {
   $("productColors").value = "";
   $("comboShirtColors").value = "";
   $("comboPantColors").value = "";
+  $("comboShirtSizes").value = "";
+  $("comboPantSizes").value = "";
   toggleComboOptions();
   document.querySelectorAll("#productSizeButtons input").forEach(input => input.checked = false);
   $("productSizeChart").value = "";
@@ -664,6 +670,8 @@ function toggleComboOptions() {
   $("comboOptionsPanel").style.display = isCombo ? "block" : "none";
   $("comboShirtColors").required = isCombo;
   $("comboPantColors").required = isCombo;
+  $("comboShirtSizes").required = isCombo;
+  $("comboPantSizes").required = isCombo;
 }
 categorySelect.addEventListener("change", () => {
   toggleComboOptions();
@@ -713,6 +721,8 @@ $("productRows").addEventListener("click", async event => {
       $("productColors").value = Array.isArray(product.colors) ? product.colors.join(", ") : "";
       $("comboShirtColors").value = (product.combo_options?.shirt_colors || []).join(", ");
       $("comboPantColors").value = (product.combo_options?.pant_colors || []).join(", ");
+      $("comboShirtSizes").value = (product.combo_options?.shirt_sizes || product.sizes || []).join(", ");
+      $("comboPantSizes").value = (product.combo_options?.pant_sizes || product.sizes || []).join(", ");
       toggleComboOptions();
       $("productHasSizes").checked = !!product.has_sizes;
       const standardSizes = ["XS","S","M","L","XL","XXL","XXXL","Free Size"];
@@ -770,7 +780,9 @@ $("productForm").addEventListener("submit", async event => {
     colors:[...new Set($("productColors").value.split(",").map(color => color.trim()).filter(Boolean))],
     combo_options: $("productCategory").value === "Combos" ? {
       shirt_colors:[...new Set($("comboShirtColors").value.split(",").map(x=>x.trim()).filter(Boolean))],
-      pant_colors:[...new Set($("comboPantColors").value.split(",").map(x=>x.trim()).filter(Boolean))]
+      pant_colors:[...new Set($("comboPantColors").value.split(",").map(x=>x.trim()).filter(Boolean))],
+      shirt_sizes:[...new Set($("comboShirtSizes").value.split(",").map(x=>x.trim()).filter(Boolean))],
+      pant_sizes:[...new Set($("comboPantSizes").value.split(",").map(x=>x.trim()).filter(Boolean))]
     } : null,
     image_url:$("productImage").value.trim(),
     image_urls:$("productImageUrls").value.split("\n").map(url => url.trim()).filter(url => /^https:\/\//i.test(url)),
@@ -792,6 +804,9 @@ $("productForm").addEventListener("submit", async event => {
   }
   if (product.combo_options && (!product.combo_options.shirt_colors.length || !product.combo_options.pant_colors.length || product.combo_options.shirt_colors.length > 20 || product.combo_options.pant_colors.length > 20)) {
     return message("For combos, enter 1–20 T-shirt colours and 1–20 sweatpants colours.");
+  }
+  if (product.combo_options && (!product.combo_options.shirt_sizes.length || !product.combo_options.pant_sizes.length || product.combo_options.shirt_sizes.length > 20 || product.combo_options.pant_sizes.length > 20)) {
+    return message("For combos, enter 1–20 T-shirt sizes and 1–20 sweatpants sizes.");
   }
   if (product.colors.length > 20) {
     return message("Use up to 20 colour options per product.");
