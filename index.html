@@ -1913,7 +1913,7 @@ function renderFeaturedProduct() {
     if (!product) return;
     document.getElementById("velzo-featured-name").textContent = product.name || "Featured look";
     document.getElementById("velzo-featured-description").textContent = product.description || "A signature look from Velzo Collections.";
-    document.getElementById("velzo-featured-price").textContent = money(product.price);
+    document.getElementById("velzo-featured-price").textContent = money(discountedPrice(product));
   }));
 }
 
@@ -1923,7 +1923,7 @@ async function loadProducts() {
 
   const { data, error } = await db
     .from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock")
+    .select("id,name,category,price,discount_percent,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock")
     .eq("active", true)
     .order("created_at", { ascending: false });
 
@@ -2015,6 +2015,39 @@ function selectComboOption(id, key, value) {
 function comboSummary(item) {
   return [item.shirt_color || item.shirt_size ? `T-shirt: ${[item.shirt_color,item.shirt_size].filter(Boolean).join(" / ")}` : "", item.pant_color || item.pant_size ? `Sweatpants: ${[item.pant_color,item.pant_size].filter(Boolean).join(" / ")}` : ""].filter(Boolean).join(" | ");
 }
+function discountedPrice(p) {
+  const rate = Math.min(90, Math.max(0, Number(p.discount_percent) || 0));
+  return Math.round(Number(p.price) * (100 - rate)) / 100;
+}
+function discountMarkup(p) {
+  const rate = Number(p.discount_percent) || 0;
+  return rate > 0
+    ? `<span style="text-decoration:line-through;opacity:.7;font-size:.8em;margin-right:8px">${money(p.price)}</span><strong>${money(discountedPrice(p))}</strong> <span style="color:#a9f27c;font-size:.8em">${rate}% OFF</span>`
+    : money(p.price);
+}
+let appliedCoupon = "";
+let quotedTotal = null;
+let displayedPaymentTotal = null;
+function checkoutAmountForPayment(){ return displayedPaymentTotal; }
+async function quoteOrder(code = appliedCoupon) {
+  const items = cart.map(item => ({id:item.id,qty:item.qty}));
+  const {data,error} = await db.rpc("velzo_quote_order",{p_items:items,p_coupon_code:code || null});
+  if (error) throw error;
+  quotedTotal = Number(data.total);
+  return data;
+}
+async function applyCheckoutCoupon() {
+  const code = (document.getElementById("checkout-coupon")?.value || "").trim().toUpperCase();
+  const message = document.getElementById("checkout-coupon-message");
+  try {
+    const quote = await quoteOrder(code);
+    appliedCoupon = code;
+    if(message) message.textContent = code ? `Coupon applied. Total: ${money(quote.total)}` : "Coupon removed.";
+    await showCheckout();
+  } catch(error) {
+    if(message) message.textContent = error.message || "Coupon is invalid.";
+  }
+}
 function renderProducts() {
   const query =
     document.getElementById("search").value.trim().toLowerCase();
@@ -2074,7 +2107,7 @@ function renderProducts() {
         <div class="product-category">${escapeHTML(p.category)}</div>
         <h3>${escapeHTML(p.name)}</h3>
         <p class="product-description">${escapeHTML(p.description)}</p>
-        <div class="product-price">${money(p.price)}</div>
+        <div class="product-price">${discountMarkup(p)}</div>
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${escapeHTML(p.id)}')" aria-label="Share ${escapeHTML(p.name)}">↗ Share product</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
@@ -2234,7 +2267,7 @@ function addToCart(id) {
 function cartTotal() {
   return cart.reduce((sum, item) => {
     const p = PRODUCTS.find(product => product.id === item.id);
-    return sum + (p ? Number(p.price) * item.qty : 0);
+    return sum + (p ? discountedPrice(p) * item.qty : 0);
   }, 0);
 }
 
@@ -2299,7 +2332,7 @@ function renderCart() {
             ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
             ${item.shirt_color || item.shirt_size ? `<p>T-shirt: ${[item.shirt_color,item.shirt_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
             ${item.pant_color || item.pant_size ? `<p>Sweatpants: ${[item.pant_color,item.pant_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
-            <p>${money(p.price)} each</p>
+            <p>${money(discountedPrice(p))} each</p>
             <button
               style="border:0;background:none;padding:5px 0;text-decoration:underline"
               onclick="removeFromCart('${key}')">
@@ -2334,7 +2367,14 @@ async function showCheckout() {
     else if (error) console.warn("Could not load payment settings:", error.message);
   } catch (e) { console.warn("Payment settings unavailable:", e); }
 
-  const checkoutAmount = Number(cartTotal());
+  let quote;
+  try { quote = await quoteOrder(); }
+  catch (error) {
+    target.innerHTML = `<h2>Checkout unavailable</h2><p>${escapeHTML(error.message || "Could not verify order total.")}</p><button onclick="renderCart()">BACK TO BAG</button>`;
+    return;
+  }
+  const checkoutAmount = Number(quote.total);
+  displayedPaymentTotal = checkoutAmount;
   const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
   // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
   const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:checkoutAmount.toFixed(2),cu:"INR",tn:"Velzo Collections order"}).toString() : "";
@@ -2345,6 +2385,11 @@ async function showCheckout() {
   target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
     <p class="subtext">Your order will be saved before you notify the store.</p>
+    <div style="margin:12px 0;padding:12px;border:1px solid #aaa">
+      <label for="checkout-coupon">Coupon code (optional)</label>
+      <div style="display:flex;gap:8px"><input id="checkout-coupon" value="${escapeHTML(appliedCoupon)}" placeholder="Enter coupon code" style="min-width:0;flex:1"><button type="button" onclick="applyCheckoutCoupon()">APPLY</button></div>
+      <p id="checkout-coupon-message" class="subtext">${appliedCoupon ? `Coupon ${escapeHTML(appliedCoupon)} applied.` : "Enter a code and select Apply before paying."}</p>
+    </div>
     <form class="checkout-fields" onsubmit="submitOrder(event)">
       <input id="customer-name" autocomplete="name"
         placeholder="Full name" maxlength="100" required>
@@ -2358,7 +2403,7 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      <p><strong>Order subtotal: ${money(cartTotal())}</strong></p>
+      <p><strong>Order total (including discounts): ${money(checkoutAmount)}</strong></p>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2470,6 +2515,8 @@ async function submitOrder(event) {
       throw new Error("After paying by UPI, enter your transaction ID / UTR below the QR code (6–100 characters).");
     }
 
+    const freshQuote = await quoteOrder();
+    if (Math.abs(Number(freshQuote.total) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
@@ -2511,7 +2558,7 @@ async function submitOrder(event) {
     }
     const savedItems = cart.map(item => {
       const p = PRODUCTS.find(product => product.id === item.id);
-      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""}${item.shirt_color ? ` (${comboSummary(item)})` : ""} × ${item.qty} — ${money(p.price * item.qty)}` : "";
+      return p ? `${p.name}${item.color ? ` (Colour: ${item.color})` : ""}${item.size ? ` (Size: ${item.size})` : ""}${item.shirt_color ? ` (${comboSummary(item)})` : ""} × ${item.qty} — ${money(discountedPrice(p) * item.qty)}` : "";
     }).filter(Boolean);
 
     const whatsAppMessage = [
