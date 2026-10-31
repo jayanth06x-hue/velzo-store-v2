@@ -2013,7 +2013,7 @@ function selectComboOption(id, key, value) {
   });
 }
 function comboSummary(item) {
-  return `${item.shirt_color ? `T-shirt: ${item.shirt_color}${item.shirt_size ? " / " + item.shirt_size : ""}` : ""}${item.pant_color ? ` | Sweatpants: ${item.pant_color}${item.pant_size ? " / " + item.pant_size : ""}` : ""}`;
+  return [item.shirt_color || item.shirt_size ? `T-shirt: ${[item.shirt_color,item.shirt_size].filter(Boolean).join(" / ")}` : "", item.pant_color || item.pant_size ? `Sweatpants: ${[item.pant_color,item.pant_size].filter(Boolean).join(" / ")}` : ""].filter(Boolean).join(" | ");
 }
 function renderProducts() {
   const query =
@@ -2215,8 +2215,8 @@ function addToCart(id) {
   if (combo) {
     for (const [key,label,source] of [["shirt_color","T-shirt colour","shirt_colors"],["pant_color","sweatpants colour","pant_colors"],["shirt_size","T-shirt size","shirt_sizes"],["pant_size","sweatpants size","pant_sizes"]]) {
       const available = product.combo_options[source] || [];
-      if (!available.length && (key === "shirt_color" || key === "pant_color")) continue;
-      if (!chosen[key] || !available.includes(chosen[key])) return showToast("Please select a valid " + label + ".");
+      if (!chosen[key]) continue;
+      if (!available.includes(chosen[key])) return showToast("Please select a valid " + label + ".");
     }
   }
   const variant = { id, size, color, ...(combo ? {shirt_color:chosen.shirt_color,pant_color:chosen.pant_color,shirt_size:chosen.shirt_size,pant_size:chosen.pant_size} : {}) };
@@ -2297,8 +2297,8 @@ function renderCart() {
             <strong>${escapeHTML(p.name)}</strong>
             ${item.color ? `<p>Colour: ${escapeHTML(item.color)}</p>` : ''}
             ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
-            ${item.shirt_color ? `<p>T-shirt: ${escapeHTML(item.shirt_color)} / ${escapeHTML(item.shirt_size)}</p>` : ""}
-            ${item.pant_color ? `<p>Sweatpants: ${escapeHTML(item.pant_color)} / ${escapeHTML(item.pant_size)}</p>` : ""}
+            ${item.shirt_color || item.shirt_size ? `<p>T-shirt: ${[item.shirt_color,item.shirt_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
+            ${item.pant_color || item.pant_size ? `<p>Sweatpants: ${[item.pant_color,item.pant_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
             <p>${money(p.price)} each</p>
             <button
               style="border:0;background:none;padding:5px 0;text-decoration:underline"
@@ -2475,7 +2475,10 @@ async function submitOrder(event) {
       qty: item.qty,
       ...(item.size ? { size: item.size } : {}),
       ...(item.color ? { color: item.color } : {}),
-      ...(item.shirt_size || item.pant_size ? {shirt_size:item.shirt_size,pant_size:item.pant_size,...(item.shirt_color ? {shirt_color:item.shirt_color} : {}),...(item.pant_color ? {pant_color:item.pant_color} : {})} : {})
+      ...(item.shirt_size ? {shirt_size:item.shirt_size} : {}),
+      ...(item.pant_size ? {pant_size:item.pant_size} : {}),
+      ...(item.shirt_color ? {shirt_color:item.shirt_color} : {}),
+      ...(item.pant_color ? {pant_color:item.pant_color} : {})
     }));
 
     // The database validates the products and calculates the actual total.
