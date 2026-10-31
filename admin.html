@@ -311,7 +311,7 @@ button.danger { background:#8d302b; color:#fff; }
           </div>
           <p id="paymentLoadStatus" class="note" role="status" aria-live="polite"></p>
           <div class="table-wrap"><table>
-            <thead><tr><th>Submitted</th><th>Order</th><th>Customer</th><th>UTR / Transaction ID</th><th>Amount</th><th>Verification</th></tr></thead>
+            <thead><tr><th>Submitted</th><th>Order</th><th>Customer</th><th>UTR / Transaction ID</th><th>Amount</th><th>Verification / Actions</th></tr></thead>
             <tbody id="paymentRows"><tr><td colspan="6">Loading payment references…</td></tr></tbody>
           </table></div>
         </div>
@@ -617,13 +617,33 @@ function renderPaymentConfirmations() {
       <td><strong style="overflow-wrap:anywhere">${esc(utr || "Not recorded")}</strong>${utr ? `<br><button class="secondary" type="button" data-copy-utr="${esc(utr)}">Copy UTR</button>` : ""}</td>
       <td>${amount !== undefined && amount !== null && Number.isFinite(Number(amount)) ? money(amount) : "—"}</td>
       <td><strong>${esc(label)}</strong><br><small>Check bank records independently</small>
-      ${p.id != null ? `<div class="actions" style="margin-top:8px"><button type="button" class="gold" data-payment-action="Paid" data-payment-index="${idx}">Verify</button><button type="button" class="danger" data-payment-action="Rejected" data-payment-index="${idx}">Reject</button></div>` : `<small>Missing payment record ID</small>`}</td>
+      ${p.id != null ? `<div class="actions" style="margin-top:8px"><button type="button" class="gold" data-payment-action="Paid" data-payment-index="${idx}">Verify</button><button type="button" class="danger" data-payment-action="Rejected" data-payment-index="${idx}">Reject</button><button type="button" class="danger" data-delete-utr-index="${idx}" title="Permanently delete this UTR submission">Delete UTR</button></div>` : `<small>Missing payment record ID</small>`}</td>
     </tr>`;
   });
   $("paymentRows").innerHTML = rows.join("") || '<tr><td colspan="6">No customer UTR submissions found.</td></tr>';
 }
 
 $("paymentRows").addEventListener("click", async event => {
+  const deleteButton = event.target.closest("button[data-delete-utr-index]");
+  if (deleteButton) {
+    const record = allPaymentConfirmations[Number(deleteButton.dataset.deleteUtrIndex)];
+    if (!record || record.id == null) return;
+    const utr = paymentField(record, ["utr","utr_number","utr_no","utr_id","transaction_id","transaction_reference","upi_transaction_id","upi_ref","upi_reference","reference_number","payment_reference"]);
+    if (!confirm(`Permanently delete this UTR submission?\nUTR: ${utr || "Not recorded"}\n\nThe order and its Paid/Unpaid status will NOT change. This cannot be undone.`)) return;
+    deleteButton.disabled = true;
+    try {
+      // Delete by the record's primary key, never by the UTR string (which may be duplicated).
+      // Returning the deleted ID detects RLS rules that silently prevent deletion.
+      const {data, error} = await db.from("payment_confirmations").delete().eq("id", record.id).select("id");
+      if (error) throw error;
+      if (!data || data.length !== 1) throw new Error("No record was deleted. Check admin DELETE permission in Supabase.");
+      await loadPaymentConfirmations();
+      message("UTR submission deleted. The order and payment status were not changed.");
+    } catch (e) {
+      message("Could not delete UTR: " + (e.message || String(e)) + ". Check admin DELETE permissions on payment_confirmations.");
+    } finally { deleteButton.disabled = false; }
+    return;
+  }
   const verifyButton = event.target.closest("button[data-payment-action]");
   if (verifyButton) {
     const record = allPaymentConfirmations[Number(verifyButton.dataset.paymentIndex)];
