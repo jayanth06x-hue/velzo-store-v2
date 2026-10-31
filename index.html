@@ -1917,6 +1917,24 @@ function renderFeaturedProduct() {
   }));
 }
 
+let VELZO_DELIVERY_WINDOW = null;
+function deliveryEstimateText() {
+  if (!VELZO_DELIVERY_WINDOW) return "";
+  const format = days => {
+    const date = new Date();
+    date.setHours(12,0,0,0);
+    date.setDate(date.getDate()+days);
+    return date.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+  };
+  return `Estimated delivery: ${format(VELZO_DELIVERY_WINDOW.min)} – ${format(VELZO_DELIVERY_WINDOW.max)}`;
+}
+async function loadDeliveryEstimate() {
+  const {data,error}=await db.from("store_settings").select("delivery_min_days,delivery_max_days").eq("id",1).maybeSingle();
+  if(error) {console.warn("Delivery estimate unavailable:",error.message);return;}
+  const min=Number(data?.delivery_min_days),max=Number(data?.delivery_max_days);
+  VELZO_DELIVERY_WINDOW = Number.isInteger(min)&&Number.isInteger(max)&&min>=1&&max>=min&&max<=60?{min,max}:null;
+}
+
 async function loadProducts() {
   const target = document.getElementById("products");
   target.innerHTML = '<div class="empty-state">Loading products…</div>';
@@ -1935,6 +1953,7 @@ async function loadProducts() {
   }
 
   PRODUCTS = data || [];
+  await loadDeliveryEstimate();
   await loadFeaturedSetting();
 
   // Remove old cart items that no longer exist in the catalogue.
@@ -2384,6 +2403,7 @@ async function showCheckout() {
     ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${checkoutAmount.toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${checkoutAmount.toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
   target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
+    ${deliveryEstimateText() ? `<p style="padding:10px;background:#eaf4e9;color:#203b28"><strong>${escapeHTML(deliveryEstimateText())}</strong><br><small>Estimate only. Courier delays may affect arrival.</small></p>` : ""}
     <p class="subtext">Your order will be saved before you notify the store.</p>
     <div style="margin:12px 0;padding:12px;border:1px solid #aaa">
       <label for="checkout-coupon">Coupon code (optional)</label>
