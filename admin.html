@@ -183,6 +183,15 @@ button.danger { background:#8d302b; color:#fff; }
       <div class="stat"><span>Placed / confirmed</span><strong id="pendingTotal">0</strong></div>
     </div>
 
+    <section class="panel" id="deliveryEstimatePanel">
+      <h2>Estimated delivery days</h2>
+      <p class="muted">Set the delivery window manually. The storefront will show estimated dates based on the order date, not a courier guarantee.</p>
+      <form id="deliveryEstimateForm" class="form">
+        <label>Minimum days <input id="deliveryMinDays" type="number" min="1" max="60" value="4" required></label>
+        <label>Maximum days <input id="deliveryMaxDays" type="number" min="1" max="60" value="7" required></label>
+        <button type="submit" class="gold">SAVE DELIVERY ESTIMATE</button>
+      </form>
+    </section>
     <section class="panel" id="featuredProductPanel">
       <h2>Homepage Concave Carousel</h2>
       <p class="muted">Choose and order up to three active products for the curved 3D-style gallery. Priority 1 is the centre product. This does not change product prices, stock, or orders.</p>
@@ -465,8 +474,27 @@ async function refreshAll() {
   clearMessage();
   await Promise.all([loadProducts(), loadOrders(), loadPaymentConfirmations()]);
   await loadFeaturedProductSetting();
+  await loadDeliveryEstimateSetting();
   renderStats();
 }
+
+async function loadDeliveryEstimateSetting() {
+  const {data,error} = await db.from("store_settings").select("delivery_min_days,delivery_max_days").eq("id",1).maybeSingle();
+  if (error) { console.warn("Delivery setting unavailable:",error.message); return; }
+  if (data) {
+    $("deliveryMinDays").value = data.delivery_min_days ?? 4;
+    $("deliveryMaxDays").value = data.delivery_max_days ?? 7;
+  }
+}
+$("deliveryEstimateForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const min=Number($("deliveryMinDays").value),max=Number($("deliveryMaxDays").value);
+  if(!Number.isInteger(min)||!Number.isInteger(max)||min<1||max>60||min>max) {
+    message("Enter valid days: minimum must be 1–60 and no greater than maximum.");return;
+  }
+  const {error}=await db.from("store_settings").update({delivery_min_days:min,delivery_max_days:max}).eq("id",1);
+  message(error ? "Could not save delivery estimate: "+error.message : "Delivery estimate saved. Refresh the storefront.");
+});
 
 async function loadFeaturedProductSetting() {
   const {data, error} = await db.from("store_settings").select("featured_product_id").eq("id", 1).maybeSingle();
