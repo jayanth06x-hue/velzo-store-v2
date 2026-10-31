@@ -1997,6 +1997,7 @@ function comboPicker(p) {
     <strong>BUILD YOUR COMBO</strong>
     ${[["shirt_color","T-shirt colour",options.shirt_colors],["pant_color","Sweatpants colour",options.pant_colors],["shirt_size","T-shirt size",options.shirt_sizes],["pant_size","Sweatpants size",options.pant_sizes]].map(([key,label,values]) => {
       const choices = Array.isArray(values) ? values : [];
+      if (!choices.length) return "";
       return `<label>${label}<select class="velzo-combo-select" data-combo-product="${escapeHTML(p.id)}" data-combo-field="${key}" onchange="selectComboOption(this.dataset.comboProduct,this.dataset.comboField,this.value)" ${p.out_of_stock ? "disabled" : ""}>
         <option value="">Select ${label.toLowerCase()}</option>${choices.map(v => `<option value="${escapeHTML(v)}" ${chosen[key] === v ? "selected" : ""}>${escapeHTML(v)}</option>`).join("")}
       </select></label>`;
@@ -2213,7 +2214,9 @@ function addToCart(id) {
   const chosen = combo ? (selectedCombo[id] || {}) : {};
   if (combo) {
     for (const [key,label,source] of [["shirt_color","T-shirt colour","shirt_colors"],["pant_color","sweatpants colour","pant_colors"],["shirt_size","T-shirt size","shirt_sizes"],["pant_size","sweatpants size","pant_sizes"]]) {
-      if (!chosen[key] || !(product.combo_options[source] || []).includes(chosen[key])) return showToast("Please select a valid " + label + ".");
+      const available = product.combo_options[source] || [];
+      if (!available.length && (key === "shirt_color" || key === "pant_color")) continue;
+      if (!chosen[key] || !available.includes(chosen[key])) return showToast("Please select a valid " + label + ".");
     }
   }
   const variant = { id, size, color, ...(combo ? {shirt_color:chosen.shirt_color,pant_color:chosen.pant_color,shirt_size:chosen.shirt_size,pant_size:chosen.pant_size} : {}) };
@@ -2472,7 +2475,7 @@ async function submitOrder(event) {
       qty: item.qty,
       ...(item.size ? { size: item.size } : {}),
       ...(item.color ? { color: item.color } : {}),
-      ...(item.shirt_color ? {shirt_color:item.shirt_color,pant_color:item.pant_color,shirt_size:item.shirt_size,pant_size:item.pant_size} : {})
+      ...(item.shirt_size || item.pant_size ? {shirt_size:item.shirt_size,pant_size:item.pant_size,...(item.shirt_color ? {shirt_color:item.shirt_color} : {}),...(item.pant_color ? {pant_color:item.pant_color} : {})} : {})
     }));
 
     // The database validates the products and calculates the actual total.
