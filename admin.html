@@ -365,6 +365,31 @@ function clearMessage() {
   $("message").textContent = "";
 }
 
+// Coupon administration. Redemption is intentionally disabled until place_order
+// validates coupon usage and calculates the final total inside the database.
+async function loadCoupons() {
+  const tbody = $("couponRows");
+  const {data,error}=await db.from("coupons").select("code,discount_percent,min_order_amount,max_uses,expires_at,active").order("code");
+  if(error){$("couponMessage").textContent="Coupon table unavailable: "+error.message;return;}
+  tbody.innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.code)}</td><td>${esc(c.discount_percent)}%</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||"—")}</td><td>${c.active?"Yes":"No"}</td><td><button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?"Disable":"Enable"}</button></td></tr>`).join("")||'<tr><td colspan="6">No coupons yet</td></tr>';
+}
+$("couponForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const code=$("couponCode").value.trim().toUpperCase();
+ const percent=Number($("couponPercent").value), minimum=Number($("couponMin").value);
+ const max=$("couponMaxUses").value ? Number($("couponMaxUses").value) : null;
+ if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))){$("couponMessage").textContent="Check the code and discount settings.";return;}
+ const {error}=await db.from("coupons").upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$("couponExpiry").value||null,active:$("couponActive").checked},{onConflict:"code"});
+ $("couponMessage").textContent=error?"Could not save coupon: "+error.message:"Coupon saved. Checkout redemption is not yet enabled.";
+ if(!error)await loadCoupons();
+});
+$("couponRows").addEventListener("click",async e=>{
+ const btn=e.target.closest("button[data-coupon]");if(!btn)return;
+ const {error}=await db.from("coupons").update({active:btn.dataset.active!=="true"}).eq("code",btn.dataset.coupon);
+ $("couponMessage").textContent=error?error.message:"Coupon updated.";
+ if(!error)await loadCoupons();
+});
+
 async function adminCheck() {
   const {data: sessionData, error: sessionError} =
     await db.auth.getSession();
@@ -394,7 +419,7 @@ async function adminCheck() {
   $("dashboard").classList.remove("hidden");
   $("signedInAs").textContent = "Signed in as " + session.user.email;
   await refreshAll();
-  await loadCoupons();
+  try { await loadCoupons(); } catch (error) { console.warn("Coupons unavailable:", error); }
   return true;
 }
 
@@ -1005,32 +1030,6 @@ db.auth.onAuthStateChange((_event, session) => {
     message("Could not initialize admin dashboard: " + error.message);
   }
 })();
-
-// Coupon administration. Redemption is intentionally disabled until place_order
-// validates coupon usage and calculates the final total inside the database.
-async function loadCoupons() {
-  const tbody = $("couponRows");
-  const {data,error}=await db.from("coupons").select("code,discount_percent,min_order_amount,max_uses,expires_at,active").order("code");
-  if(error){$("couponMessage").textContent="Coupon table unavailable: "+error.message;return;}
-  tbody.innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.code)}</td><td>${esc(c.discount_percent)}%</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||"—")}</td><td>${c.active?"Yes":"No"}</td><td><button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?"Disable":"Enable"}</button></td></tr>`).join("")||'<tr><td colspan="6">No coupons yet</td></tr>';
-}
-$("couponForm").addEventListener("submit",async e=>{
- e.preventDefault();
- const code=$("couponCode").value.trim().toUpperCase();
- const percent=Number($("couponPercent").value), minimum=Number($("couponMin").value);
- const max=$("couponMaxUses").value ? Number($("couponMaxUses").value) : null;
- if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))){$("couponMessage").textContent="Check the code and discount settings.";return;}
- const {error}=await db.from("coupons").upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$("couponExpiry").value||null,active:$("couponActive").checked},{onConflict:"code"});
- $("couponMessage").textContent=error?"Could not save coupon: "+error.message:"Coupon saved. Checkout redemption is not yet enabled.";
- if(!error)await loadCoupons();
-});
-$("couponRows").addEventListener("click",async e=>{
- const btn=e.target.closest("button[data-coupon]");if(!btn)return;
- const {error}=await db.from("coupons").update({active:btn.dataset.active!=="true"}).eq("code",btn.dataset.coupon);
- $("couponMessage").textContent=error?error.message:"Coupon updated.";
- if(!error)await loadCoupons();
-});
-
 
 </script>
 </body>
