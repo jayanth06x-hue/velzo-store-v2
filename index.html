@@ -2550,11 +2550,14 @@ async function submitOrder(event) {
     }));
 
     // The database validates the products and calculates the actual total.
-    const { data, error } = await db.rpc("place_order", {
+    // Save the chosen method atomically with the order on the server.
+    // Requires VELZO_storefront_payment_method_setup.sql in Supabase.
+    const { data, error } = await db.rpc("place_order_with_payment", {
       p_customer_name: name,
       p_customer_phone: phone,
       p_customer_address: address,
-      p_items: orderItems
+      p_items: orderItems,
+      p_payment_method: paymentMethod
     });
 
     if (error) throw error;
