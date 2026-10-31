@@ -322,7 +322,7 @@ button.danger { background:#8d302b; color:#fff; }
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Status</th><th>Update / Delete</th></tr></thead>
+            <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Payment Method</th><th>Payment Status</th><th>Status</th><th>Update / Delete</th></tr></thead>
             <tbody id="orderRows"></tbody>
           </table>
         </div>
@@ -561,7 +561,7 @@ async function loadProducts() {
 
 async function loadOrders() {
   const {data, error} = await db.from("orders")
-    .select("id,customer_name,customer_phone,customer_address,items,total,status,created_at,cancellation_requested_at,cancellation_request_status")
+    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -946,6 +946,15 @@ function renderOrders() {
           `${esc(i.name)}${i.size ? ` (Size: ${esc(i.size)})` : ""}${i.shirt_color || i.shirtColor ? ` (Shirt: ${esc(i.shirt_color || i.shirtColor)})` : ""}${i.pant_color || i.pantColor ? ` (Pants: ${esc(i.pant_color || i.pantColor)})` : ""} × ${esc(i.qty)}`
         ).join("<br>")}</td>
         <td>${money(o.total)}</td>
+        <td><select aria-label="Payment method for order ${esc(o.id)}" data-payment-method="${esc(o.id)}">
+          <option value="" ${!o.payment_method ? "selected" : ""}>Not set</option>
+          <option value="COD" ${o.payment_method === "COD" ? "selected" : ""}>COD</option>
+          <option value="UPI" ${o.payment_method === "UPI" ? "selected" : ""}>UPI</option>
+        </select></td>
+        <td><select aria-label="Payment status for order ${esc(o.id)}" data-payment-status="${esc(o.id)}">
+          <option value="Unpaid" ${o.payment_status !== "Paid" ? "selected" : ""}>Unpaid</option>
+          <option value="Paid" ${o.payment_status === "Paid" ? "selected" : ""}>Paid</option>
+        </select><small>Verify payment before marking Paid</small></td>
         <td>${esc(o.status)}</td>
         <td><div class="actions">
           <select aria-label="Status for order ${esc(o.id)}" data-status="${esc(o.id)}">
@@ -954,12 +963,34 @@ function renderOrders() {
             ).join("")}
           </select>
           <button class="secondary" data-update-order="${esc(o.id)}">Update</button>
+          <button class="gold" data-update-payment="${esc(o.id)}" type="button">Save Payment</button>
            <button class="gold" data-mf-preview="${esc(o.id)}" type="button">CHECK MERCH FACTORY</button>
           <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
         </div></td>
       </tr>`;
-  }).join("") || '<tr><td colspan="6">No orders yet.</td></tr>';
+  }).join("") || '<tr><td colspan="8">No orders yet.</td></tr>';
 }
+
+// Payment method and paid status are independent of shipping/order status.
+$("orderRows").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-update-payment]");
+  if (!button) return;
+  const id = button.dataset.updatePayment;
+  const row = button.closest("tr");
+  const method = row.querySelector("select[data-payment-method]")?.value || null;
+  const status = row.querySelector("select[data-payment-status]")?.value;
+  if (!["COD","UPI",null].includes(method) || !["Unpaid","Paid"].includes(status)) return;
+  if (status === "Paid" && !confirm("Have you verified that payment was actually received? Marking Paid does not collect money.")) return;
+  button.disabled = true;
+  try {
+    const {error} = await db.from("orders").update({payment_method:method,payment_status:status}).eq("id",id);
+    if (error) throw error;
+    await loadOrders();
+    message("Payment details saved. Delivery status was not changed.");
+  } catch(e) {
+    message("Could not save payment details: " + e.message);
+  } finally { button.disabled = false; }
+});
 
 // Merch Factory preflight: read-only. No production orders are placed.
 $("orderRows").addEventListener("click", async event => {
