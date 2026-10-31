@@ -5,7 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#111111">
 <title>Velzo Collections | Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// Coupon administration. Redemption is intentionally disabled until place_order
+// validates coupon usage and calculates the final total inside the database.
+async function loadCoupons() {
+  const tbody = $("couponRows");
+  const {data,error}=await db.from("coupons").select("code,discount_percent,min_order_amount,max_uses,expires_at,active").order("code");
+  if(error){$("couponMessage").textContent="Coupon table unavailable: "+error.message;return;}
+  tbody.innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.code)}</td><td>${esc(c.discount_percent)}%</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||"—")}</td><td>${c.active?"Yes":"No"}</td><td><button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?"Disable":"Enable"}</button></td></tr>`).join("")||'<tr><td colspan="6">No coupons yet</td></tr>';
+}
+$("couponForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const code=$("couponCode").value.trim().toUpperCase();
+ const percent=Number($("couponPercent").value), minimum=Number($("couponMin").value);
+ const max=$("couponMaxUses").value ? Number($("couponMaxUses").value) : null;
+ if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))){$("couponMessage").textContent="Check the code and discount settings.";return;}
+ const {error}=await db.from("coupons").upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$("couponExpiry").value||null,active:$("couponActive").checked},{onConflict:"code"});
+ $("couponMessage").textContent=error?"Could not save coupon: "+error.message:"Coupon saved. Checkout redemption is not yet enabled.";
+ if(!error)await loadCoupons();
+});
+$("couponRows").addEventListener("click",async e=>{
+ const btn=e.target.closest("button[data-coupon]");if(!btn)return;
+ const {error}=await db.from("coupons").update({active:btn.dataset.active!=="true"}).eq("code",btn.dataset.coupon);
+ $("couponMessage").textContent=error?error.message:"Coupon updated.";
+ if(!error)await loadCoupons();
+});
+
+</script>
 <style>
 :root{--black:#111;--gold:#d4b16a;--cream:#f7f5f0;--line:#e8e5de;--muted:#747474}
 *{box-sizing:border-box}
@@ -198,6 +224,21 @@ button.danger { background:#8d302b; color:#fff; }
       <p class="note">Select up to three different active products. Priority 1 appears in the centre. You can change the order anytime.</p>
     </section>
 
+    <section class="panel" id="couponAdminPanel">
+      <h2>Coupon codes</h2>
+      <p class="note">Create and manage coupons here. Coupons will not be redeemable at checkout until the server-side order pricing is upgraded.</p>
+      <form id="couponForm" class="form">
+        <input id="couponCode" placeholder="Code e.g. VELZO10" maxlength="32" pattern="[A-Za-z0-9_-]+" required>
+        <input id="couponPercent" type="number" min="1" max="90" step="1" placeholder="Discount %" required>
+        <input id="couponMin" type="number" min="0" step=".01" placeholder="Minimum order ₹" value="0" required>
+        <input id="couponMaxUses" type="number" min="1" step="1" placeholder="Maximum uses (optional)">
+        <label class="field-label">Expiry date (optional)<input id="couponExpiry" type="date"></label>
+        <label class="field-label"><input id="couponActive" type="checkbox" checked style="width:auto"> Active</label>
+        <button class="gold full" type="submit">SAVE COUPON</button>
+      </form>
+      <div id="couponMessage" class="note" role="status" style="margin:12px 0"></div>
+      <div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Expiry</th><th>Enabled</th><th>Action</th></tr></thead><tbody id="couponRows"></tbody></table></div>
+    </section>
     <section class="panel">
       <div class="tabs">
         <button class="primary active" data-tab="products">Products</button>
@@ -221,6 +262,7 @@ button.danger { background:#8d302b; color:#fff; }
           </select>
           <input id="productCustomCategory" placeholder="Enter custom category" maxlength="60" style="display:none" aria-label="Custom product category">
           <input id="productPrice" type="number" min="0" max="99999999" step=".01" placeholder="Price in ₹" required>
+          <input id="productDiscount" type="number" min="0" max="90" step="1" value="0" placeholder="Discount % (0–90)" aria-label="Product discount percentage">
           <input id="productTag" placeholder="Badge, e.g. NEW (optional)" maxlength="30">
           <input id="productImage" type="url" placeholder="Main product image URL (https://)" required class="full">
           <textarea id="productImageUrls" placeholder="Additional image URLs — one HTTPS URL per line (front, back, details...)" rows="4" class="full"></textarea>
@@ -378,6 +420,7 @@ async function adminCheck() {
   $("dashboard").classList.remove("hidden");
   $("signedInAs").textContent = "Signed in as " + session.user.email;
   await refreshAll();
+  await loadCoupons();
   return true;
 }
 
@@ -478,7 +521,7 @@ $("saveFeaturedProduct").addEventListener("click", async () => {
 
 async function loadProducts() {
   const {data, error} = await db.from("products")
-    .select("id,name,category,price,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options")
+    .select("id,name,category,price,discount_percent,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -629,7 +672,7 @@ function renderProducts() {
         <div><div class="product-name">${esc(p.name)}</div>
           <small>${esc(p.category)} · ${Array.isArray(p.image_urls) ? p.image_urls.length : 0} extra images</small>${p.meesho_url ? `<br><a href="${esc(p.meesho_url)}" target="_blank" rel="noopener">Open Meesho link ↗</a>` : ""}</div>
       </div></td>
-      <td>${money(p.price)}</td>
+      <td>${money(p.price)}${Number(p.discount_percent)>0?`<br><small>${esc(p.discount_percent)}% OFF (not yet live at checkout)</small>`:""}</td>
       <td><strong>${p.out_of_stock ? "OUT OF STOCK" : "In stock"}</strong><br><small>${p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? "Sizes: " + esc(p.sizes.join(", ")) : "No size selection"}<br>${Array.isArray(p.colors) && p.colors.length ? "Colours: " + esc(p.colors.join(", ")) : "No colour options"}${p.combo_options?.shirt_colors?.length ? `<br>Combo shirt: ${esc(p.combo_options.shirt_colors.join(", "))}<br>Combo pants: ${esc((p.combo_options.pant_colors || []).join(", "))}` : ""}</small></td>
       <td>${p.active ? "Visible" : "Hidden"}</td>
       <td><div class="actions">
@@ -651,6 +694,7 @@ function resetProductForm() {
   $("productHasSizes").checked = false;
   $("productSizes").value = "";
   $("productColors").value = "";
+  $("productDiscount").value = "0";
   $("comboShirtColors").value = "";
   $("comboPantColors").value = "";
   $("comboShirtSizes").value = "";
@@ -713,6 +757,7 @@ $("productRows").addEventListener("click", async event => {
         $("productCustomCategory").required = false;
       }
       $("productPrice").value = product.price;
+      $("productDiscount").value = product.discount_percent || 0;
       $("productTag").value = product.tag || "";
       $("productImage").value = product.image_url;
       $("productImageUrls").value = Array.isArray(product.image_urls) ? product.image_urls.join("\n") : "";
@@ -775,6 +820,7 @@ $("productForm").addEventListener("submit", async event => {
     name:$("productName").value.trim(),
     category:($("productCategory").value === "Other" ? $("productCustomCategory").value : $("productCategory").value).trim(),
     price:Number($("productPrice").value),
+    discount_percent:Number($("productDiscount").value),
     tag:$("productTag").value.trim(),
     description:$("productDescription").value.trim(),
     colors:[...new Set($("productColors").value.split(",").map(color => color.trim()).filter(Boolean))],
@@ -802,6 +848,7 @@ $("productForm").addEventListener("submit", async event => {
       !Number.isFinite(product.price) || product.price < 0) {
     return message("Check the product name, category and price.");
   }
+  if (!Number.isInteger(product.discount_percent) || product.discount_percent < 0 || product.discount_percent > 90) return message("Discount must be a whole percentage from 0 to 90.");
   if (product.combo_options && (!product.combo_options.shirt_colors.length || !product.combo_options.pant_colors.length || product.combo_options.shirt_colors.length > 20 || product.combo_options.pant_colors.length > 20)) {
     return message("For combos, enter 1–20 T-shirt colours and 1–20 sweatpants colours.");
   }
