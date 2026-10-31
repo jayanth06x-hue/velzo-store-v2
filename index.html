@@ -1919,7 +1919,7 @@ function renderFeaturedProduct() {
 
 let VELZO_DELIVERY_WINDOW = null;
 function deliveryEstimateText() {
-  if (!VELZO_DELIVERY_WINDOW) return "";
+  if (!VELZO_DELIVERY_WINDOW) return "Delivery estimate: ask us for availability";
   const format = days => {
     const date = new Date();
     date.setHours(12,0,0,0);
@@ -2127,6 +2127,7 @@ function renderProducts() {
         <h3>${escapeHTML(p.name)}</h3>
         <p class="product-description">${escapeHTML(p.description)}</p>
         <div class="product-price">${discountMarkup(p)}</div>
+        <div class="velzo-delivery-estimate" style="display:block!important;visibility:visible!important;opacity:1!important;background:#ffffff!important;color:#17251b!important;border:1px solid #bcc9bd!important;padding:10px!important;margin:10px 0!important;font-size:12px!important;line-height:1.5!important;font-weight:700!important">🚚 ${escapeHTML(deliveryEstimateText())}</div>
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${escapeHTML(p.id)}')" aria-label="Share ${escapeHTML(p.name)}">↗ Share product</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
@@ -2403,7 +2404,7 @@ async function showCheckout() {
     ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${checkoutAmount.toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${checkoutAmount.toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
   target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
-    ${deliveryEstimateText() ? `<p style="padding:10px;background:#eaf4e9;color:#203b28"><strong>${escapeHTML(deliveryEstimateText())}</strong><br><small>Estimate only. Courier delays may affect arrival.</small></p>` : ""}
+    <p style="display:block!important;visibility:visible!important;opacity:1!important;padding:12px!important;background:#ffffff!important;color:#17251b!important;border:2px solid #7d9e83!important;font-size:15px!important;font-weight:700!important"><strong style="color:#17251b!important">🚚 ${escapeHTML(deliveryEstimateText())}</strong><br><small style="color:#344b38!important">Estimate only. Courier delays may affect arrival.</small></p>
     <p class="subtext">Your order will be saved before you notify the store.</p>
     <div style="margin:12px 0;padding:12px;border:1px solid #aaa">
       <label for="checkout-coupon">Coupon code (optional)</label>
