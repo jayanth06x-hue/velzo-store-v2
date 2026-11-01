@@ -2088,7 +2088,19 @@ function velzoDeliveryUnits(items = cart) {
 function velzoDeliveryTotal() {
   return VELZO_FREE_SHIPPING_ENABLED ? 0 : Math.round(VELZO_DELIVERY_CHARGE * velzoDeliveryUnits() * 100) / 100;
 }
-function checkoutAmountForPayment(){ return displayedPaymentTotal; }
+function velzoCodFee() {
+  return document.querySelector('input[name="payment-method"]:checked')?.value === "COD" ? 20 : 0;
+}
+function checkoutAmountForPayment(){ return Math.round((Number(displayedPaymentTotal) + velzoCodFee()) * 100) / 100; }
+function velzoRefreshPaymentTotal() {
+  const fee = velzoCodFee();
+  const feeLine = document.getElementById("velzo-cod-fee-line");
+  const totalLine = document.getElementById("velzo-final-payable");
+  if (feeLine) feeLine.textContent = `Cash on Delivery fee: ${money(fee)}`;
+  if (totalLine) totalLine.textContent = `Final payable total: ${money(checkoutAmountForPayment())}`;
+  const upiPanel = document.getElementById("checkout-upi-panel");
+  if (upiPanel) upiPanel.style.display = fee ? "none" : "block";
+}
 async function quoteOrder(code = appliedCoupon) {
   const items = cart.map(item => ({id:item.id,qty:item.qty}));
   const {data,error} = await db.rpc("velzo_quote_order",{p_items:items,p_coupon_code:code || null});
@@ -2444,8 +2456,8 @@ async function showCheckout() {
   // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
   const qrPayload = upiAvailable ? "upi://pay?" + new URLSearchParams({pa:PAYMENT_SETTINGS.upi_id,pn:PAYMENT_SETTINGS.payee_name || "Velzo Collections",am:checkoutAmount.toFixed(2),cu:"INR",tn:"Velzo Collections order"}).toString() : "";
   const qrImage = qrPayload ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrPayload) : "";
-  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + checkoutAmount.toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
-    ${PAYMENT_SETTINGS.cod_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="COD" ${!upiAvailable ? "checked" : ""} style="width:auto"> <span><strong>Cash on Delivery</strong><br><small>Pay when your order arrives.</small></span></label>` : ""}
+  const paymentOptions = `${PAYMENT_SETTINGS.upi_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="UPI" onchange="velzoRefreshPaymentTotal()" ${upiAvailable ? "checked" : ""} ${upiAvailable ? "" : "disabled"} style="width:auto"> <span><strong>UPI / PhonePe</strong><br><small>${upiAvailable ? "Scan QR to pay ₹" + checkoutAmount.toFixed(2) : "UPI not configured yet by the store"}</small></span></label>` : ""}
+    ${PAYMENT_SETTINGS.cod_enabled ? `<label style="display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #ddd;border-radius:10px"><input type="radio" name="payment-method" value="COD" onchange="velzoRefreshPaymentTotal()" ${!upiAvailable ? "checked" : ""} style="width:auto"> <span><strong>Cash on Delivery</strong><br><small>Pay when your order arrives. ₹20 COD fee.</small></span></label>` : ""}
     ${upiAvailable ? `<div id="checkout-upi-panel" style="text-align:center;border:1px solid #e8e8e8;border-radius:12px;padding:14px"><p><strong>Scan with PhonePe or another UPI app</strong></p><img src="${escapeHTML(qrImage)}" alt="UPI QR for ₹${checkoutAmount.toFixed(2)}" width="200" height="200" style="max-width:100%;object-fit:contain"/><p><strong>₹${checkoutAmount.toFixed(2)}</strong></p><p class="subtext">${escapeHTML(PAYMENT_SETTINGS.instructions || "Please pay the amount shown and verify the payment before order confirmation.")}</p><a href="${escapeHTML(qrPayload)}" class="black-button full-button" style="display:block;text-align:center;text-decoration:none">OPEN UPI APP</a><div style="text-align:left;margin-top:14px"><label for="payment-utr"><strong>UPI transaction ID / UTR</strong></label><input id="payment-utr" name="utr" autocomplete="off" maxlength="100" minlength="6" placeholder="Enter UTR after paying" style="width:100%;margin-top:7px;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box"><small class="subtext">Pay first, then enter the reference number. It will remain Pending Verification until the store checks it.</small></div></div>` : ""}`;
   target.innerHTML = `
     <h2 id="cart-title">Delivery details</h2>
@@ -2470,7 +2482,7 @@ async function showCheckout() {
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
       ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery: ${money(VELZO_DELIVERY_CHARGE)} × ${velzoDeliveryUnits()} distinct product/size/colour combination(s) = ${money(deliveryCharge)}</strong></p>`}
-      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px">Final payable total: ${money(checkoutAmount)}</div></div>
+      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span id="velzo-final-payable">Final payable total: ${money(checkoutAmount + (!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0))}</span></div><div id="velzo-cod-fee-line" style="color:#111!important;font-weight:700">Cash on Delivery fee: ${money(!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0)}</div></div>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -2583,7 +2595,7 @@ async function submitOrder(event) {
     }
 
     const freshQuote = await quoteOrder();
-    if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal() + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
