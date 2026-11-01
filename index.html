@@ -3003,18 +3003,25 @@ body { background:#fff; color:#151515; }
     else await velzoLoadAddresses();
   };
 
-  function velzoTrackingTimeline(rawStatus) {
-    const status = String(rawStatus || 'placed').trim().toLowerCase();
-    const steps = ['Confirmed','Processing','Shipped','Delivered'];
-    if (/(cancel|return|refund|fail|reject)/.test(status)) {
-      return `<p class="velzo-tracking-alert">Order status: ${escapeHtml(rawStatus || 'Unknown')}. Contact support for details.</p>`;
-    }
+  function velzoTrackingTimeline(rawStatus, returnRequestStatus) {
+    const status = String(rawStatus || 'Placed').trim().toLowerCase();
+    if (/(cancel|fail)/.test(status)) return `<p class="velzo-tracking-alert">Order status: ${escapeHtml(rawStatus || 'Unknown')}</p>`;
+    const steps = ['Confirmed','Processing','Shipped','Delivered','Return'];
     let current = 0;
     if (/(process|production|prepar|pack)/.test(status)) current = 1;
     if (/(ship|dispatch|transit|out for delivery)/.test(status)) current = 2;
-    if (/(deliver|complete)/.test(status)) current = 3;
-    return `<div class="velzo-tracking" aria-label="Order progress">${steps.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''} ${i < current ? 'completed-link' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i + 1}</span><span>${label}</span></div>`).join('')}</div>`;
+    if (/(deliver|return|refund)/.test(status)) current = 3;
+    const returnState = String(returnRequestStatus || '').trim();
+    if (/^return/i.test(status) || (returnState && !/^rejected$/i.test(returnState))) current = 4;
+    const labels = [...steps];
+    if (current === 4) labels[4] = /confirmed/i.test(status) ? 'Return Confirmed' : /picked up/i.test(status) ? 'Return Picked Up' : /approved/i.test(status) || /^approved$/i.test(returnState) ? 'Return Approved' : 'Return Requested';
+    return `<div class="velzo-tracking velzo-tracking-five" aria-label="Order and return progress">${labels.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''} ${i < current ? 'completed-link' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i+1}</span><span>${escapeHtml(label)}</span></div>`).join('')}</div>`;
   }
+
+  // Five stages fit on desktop and scroll horizontally on small screens.
+  const returnTimelineStyle = document.createElement('style');
+  returnTimelineStyle.textContent = '.velzo-tracking-five{grid-template-columns:repeat(5,minmax(0,1fr))!important}.velzo-tracking-five .velzo-tracking-step{min-width:0}.velzo-tracking-five .velzo-tracking-step>span:last-child{font-size:11px;overflow-wrap:anywhere}@media(max-width:520px){.velzo-tracking-five{overflow-x:auto;grid-template-columns:repeat(5,minmax(74px,1fr))!important}}';
+  document.head.appendChild(returnTimelineStyle);
 
   window.velzoLoadOrders = async function(){
     const target = $('velzo-orders-list');
@@ -3037,7 +3044,7 @@ body { background:#fff; color:#151515; }
         const deliveredAt = order.delivered_at ? new Date(order.delivered_at).getTime() : (status.toLowerCase() === 'delivered' ? Date.now() : 0);
         const canCancel = placedAt && Date.now() <= placedAt + 3*86400000 && !['packed','shipped','delivered','cancelled'].includes(status.toLowerCase()) && !order.cancellation_request_status;
         const canReturn = deliveredAt && Date.now() <= deliveredAt + 3*86400000 && status.toLowerCase() === 'delivered' && !order.return_request_status;
-        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Order total:</strong> ₹${Number(order.total ?? 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(status)}</p>${velzoTrackingTimeline(status)}<p><strong>Payment method:</strong> ${escapeHtml(paymentMethod)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p>${order.cancellation_request_status ? `<p><strong>Cancellation request:</strong> ${escapeHtml(order.cancellation_request_status)}</p>` : ''}${order.return_request_status ? `<p><strong>Return request:</strong> ${escapeHtml(order.return_request_status)}</p>` : ''}${canCancel ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','cancel')">Request cancellation</button>` : ''}${canReturn ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','return')">Request return</button>` : ''}</article>`;
+        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Order total:</strong> ₹${Number(order.total ?? 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(status)}</p>${velzoTrackingTimeline(status,order.return_request_status)}<p><strong>Payment method:</strong> ${escapeHtml(paymentMethod)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p>${order.cancellation_request_status ? `<p><strong>Cancellation request:</strong> ${escapeHtml(order.cancellation_request_status)}</p>` : ''}${order.return_request_status ? `<p><strong>Return request:</strong> ${escapeHtml(order.return_request_status)}</p>` : ''}${canCancel ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','cancel')">Request cancellation</button>` : ''}${canReturn ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','return')">Request return</button>` : ''}</article>`;
       }).join('');
     } catch(e) {
       target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
@@ -3053,7 +3060,15 @@ body { background:#fff; color:#151515; }
     try {
       const now = new Date().toISOString();
       const changes = isCancel ? {cancellation_requested_at:now,cancellation_request_status:'Pending'} : {return_requested_at:now,return_request_status:'Pending'};
-      const {error} = await db.from('orders').update(changes).eq('id',id).eq('user_id',currentUser.id);
+      let error;
+      if (isCancel) {
+        const result = await db.from('orders').update(changes).eq('id',id).eq('user_id',currentUser.id).select('id');
+        error = result.error;
+        if (!error && !result.data?.length) throw new Error('Request was not saved. Check order access permissions.');
+      } else {
+        const result = await db.rpc('velzo_request_return', {p_order_id:id});
+        error = result.error;
+      }
       if(error) throw error;
       msg.textContent = `${label.charAt(0).toUpperCase()+label.slice(1)} request submitted. The store will review it.`;
       await velzoLoadOrders();
