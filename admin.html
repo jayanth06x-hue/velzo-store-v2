@@ -980,7 +980,7 @@ function renderOrders() {
     } catch (_) {}
 
     const validStatuses = [
-      "Placed","Confirmed","Packed","Shipped","In Transit","Out for Delivery","Delivered","Cancelled"
+      "Placed","Confirmed","Packed","Shipped","In Transit","Out for Delivery","Delivered","Return Requested","Return Approved","Return Picked Up","Return Confirmed","Cancelled"
     ];
 
     return `
@@ -1080,8 +1080,9 @@ $("orderRows").addEventListener("click", async event => {
       return;
     }
 
-    const select = $("orderRows").querySelector(`select[data-status="${CSS.escape(id)}"]`);
+    const select = button.closest("tr")?.querySelector("select[data-status]");
     if (!select) return;
+    if (select.value === "Return Confirmed" && !confirm("Confirm that the returned item has been received and checked? This does not issue a refund automatically.")) return;
     const {error} = await db.from("orders")
       .update({status:select.value})
       .eq("id",id);
