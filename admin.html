@@ -192,6 +192,12 @@ button.danger { background:#8d302b; color:#fff; }
         <button type="submit" class="gold">SAVE DELIVERY ESTIMATE</button>
       </form>
     </section>
+    <section class="panel" id="freeShippingPanel">
+      <h2>Free shipping at checkout</h2>
+      <p class="muted">Control the free-shipping message beside COD/UPI. This setting does not calculate or charge shipping fees; configure any shipping charges separately before disabling the offer.</p>
+      <label class="field-label"><input type="checkbox" id="freeShippingEnabled" style="width:auto"> Show FREE SHIPPING (₹0) at checkout</label>
+      <button type="button" class="gold" id="saveFreeShipping">SAVE SHIPPING SETTING</button>
+    </section>
     <section class="panel" id="featuredProductPanel">
       <h2>Homepage Concave Carousel</h2>
       <p class="muted">Choose and order up to three active products for the curved 3D-style gallery. Priority 1 is the centre product. This does not change product prices, stock, or orders.</p>
@@ -475,6 +481,7 @@ async function refreshAll() {
   await Promise.all([loadProducts(), loadOrders(), loadPaymentConfirmations()]);
   await loadFeaturedProductSetting();
   await loadDeliveryEstimateSetting();
+  await loadFreeShippingSetting();
   renderStats();
 }
 
@@ -494,6 +501,25 @@ $("deliveryEstimateForm").addEventListener("submit",async event=>{
   }
   const {error}=await db.from("store_settings").update({delivery_min_days:min,delivery_max_days:max}).eq("id",1);
   message(error ? "Could not save delivery estimate: "+error.message : "Delivery estimate saved. Refresh the storefront.");
+});
+
+async function loadFreeShippingSetting() {
+  const {data,error}=await db.from("store_settings").select("free_shipping_enabled").eq("id",1).maybeSingle();
+  if (error) { message("Could not load shipping setting: "+error.message); return; }
+  $("freeShippingEnabled").checked = data?.free_shipping_enabled === true;
+}
+$("saveFreeShipping").addEventListener("click", async () => {
+  const button = $("saveFreeShipping");
+  button.disabled = true;
+  try {
+    const {data,error}=await db.from("store_settings")
+      .update({free_shipping_enabled:$("freeShippingEnabled").checked})
+      .eq("id",1).select("id");
+    if(error) throw error;
+    if(!data?.length) throw new Error("No setting was updated. Check admin UPDATE permissions.");
+    message("Free-shipping display saved. Refresh the storefront to see the change.");
+  } catch(error) { message("Could not save free-shipping setting: "+error.message); }
+  finally { button.disabled=false; }
 });
 
 async function loadFeaturedProductSetting() {
