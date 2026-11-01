@@ -2274,7 +2274,7 @@ function showProductDetails(id) {
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
         <button class="add-button" onclick="addToCart('${safeId}');if(!${Boolean(p.out_of_stock)})closeProductDetails()" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${safeId}')">↗ Share this product</button>
-        <section class="velzo-reviews"><h3>Customer reviews</h3><div id="velzo-review-list">Loading reviews…</div><form id="velzo-review-form" onsubmit="submitVelzoReview(event, '${safeId}')"><label>Rating <select name="rating" required><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option><option value="3">★★★ 3</option><option value="2">★★ 2</option><option value="1">★ 1</option></select></label><label>Your review <textarea name="body" required minlength="10" maxlength="1000" placeholder="Share your genuine experience"></textarea></label><button type="submit" class="gold-button">SUBMIT REVIEW</button><p class="subtext">Sign in to submit. Your review appears to you immediately; other customers see it after approval.</p></form></section>
+        <section class="velzo-reviews"><h3>Customer reviews</h3><div id="velzo-review-list">Loading reviews…</div><form id="velzo-review-form" onsubmit="submitVelzoReview(event, '${safeId}')"><label>Rating <select name="rating" required><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option><option value="3">★★★ 3</option><option value="2">★★ 2</option><option value="1">★ 1</option></select></label><label>Your review <textarea name="body" required minlength="10" maxlength="1000" placeholder="Share your genuine experience"></textarea></label><button type="submit" class="gold-button">SUBMIT REVIEW</button><p class="subtext">Sign in to submit. Your review will appear publicly immediately.</p></form></section>
       </div>
     </div>`;
   const modal = document.getElementById('product-details-modal');
@@ -3013,7 +3013,7 @@ body { background:#fff; color:#151515; }
     if (/(process|production|prepar|pack)/.test(status)) current = 1;
     if (/(ship|dispatch|transit|out for delivery)/.test(status)) current = 2;
     if (/(deliver|complete)/.test(status)) current = 3;
-    return `<div class="velzo-tracking" aria-label="Order progress">${steps.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i + 1}</span><span>${label}</span></div>`).join('')}</div>`;
+    return `<div class="velzo-tracking" aria-label="Order progress">${steps.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''} ${i < current ? 'completed-link' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i + 1}</span><span>${label}</span></div>`).join('')}</div>`;
   }
 
   window.velzoLoadOrders = async function(){
@@ -3917,6 +3917,14 @@ document.querySelectorAll('[data-velzo-apk]').forEach(button => {
 .velzo-reviews{margin-top:22px;border-top:1px solid #777;padding-top:15px}.velzo-reviews textarea,.velzo-reviews select{width:100%;padding:10px;margin:7px 0 12px}.velzo-reviews label{display:block}.velzo-review{padding:12px 0;border-bottom:1px solid #7775}.velzo-review small{display:block;opacity:.75}
 @media(max-width:650px){.velzo-floating-support{bottom:12px;right:12px;padding:12px;font-size:12px}}
 .velzo-tracking{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:18px 0 20px;position:relative}.velzo-tracking-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;font-size:10px;color:#999;position:relative}.velzo-tracking-dot{width:30px;height:30px;border-radius:50%;border:2px solid #aaa;background:#24272a;color:#fff;display:grid;place-items:center;font-size:12px;z-index:1}.velzo-tracking-step.done{color:#c5a16b;font-weight:700}.velzo-tracking-step.done .velzo-tracking-dot{background:#c5a16b;border-color:#c5a16b;color:#17191b}.velzo-tracking-alert{padding:10px;border:1px solid #c5a16b}.velzo-review-pending{font-size:11px;color:#c5a16b}
+/* Visible step-by-step order tracking connectors */
+.velzo-tracking{gap:0;margin:22px 0 24px;isolation:isolate}
+.velzo-tracking-step{min-width:0;position:relative;gap:10px;padding:0 2px}
+.velzo-tracking-step:not(:last-child)::after{content:"";position:absolute;left:calc(50% + 15px);right:calc(-50% + 15px);top:14px;height:3px;background:#777;z-index:0}
+.velzo-tracking-step.completed-link::after{background:#c5a16b}
+.velzo-tracking-dot{position:relative;z-index:1;box-shadow:0 0 0 3px #24272a}
+.velzo-tracking-step[aria-current="step"] .velzo-tracking-dot{outline:2px solid #c5a16b;outline-offset:3px}
+@media(max-width:420px){.velzo-tracking-step{font-size:9px}.velzo-tracking-dot{width:27px;height:27px}.velzo-tracking-step:not(:last-child)::after{top:12px;left:calc(50% + 13px);right:calc(-50% + 13px)}}
 </style>
 <a class="velzo-floating-support" href="https://wa.me/918500716966?text=Hi%20VELZO%20COLLECTIONS%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Chat with VELZO customer support on WhatsApp">✆ WhatsApp Support</a>
 <script>
@@ -3926,8 +3934,8 @@ async function loadVelzoReviews(productId) {
  const {data,error}=await db.from('product_reviews').select('rating,body,created_at,approved,user_id').eq('product_id',String(productId)).order('created_at',{ascending:false}).limit(30);
  if(!target.isConnected)return;
  if(error){target.textContent='Reviews could not load: '+error.message;return;}
- const visible=(data||[]).filter(r=>r.approved || (user && r.user_id===user.id));
- target.innerHTML=visible.map(r=>'<div class="velzo-review"><strong>'+ '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)||1))) +'</strong>'+(r.approved?'':' <span class="velzo-review-pending">Pending approval · visible only to you</span>')+'<p>'+escapeHTML(r.body)+'</p><small>'+new Date(r.created_at).toLocaleDateString('en-IN')+'</small></div>').join('')||'<p>No approved reviews yet. Be the first to review.</p>';
+ const visible=(data||[]);
+ target.innerHTML=visible.map(r=>'<div class="velzo-review"><strong>'+ '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)||1))) +'</strong>'+'<p>'+escapeHTML(r.body)+'</p><small>'+new Date(r.created_at).toLocaleDateString('en-IN')+'</small></div>').join('')||'<p>No reviews yet. Be the first to review.</p>';
 }
 async function submitVelzoReview(event,productId){
  event.preventDefault();const form=event.currentTarget;const button=form.querySelector('button[type="submit"]');
@@ -3937,7 +3945,7 @@ async function submitVelzoReview(event,productId){
  try{const rating=Number(form.elements.rating.value),body=form.elements.body.value.trim();
  if(!Number.isInteger(rating)||rating<1||rating>5||body.length<10||body.length>1000)throw new Error('Please enter a valid rating and at least 10 characters.');
  const {error}=await db.from('product_reviews').insert({product_id:String(productId),user_id:user.id,rating,body});
- if(error)throw error;form.reset();showToast('Review submitted. It will be public after approval.');await loadVelzoReviews(productId);
+ if(error)throw error;form.reset();showToast('Review published successfully!');await loadVelzoReviews(productId);
  }catch(e){showToast('Could not submit review: '+e.message);}finally{button.disabled=false;}
 }
 </script>
