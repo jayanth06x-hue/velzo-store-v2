@@ -1918,6 +1918,7 @@ function renderFeaturedProduct() {
 }
 
 let VELZO_DELIVERY_WINDOW = null;
+let VELZO_FREE_SHIPPING_ENABLED = true;
 function deliveryEstimateText() {
   if (!VELZO_DELIVERY_WINDOW) return "Delivery estimate: ask us for availability";
   const format = days => {
@@ -1929,8 +1930,9 @@ function deliveryEstimateText() {
   return `Estimated delivery: ${format(VELZO_DELIVERY_WINDOW.min)} – ${format(VELZO_DELIVERY_WINDOW.max)}`;
 }
 async function loadDeliveryEstimate() {
-  const {data,error}=await db.from("store_settings").select("delivery_min_days,delivery_max_days").eq("id",1).maybeSingle();
+  const {data,error}=await db.from("store_settings").select("delivery_min_days,delivery_max_days,free_shipping_enabled").eq("id",1).maybeSingle();
   if(error) {console.warn("Delivery estimate unavailable:",error.message);return;}
+  VELZO_FREE_SHIPPING_ENABLED = data?.free_shipping_enabled === true;
   const min=Number(data?.delivery_min_days),max=Number(data?.delivery_max_days);
   VELZO_DELIVERY_WINDOW = Number.isInteger(min)&&Number.isInteger(max)&&min>=1&&max>=min&&max<=60?{min,max}:null;
 }
@@ -2429,8 +2431,8 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      <p class="velzo-free-shipping">🚚 <strong>FREE SHIPPING</strong> on this order · Shipping charge ₹0</p>
-      <p><strong>Order total (including discounts and free shipping): ${money(checkoutAmount)}</strong></p>
+      ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping">🚚 <strong>FREE SHIPPING</strong> on this order · Shipping charge ₹0</p>' : '<p class="velzo-shipping-notice">Shipping charges, if any, must be confirmed before payment.</p>'}
+      <p><strong>Order total (including discounts${VELZO_FREE_SHIPPING_ENABLED ? " and free shipping" : "; shipping not included"}): ${money(checkoutAmount)}</strong></p>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -3847,7 +3849,8 @@ document.querySelectorAll('[data-velzo-apk]').forEach(button => {
 <style id="velzo-order-improvements">
 .velzo-floating-support{position:fixed;right:16px;bottom:18px;z-index:9998;display:flex;align-items:center;gap:7px;background:#167d4b;color:#fff!important;border:1px solid #a4d5ae;padding:13px 16px;border-radius:50px;box-shadow:0 5px 25px #0005;font:700 13px Arial,sans-serif;text-decoration:none}
 .velzo-floating-support:focus-visible{outline:3px solid #fff;outline-offset:3px}
-.velzo-free-shipping{padding:13px!important;background:#e8f5eb!important;color:#174b2b!important;border:1px solid #91cba0!important;border-radius:8px!important}
+.velzo-shipping-notice{padding:13px;background:#fff4df;color:#111;border:1px solid #c5a16b;border-radius:8px}
+.velzo-free-shipping{padding:13px!important;background:#e8f5eb!important;color:#000000!important;border:1px solid #91cba0!important;border-radius:8px!important}
 .velzo-reviews{margin-top:22px;border-top:1px solid #777;padding-top:15px}.velzo-reviews textarea,.velzo-reviews select{width:100%;padding:10px;margin:7px 0 12px}.velzo-reviews label{display:block}.velzo-review{padding:12px 0;border-bottom:1px solid #7775}.velzo-review small{display:block;opacity:.75}
 @media(max-width:650px){.velzo-floating-support{bottom:12px;right:12px;padding:12px;font-size:12px}}
 </style>
