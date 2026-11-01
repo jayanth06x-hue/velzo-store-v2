@@ -1019,7 +1019,7 @@ function renderOrders() {
     } catch (_) {}
 
     const validStatuses = [
-      "Placed","Confirmed","Packed","Shipped","In Transit","Out for Delivery","Delivered","Return Requested","Return Approved","Return Picked Up","Return Confirmed","Cancelled"
+      "Placed","Confirmed","Packed","Shipped","In Transit","Out for Delivery","Delivered","Return Requested","Return Approved","Out for Pickup","Return Picked Up","Return Confirmed","Cancelled"
     ];
 
     return `
@@ -1052,7 +1052,7 @@ function renderOrders() {
               `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`
             ).join("")}
           </select>
-          <button class="secondary" data-update-order="${esc(o.id)}">Update</button>
+          <label style="font-size:12px;min-width:155px">Pickup date<input type="date" aria-label="Return pickup date for order ${esc(o.id)}" data-pickup-date="${esc(o.id)}" value="${esc(o.pickup_date || '')}" style="margin-top:4px"></label><button class="secondary" data-update-order="${esc(o.id)}">Update</button>
           <button class="gold" data-update-payment="${esc(o.id)}" type="button">Save Payment</button>
            <button class="gold" data-mf-preview="${esc(o.id)}" type="button">CHECK MERCH FACTORY</button>
           <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
@@ -1122,8 +1122,11 @@ $("orderRows").addEventListener("click", async event => {
     const select = button.closest("tr")?.querySelector("select[data-status]");
     if (!select) return;
     if (select.value === "Return Confirmed" && !confirm("Confirm that the returned item has been received and checked? This does not issue a refund automatically.")) return;
+    const pickupInput = button.closest("tr")?.querySelector("input[data-pickup-date]");
+    const pickupDate = pickupInput?.value || null;
+    if (select.value === "Out for Pickup" && !pickupDate) throw new Error("Choose a pickup date before setting Out for Pickup.");
     const {error} = await db.from("orders")
-      .update({status:select.value})
+      .update({status:select.value,pickup_date:pickupDate})
       .eq("id",id);
 
     if (error) throw error;
