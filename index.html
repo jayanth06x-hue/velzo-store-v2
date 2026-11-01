@@ -3003,7 +3003,7 @@ body { background:#fff; color:#151515; }
     else await velzoLoadAddresses();
   };
 
-  function velzoTrackingTimeline(rawStatus, returnRequestStatus) {
+  function velzoTrackingTimeline(rawStatus, returnRequestStatus, pickupDate) {
     const status = String(rawStatus || 'Placed').trim().toLowerCase();
     if (/(cancel|fail)/.test(status)) return `<p class="velzo-tracking-alert">Order status: ${escapeHtml(rawStatus || 'Unknown')}</p>`;
     const steps = ['Confirmed','Processing','Shipped','Delivered','Return'];
@@ -3014,7 +3014,7 @@ body { background:#fff; color:#151515; }
     const returnState = String(returnRequestStatus || '').trim();
     if (/^return/i.test(status) || (returnState && !/^rejected$/i.test(returnState))) current = 4;
     const labels = [...steps];
-    if (current === 4) labels[4] = /confirmed/i.test(status) ? 'Return Confirmed' : /picked up/i.test(status) ? 'Return Picked Up' : /approved/i.test(status) || /^approved$/i.test(returnState) ? 'Return Approved' : 'Return Requested';
+    if (current === 4) labels[4] = /confirmed/i.test(status) ? 'Return Confirmed' : /picked up/i.test(status) ? 'Return Picked Up' : /out for pickup/i.test(status) ? 'Out for Pickup' : /approved/i.test(status) || /^approved$/i.test(returnState) ? 'Return Approved' : 'Return Requested';
     return `<div class="velzo-tracking velzo-tracking-five" aria-label="Order and return progress">${labels.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''} ${i < current ? 'completed-link' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i+1}</span><span>${escapeHtml(label)}</span></div>`).join('')}</div>`;
   }
 
@@ -3028,7 +3028,7 @@ body { background:#fff; color:#151515; }
     if (!currentUser) { target.innerHTML = '<p>Please log in to see your orders.</p>'; return; }
     target.innerHTML = '<p>Loading your orders…</p>';
     try {
-      const {data, error} = await db.from('orders').select('id,created_at,items,total,status,payment_method,payment_status,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,delivered_at').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+      const {data, error} = await db.from('orders').select('id,created_at,items,total,status,payment_method,payment_status,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,delivered_at,pickup_date').eq('user_id', currentUser.id).order('created_at',{ascending:false});
       if (error) throw error;
       if (!data || !data.length) {
         target.innerHTML = '<p>No orders linked to this account yet. Orders placed before customer-account linking may not appear here.</p>';
@@ -3044,7 +3044,7 @@ body { background:#fff; color:#151515; }
         const deliveredAt = order.delivered_at ? new Date(order.delivered_at).getTime() : (status.toLowerCase() === 'delivered' ? Date.now() : 0);
         const canCancel = placedAt && Date.now() <= placedAt + 3*86400000 && !['packed','shipped','delivered','cancelled'].includes(status.toLowerCase()) && !order.cancellation_request_status;
         const canReturn = deliveredAt && Date.now() <= deliveredAt + 3*86400000 && status.toLowerCase() === 'delivered' && !order.return_request_status;
-        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Order total:</strong> ₹${Number(order.total ?? 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(status)}</p>${velzoTrackingTimeline(status,order.return_request_status)}<p><strong>Payment method:</strong> ${escapeHtml(paymentMethod)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p>${order.cancellation_request_status ? `<p><strong>Cancellation request:</strong> ${escapeHtml(order.cancellation_request_status)}</p>` : ''}${order.return_request_status ? `<p><strong>Return request:</strong> ${escapeHtml(order.return_request_status)}</p>` : ''}${canCancel ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','cancel')">Request cancellation</button>` : ''}${canReturn ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','return')">Request return</button>` : ''}</article>`;
+        return `<article class="velzo-order-card"><p><strong>Order:</strong> ${escapeHtml(String(order.id).slice(0,8))}</p><p><strong>Date:</strong> ${escapeHtml(date)}</p><p><strong>Items:</strong> ${items}</p><p><strong>Order total:</strong> ₹${Number(order.total ?? 0).toFixed(2)}</p><p><strong>Status:</strong> ${escapeHtml(status)}</p>${velzoTrackingTimeline(status,order.return_request_status,order.pickup_date)}${order.pickup_date ? `<p><strong>Return pickup date:</strong> ${escapeHtml(new Date(order.pickup_date+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}))}</p>` : ''}<p><strong>Payment method:</strong> ${escapeHtml(paymentMethod)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p>${order.cancellation_request_status ? `<p><strong>Cancellation request:</strong> ${escapeHtml(order.cancellation_request_status)}</p>` : ''}${order.return_request_status ? `<p><strong>Return request:</strong> ${escapeHtml(order.return_request_status)}</p>` : ''}${canCancel ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','cancel')">Request cancellation</button>` : ''}${canReturn ? `<button type="button" onclick="velzoRequestOrderAction('${String(order.id).replace(/[^a-zA-Z0-9-]/g,'')}','return')">Request return</button>` : ''}</article>`;
       }).join('');
     } catch(e) {
       target.innerHTML = '<p>Orders could not load. Please check the customer orders access policy in Supabase.</p>';
