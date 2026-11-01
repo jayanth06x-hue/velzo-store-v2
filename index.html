@@ -2069,6 +2069,22 @@ function discountMarkup(p) {
 let appliedCoupon = "";
 let quotedTotal = null;
 let displayedPaymentTotal = null;
+// Delivery is charged once per distinct product/variant, never per quantity.
+function velzoDeliveryUnits(items = cart) {
+  const keys = new Set(items.map(item => JSON.stringify([
+    String(item.id ?? ""),
+    String(item.size ?? "").trim().toLowerCase(),
+    String(item.color ?? "").trim().toLowerCase(),
+    String(item.shirt_size ?? "").trim().toLowerCase(),
+    String(item.pant_size ?? "").trim().toLowerCase(),
+    String(item.shirt_color ?? "").trim().toLowerCase(),
+    String(item.pant_color ?? "").trim().toLowerCase()
+  ])));
+  return keys.size;
+}
+function velzoDeliveryTotal() {
+  return VELZO_FREE_SHIPPING_ENABLED ? 0 : Math.round(VELZO_DELIVERY_CHARGE * velzoDeliveryUnits() * 100) / 100;
+}
 function checkoutAmountForPayment(){ return displayedPaymentTotal; }
 async function quoteOrder(code = appliedCoupon) {
   const items = cart.map(item => ({id:item.id,qty:item.qty}));
@@ -2418,7 +2434,7 @@ async function showCheckout() {
     target.innerHTML = `<h2>Checkout unavailable</h2><p>${escapeHTML(error.message || "Could not verify order total.")}</p><button onclick="renderCart()">BACK TO BAG</button>`;
     return;
   }
-  const deliveryCharge = VELZO_FREE_SHIPPING_ENABLED ? 0 : VELZO_DELIVERY_CHARGE;
+  const deliveryCharge = velzoDeliveryTotal();
   const checkoutAmount = Math.round((Number(quote.total) + deliveryCharge) * 100) / 100;
   displayedPaymentTotal = checkoutAmount;
   const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
@@ -2450,7 +2466,7 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery charge: ${money(deliveryCharge)}</strong></p>`}
+      ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery: ${money(VELZO_DELIVERY_CHARGE)} × ${velzoDeliveryUnits()} distinct product/size/colour combination(s) = ${money(deliveryCharge)}</strong></p>`}
       <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px">Final payable total: ${money(checkoutAmount)}</div></div>
       
       <button class="gold-button full-button" type="submit">
@@ -2564,7 +2580,7 @@ async function submitOrder(event) {
     }
 
     const freshQuote = await quoteOrder();
-    if (Math.abs((Number(freshQuote.total) + (VELZO_FREE_SHIPPING_ENABLED ? 0 : VELZO_DELIVERY_CHARGE)) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
