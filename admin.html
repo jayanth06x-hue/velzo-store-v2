@@ -328,6 +328,11 @@ button.danger { background:#8d302b; color:#fff; }
           <p id="cancellationLoadStatus" class="note" role="status" aria-live="polite"></p>
           <div class="table-wrap"><table><thead><tr><th>Requested</th><th>Order</th><th>Customer</th><th>Request status</th><th>Review</th></tr></thead><tbody id="cancellationRows"></tbody></table></div>
         </div>
+        <div class="panel" style="margin:18px 0;background:#202225">
+          <div class="actions" style="justify-content:space-between"><h2 style="margin:0">Customer Return Requests</h2><button class="secondary" id="refreshReturns" type="button">REFRESH RETURNS</button></div>
+          <p id="returnLoadStatus" class="note" role="status" aria-live="polite"></p>
+          <div class="table-wrap"><table><thead><tr><th>Requested</th><th>Order</th><th>Customer</th><th>Return status</th><th>Actions</th></tr></thead><tbody id="returnRows"></tbody></table></div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Order</th><th>Customer / Delivery</th><th>Items</th><th>Total</th><th>Payment Method</th><th>Payment Status</th><th>Status</th><th>Update / Delete</th></tr></thead>
@@ -592,7 +597,7 @@ async function loadProducts() {
 
 async function loadOrders() {
   const {data, error} = await db.from("orders")
-    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status")
+    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -600,6 +605,7 @@ async function loadOrders() {
   allOrders = data || [];
   renderOrders();
   renderCancellations();
+  renderReturns();
   if (allPaymentConfirmations.length) renderPaymentConfirmations();
   renderStats();
 }
@@ -731,6 +737,39 @@ $("cancellationRows").addEventListener("click", async event => {
 $("refreshCancellations").addEventListener("click", async () => {
   try { await loadOrders(); message("Cancellation requests refreshed."); }
   catch(e) { message("Could not refresh cancellation requests: " + e.message); }
+});
+
+function renderReturns() {
+  const rows = allOrders.filter(o => o.return_requested_at || o.return_request_status);
+  const pending = rows.filter(o => String(o.return_request_status || '').toLowerCase() === 'pending').length;
+  $("returnLoadStatus").textContent = `${pending} pending return request(s).`;
+  $("returnRows").innerHTML = rows.map(o => {
+    const state = String(o.return_request_status || 'Pending');
+    const pending = state.toLowerCase() === 'pending';
+    return `<tr><td>${o.return_requested_at ? esc(new Date(o.return_requested_at).toLocaleString('en-IN')) : '—'}</td><td>${esc(o.id)}<br><small>${esc(o.status)}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.customer_phone)}</small></td><td>${esc(state)}</td><td>${pending ? `<div class="actions"><button class="gold" data-return-decision="Approved" data-return-order="${esc(o.id)}">Approve</button><button class="danger" data-return-decision="Rejected" data-return-order="${esc(o.id)}">Reject</button></div>` : 'Reviewed'}</td></tr>`;
+  }).join('') || '<tr><td colspan="5">No return requests yet.</td></tr>';
+}
+$("returnRows").addEventListener("click", async event => {
+  const button = event.target.closest('button[data-return-decision]');
+  if (!button) return;
+  const id = button.dataset.returnOrder, decision = button.dataset.returnDecision;
+  if (!['Approved','Rejected'].includes(decision)) return;
+  if (!confirm(`${decision} return request for order ${id}? This does not issue a refund.`)) return;
+  button.disabled = true;
+  try {
+    const changes = {return_request_status:decision};
+    if (decision === 'Approved') changes.status = 'Return Approved';
+    const {data,error} = await db.from('orders').update(changes).eq('id',id).eq('return_request_status','Pending').select('id');
+    if (error) throw error;
+    if (!data?.length) throw new Error('No row updated. Check admin permissions and current request status.');
+    await loadOrders();
+    message(`Return ${decision.toLowerCase()}. No refund was issued automatically.`);
+  } catch(e) { message('Could not review return: ' + e.message); }
+  finally {button.disabled = false;}
+});
+$("refreshReturns").addEventListener('click', async () => {
+  try { await loadOrders(); message('Return requests refreshed.'); }
+  catch(e) { message('Could not refresh returns: ' + e.message); }
 });
 
 function renderStats() {
