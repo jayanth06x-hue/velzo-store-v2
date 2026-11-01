@@ -3018,6 +3018,13 @@ body { background:#fff; color:#151515; }
     return `<div class="velzo-tracking velzo-tracking-five" aria-label="Order and return progress">${labels.map((label,i) => `<div class="velzo-tracking-step ${i <= current ? 'done' : ''} ${i < current ? 'completed-link' : ''}" ${i === current ? 'aria-current="step"' : ''}><span class="velzo-tracking-dot">${i < current ? '✓' : i+1}</span><span>${escapeHtml(label)}</span></div>`).join('')}</div>`;
   }
 
+  // Refresh saved order statuses when customers return to the browser tab.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && typeof currentUser !== 'undefined' && currentUser && document.getElementById('velzo-account-orders')?.style.display !== 'none') {
+      window.velzoLoadOrders?.();
+    }
+  });
+
   // Five stages fit on desktop and scroll horizontally on small screens.
   const returnTimelineStyle = document.createElement('style');
   returnTimelineStyle.textContent = '.velzo-tracking-five{grid-template-columns:repeat(5,minmax(0,1fr))!important}.velzo-tracking-five .velzo-tracking-step{min-width:0}.velzo-tracking-five .velzo-tracking-step>span:last-child{font-size:11px;overflow-wrap:anywhere}@media(max-width:520px){.velzo-tracking-five{overflow-x:auto;grid-template-columns:repeat(5,minmax(74px,1fr))!important}}';
