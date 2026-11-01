@@ -597,7 +597,7 @@ async function loadProducts() {
 
 async function loadOrders() {
   const {data, error} = await db.from("orders")
-    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,pickup_date")
+    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,pickup_date,delivery_date,return_date")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -1052,6 +1052,8 @@ function renderOrders() {
               `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`
             ).join("")}
           </select>
+          <label style="font-size:12px;min-width:155px">Delivery date<input type="date" aria-label="Delivery date for order ${esc(o.id)}" data-delivery-date="${esc(o.id)}" value="${esc(o.delivery_date || '')}" style="margin-top:4px"></label>
+          <label style="font-size:12px;min-width:155px">Return date<input type="date" aria-label="Return date for order ${esc(o.id)}" data-return-date="${esc(o.id)}" value="${esc(o.return_date || '')}" style="margin-top:4px"></label>
           <label style="font-size:12px;min-width:155px">Pickup date<input type="date" aria-label="Return pickup date for order ${esc(o.id)}" data-pickup-date="${esc(o.id)}" value="${esc(o.pickup_date || '')}" style="margin-top:4px"></label><button class="secondary" data-update-order="${esc(o.id)}">Update</button>
           <button class="gold" data-update-payment="${esc(o.id)}" type="button">Save Payment</button>
            <button class="gold" data-mf-preview="${esc(o.id)}" type="button">CHECK MERCH FACTORY</button>
@@ -1124,10 +1126,12 @@ $("orderRows").addEventListener("click", async event => {
     if (select.value === "Return Confirmed" && !confirm("Confirm that the returned item has been received and checked? This does not issue a refund automatically.")) return;
     const pickupInput = button.closest("tr")?.querySelector("input[data-pickup-date]");
     const pickupDate = pickupInput?.value || null;
+    const deliveryDate = button.closest("tr")?.querySelector("input[data-delivery-date]")?.value || null;
+    const returnDate = button.closest("tr")?.querySelector("input[data-return-date]")?.value || null;
     if (select.value === "Out for Pickup" && !pickupDate) throw new Error("Choose a pickup date before setting Out for Pickup.");
     const {data,error} = await db.from("orders")
-      .update({status:select.value,pickup_date:pickupDate})
-      .eq("id",id).select("id,status,pickup_date");
+      .update({status:select.value,pickup_date:pickupDate,delivery_date:deliveryDate,return_date:returnDate})
+      .eq("id",id).select("id,status,pickup_date,delivery_date,return_date");
 
     if (error) throw error;
     if (!data?.length) throw new Error("No order was updated. Check Supabase admin UPDATE policy.");
