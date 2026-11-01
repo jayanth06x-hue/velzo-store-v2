@@ -194,8 +194,10 @@ button.danger { background:#8d302b; color:#fff; }
     </section>
     <section class="panel" id="freeShippingPanel">
       <h2>Free shipping at checkout</h2>
-      <p class="muted">Control the free-shipping message beside COD/UPI. This setting does not calculate or charge shipping fees; configure any shipping charges separately before disabling the offer.</p>
-      <label class="field-label"><input type="checkbox" id="freeShippingEnabled" style="width:auto"> Show FREE SHIPPING (₹0) at checkout</label>
+      <p class="muted">Choose free shipping or a flat delivery charge. The checkout total and UPI QR will include the configured charge.</p>
+      <label class="field-label"><input type="checkbox" id="freeShippingEnabled" style="width:auto"> Enable FREE SHIPPING (₹0)</label>
+      <label class="field-label" for="deliveryCharge">Delivery charge when free shipping is OFF (₹)</label>
+      <input id="deliveryCharge" type="number" min="0" max="99999" step="0.01" value="0" inputmode="decimal">
       <button type="button" class="gold" id="saveFreeShipping">SAVE SHIPPING SETTING</button>
     </section>
     <section class="panel" id="featuredProductPanel">
@@ -504,20 +506,23 @@ $("deliveryEstimateForm").addEventListener("submit",async event=>{
 });
 
 async function loadFreeShippingSetting() {
-  const {data,error}=await db.from("store_settings").select("free_shipping_enabled").eq("id",1).maybeSingle();
+  const {data,error}=await db.from("store_settings").select("free_shipping_enabled,delivery_charge").eq("id",1).maybeSingle();
   if (error) { message("Could not load shipping setting: "+error.message); return; }
   $("freeShippingEnabled").checked = data?.free_shipping_enabled === true;
+  $("deliveryCharge").value = data?.delivery_charge ?? 0;
 }
 $("saveFreeShipping").addEventListener("click", async () => {
   const button = $("saveFreeShipping");
   button.disabled = true;
   try {
+    const charge = Number($("deliveryCharge").value);
+    if (!Number.isFinite(charge) || charge < 0 || charge > 99999 || Math.round(charge * 100) !== charge * 100) throw new Error("Enter a valid delivery charge in rupees (up to 2 decimals).");
     const {data,error}=await db.from("store_settings")
-      .update({free_shipping_enabled:$("freeShippingEnabled").checked})
+      .update({free_shipping_enabled:$("freeShippingEnabled").checked,delivery_charge:charge})
       .eq("id",1).select("id");
     if(error) throw error;
     if(!data?.length) throw new Error("No setting was updated. Check admin UPDATE permissions.");
-    message("Free-shipping display saved. Refresh the storefront to see the change.");
+    message("Shipping settings saved. New checkouts will use the selected delivery charge.");
   } catch(error) { message("Could not save free-shipping setting: "+error.message); }
   finally { button.disabled=false; }
 });
