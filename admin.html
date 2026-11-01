@@ -597,7 +597,7 @@ async function loadProducts() {
 
 async function loadOrders() {
   const {data, error} = await db.from("orders")
-    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status")
+    .select("id,customer_name,customer_phone,customer_address,items,total,status,payment_method,payment_status,created_at,cancellation_requested_at,cancellation_request_status,return_requested_at,return_request_status,pickup_date")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -1125,11 +1125,12 @@ $("orderRows").addEventListener("click", async event => {
     const pickupInput = button.closest("tr")?.querySelector("input[data-pickup-date]");
     const pickupDate = pickupInput?.value || null;
     if (select.value === "Out for Pickup" && !pickupDate) throw new Error("Choose a pickup date before setting Out for Pickup.");
-    const {error} = await db.from("orders")
+    const {data,error} = await db.from("orders")
       .update({status:select.value,pickup_date:pickupDate})
-      .eq("id",id);
+      .eq("id",id).select("id,status,pickup_date");
 
     if (error) throw error;
+    if (!data?.length) throw new Error("No order was updated. Check Supabase admin UPDATE policy.");
 
     await loadOrders();
     message("Order status updated.");
