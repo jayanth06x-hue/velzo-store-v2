@@ -2069,17 +2069,20 @@ function discountMarkup(p) {
 let appliedCoupon = "";
 let quotedTotal = null;
 let displayedPaymentTotal = null;
-// Delivery is charged once per distinct product/variant, never per quantity.
+// Delivery is charged once per unique clothing variant, not per quantity.
+// A combo contains TWO garments: one T-shirt and one pair of sweatpants.
 function velzoDeliveryUnits(items = cart) {
-  const keys = new Set(items.map(item => JSON.stringify([
-    String(item.id ?? ""),
-    String(item.size ?? "").trim().toLowerCase(),
-    String(item.color ?? "").trim().toLowerCase(),
-    String(item.shirt_size ?? "").trim().toLowerCase(),
-    String(item.pant_size ?? "").trim().toLowerCase(),
-    String(item.shirt_color ?? "").trim().toLowerCase(),
-    String(item.pant_color ?? "").trim().toLowerCase()
-  ])));
+  const keys = new Set();
+  for (const item of items) {
+    const product = PRODUCTS.find(p => String(p.id) === String(item.id));
+    const norm = value => String(value ?? "").trim().toLowerCase();
+    if (product && isCombo(product)) {
+      keys.add(JSON.stringify(["combo-shirt", norm(item.id), norm(item.shirt_size), norm(item.shirt_color)]));
+      keys.add(JSON.stringify(["combo-pant", norm(item.id), norm(item.pant_size), norm(item.pant_color)]));
+    } else {
+      keys.add(JSON.stringify(["product", norm(item.id), norm(item.size), norm(item.color)]));
+    }
+  }
   return keys.size;
 }
 function velzoDeliveryTotal() {
