@@ -1966,6 +1966,8 @@ async function loadProducts() {
   saveCart();
   setupCategories();
   renderProducts();
+  const sharedProductId = new URLSearchParams(location.search).get("product") || (location.hash.startsWith("#product-") ? decodeURIComponent(location.hash.slice(9)) : null);
+  if (sharedProductId && PRODUCTS.some(p => String(p.id) === sharedProductId)) showProductDetails(sharedProductId);
 }
 
 function shopAccessories() {
@@ -2188,7 +2190,7 @@ function closeVelzoPolicy() {
 }
 async function shareVelzoProduct(id) {
   const p = PRODUCTS.find(item => String(item.id) === String(id)); if (!p) return;
-  const url = new URL(window.location.href); url.hash = 'product-' + encodeURIComponent(p.id);
+  const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('product', p.id);
   const shareData = {title: p.name + ' | Velzo Collections', text: p.name + ' — ' + money(discountedPrice(p)) + ' at Velzo Collections', url: url.href};
   try {
     if (navigator.share) { await navigator.share(shareData); }
@@ -2220,11 +2222,14 @@ function showProductDetails(id) {
         ${comboPicker(p)}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
         <button class="add-button" onclick="addToCart('${safeId}');if(!${Boolean(p.out_of_stock)})closeProductDetails()" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
+        <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${safeId}')">↗ Share this product</button>
+        <section class="velzo-reviews"><h3>Customer reviews</h3><div id="velzo-review-list">Loading reviews…</div><form id="velzo-review-form" onsubmit="submitVelzoReview(event, '${safeId}')"><label>Rating <select name="rating" required><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option><option value="3">★★★ 3</option><option value="2">★★ 2</option><option value="1">★ 1</option></select></label><label>Your review <textarea name="body" required minlength="10" maxlength="1000" placeholder="Share your genuine experience"></textarea></label><button type="submit" class="gold-button">SUBMIT REVIEW</button><p class="subtext">Sign in to submit. Reviews appear after approval.</p></form></section>
       </div>
     </div>`;
   const modal = document.getElementById('product-details-modal');
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  loadVelzoReviews(p.id);
 }
 function closeProductDetails() {
   const modal = document.getElementById('product-details-modal');
@@ -2424,7 +2429,8 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      <p><strong>Order total (including discounts): ${money(checkoutAmount)}</strong></p>
+      <p class="velzo-free-shipping">🚚 <strong>FREE SHIPPING</strong> on this order · Shipping charge ₹0</p>
+      <p><strong>Order total (including discounts and free shipping): ${money(checkoutAmount)}</strong></p>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -3837,5 +3843,34 @@ document.querySelectorAll('[data-velzo-apk]').forEach(button => {
 })();
 </script>
 
+
+<style id="velzo-order-improvements">
+.velzo-floating-support{position:fixed;right:16px;bottom:18px;z-index:9998;display:flex;align-items:center;gap:7px;background:#167d4b;color:#fff!important;border:1px solid #a4d5ae;padding:13px 16px;border-radius:50px;box-shadow:0 5px 25px #0005;font:700 13px Arial,sans-serif;text-decoration:none}
+.velzo-floating-support:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.velzo-free-shipping{padding:13px!important;background:#e8f5eb!important;color:#174b2b!important;border:1px solid #91cba0!important;border-radius:8px!important}
+.velzo-reviews{margin-top:22px;border-top:1px solid #777;padding-top:15px}.velzo-reviews textarea,.velzo-reviews select{width:100%;padding:10px;margin:7px 0 12px}.velzo-reviews label{display:block}.velzo-review{padding:12px 0;border-bottom:1px solid #7775}.velzo-review small{display:block;opacity:.75}
+@media(max-width:650px){.velzo-floating-support{bottom:12px;right:12px;padding:12px;font-size:12px}}
+</style>
+<a class="velzo-floating-support" href="https://wa.me/918500716966?text=Hi%20VELZO%20COLLECTIONS%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Chat with VELZO customer support on WhatsApp">✆ WhatsApp Support</a>
+<script>
+async function loadVelzoReviews(productId) {
+ const target=document.getElementById('velzo-review-list');if(!target)return;
+ const {data,error}=await db.from('product_reviews').select('rating,body,created_at').eq('product_id',String(productId)).eq('approved',true).order('created_at',{ascending:false}).limit(30);
+ if(!target.isConnected)return;
+ if(error){target.textContent='Reviews are unavailable until the review database is set up.';return;}
+ target.innerHTML=(data||[]).map(r=>'<div class="velzo-review"><strong>'+ '★'.repeat(Math.min(5,Math.max(1,Number(r.rating)||1))) +'</strong><p>'+escapeHTML(r.body)+'</p><small>'+new Date(r.created_at).toLocaleDateString('en-IN')+'</small></div>').join('')||'<p>No reviews yet. Be the first to review after purchasing.</p>';
+}
+async function submitVelzoReview(event,productId){
+ event.preventDefault();const form=event.currentTarget;const button=form.querySelector('button[type="submit"]');
+ const {data:{user},error:authError}=await db.auth.getUser();
+ if(authError||!user){showToast('Please sign in to submit a review.');return;}
+ button.disabled=true;
+ try{const rating=Number(form.elements.rating.value),body=form.elements.body.value.trim();
+ if(!Number.isInteger(rating)||rating<1||rating>5||body.length<10||body.length>1000)throw new Error('Please enter a valid rating and at least 10 characters.');
+ const {error}=await db.from('product_reviews').insert({product_id:String(productId),user_id:user.id,rating,body});
+ if(error)throw error;form.reset();showToast('Review submitted for approval.');
+ }catch(e){showToast('Could not submit review: '+e.message);}finally{button.disabled=false;}
+}
+</script>
 </body>
 </html>
