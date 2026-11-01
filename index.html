@@ -1664,6 +1664,15 @@ body { background:#e9e7e2; }
 .velzo-shipping-notice,.velzo-free-shipping,.velzo-checkout-total {background:#fff!important;border:1px solid #c5a16b!important;border-radius:8px!important;padding:13px!important;line-height:1.7!important;}
 </style>
 
+<style id="velzo-checkout-contrast-final">
+/* High contrast on white shipping and payment breakdown panels */
+.velzo-shipping-notice, .velzo-free-shipping, .velzo-checkout-total,
+.velzo-shipping-notice *, .velzo-free-shipping *, .velzo-checkout-total * {
+ color:#111!important; -webkit-text-fill-color:#111!important;
+ opacity:1!important; text-shadow:none!important; filter:none!important;
+}
+.velzo-shipping-notice,.velzo-free-shipping,.velzo-checkout-total {background:#fff!important;}
+</style>
 </head>
 
 <body>
@@ -2441,8 +2450,8 @@ async function showCheckout() {
       <input id="customer-city" autocomplete="address-level2" placeholder="Delivery city" maxlength="100" required>
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
-      ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping">🚚 <strong>FREE SHIPPING</strong> · Delivery ₹0</p>' : `<p class="velzo-shipping-notice">🚚 <strong>Delivery charge: ${money(deliveryCharge)}</strong></p>`}
-      <p class="velzo-checkout-total"><strong>Products after discounts: ${money(quote.total)}</strong><br><strong>Delivery: ${money(deliveryCharge)}</strong><br><strong>Final payable total: ${money(checkoutAmount)}</strong></p>
+      ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery charge: ${money(deliveryCharge)}</strong></p>`}
+      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px">Final payable total: ${money(checkoutAmount)}</div></div>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
