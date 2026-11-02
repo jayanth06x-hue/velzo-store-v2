@@ -2470,6 +2470,9 @@ async function showCheckout() {
         placeholder="Full name" maxlength="100" required>
       <input id="customer-phone" type="tel" autocomplete="tel"
         placeholder="Mobile number" maxlength="20" required>
+      <label for="customer-email" style="font-size:13px;font-weight:600">Email address for order confirmation</label>
+      <input id="customer-email" type="email" name="email" autocomplete="email" inputmode="email"
+        placeholder="you@example.com" maxlength="254" required>
       <button class="location-button" type="button" onclick="useCurrentLocation()">
         ⌖ USE MY CURRENT LOCATION
       </button>
@@ -2577,6 +2580,7 @@ async function submitOrder(event) {
 
   const name = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
+  const email = document.getElementById("customer-email").value.trim().toLowerCase();
   const street = document.getElementById("customer-street").value.trim();
   const city = document.getElementById("customer-city").value.trim();
   const pincode = document.getElementById("customer-pincode").value.trim();
@@ -2587,6 +2591,7 @@ async function submitOrder(event) {
 
   try {
     if (!cart.length) throw new Error("Your bag is empty.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) throw new Error("Enter a valid email address to receive your order confirmation.");
     if (/upi|phonepe/i.test(String(paymentMethod)) && (submittedUtr.length < 6 || submittedUtr.length > 100)) {
       throw new Error("After paying by UPI, enter your transaction ID / UTR below the QR code (6–100 characters).");
     }
@@ -2610,6 +2615,7 @@ async function submitOrder(event) {
     const { data, error } = await db.rpc("place_order_with_shipping", {
       p_customer_name: name,
       p_customer_phone: phone,
+      p_customer_email: email,
       p_customer_address: address,
       p_items: orderItems,
       p_payment_method: paymentMethod,
@@ -2652,6 +2658,7 @@ async function submitOrder(event) {
       `Payment method selected: ${paymentMethod}`,
       `Name: ${name}`,
       `Phone: ${phone}`,
+      `Email: ${email}`,
       `Address: ${address}`,
       "",
       "Please confirm my order."
