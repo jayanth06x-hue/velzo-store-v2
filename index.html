@@ -1676,14 +1676,13 @@ body { background:#e9e7e2; }
 </head>
 
 <body>
-  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎ OUR PAGE</a> <a class="velzo-app-announcement" href="#download-app" data-velzo-apk>↓ DOWNLOAD ANDROID APP</a></div>
+  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎ OUR PAGE</a></div>
 
   <header class="header">
     <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
     <nav class="nav" aria-label="Main navigation">
       <a href="#shop">Shop</a>
       <a class="optional-link velzo-page-nav" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">Our Page ↗</a>
-      <a class="velzo-app-nav" href="#download-app" data-velzo-apk>↓ DOWNLOAD APP</a>
       <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
         Bag (<span id="cart-count">0</span>)
       </button>
@@ -2193,26 +2192,11 @@ function renderProducts() {
         <h3>${escapeHTML(p.name)}</h3>
         <p class="product-description">${escapeHTML(p.description)}</p>
         <div class="product-price">${discountMarkup(p)}</div>
-        <div class="velzo-delivery-estimate" style="display:block!important;visibility:visible!important;opacity:1!important;background:#ffffff!important;color:#17251b!important;border:1px solid #bcc9bd!important;padding:10px!important;margin:10px 0!important;font-size:12px!important;line-height:1.5!important;font-weight:700!important">🚚 ${escapeHTML(deliveryEstimateText())}</div>
+        <div class="velzo-delivery-estimate">🚚 ${escapeHTML(deliveryEstimateText())}</div>
         <button type="button" class="details-button" onclick="showProductDetails('${escapeHTML(p.id)}')">VIEW PRODUCT DETAILS</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${escapeHTML(p.id)}')" aria-label="Share ${escapeHTML(p.name)}">↗ Share product</button>
         ${p.out_of_stock ? '<div class="stock-label">Out of stock</div>' : ''}
-        ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `
-          <label class="subtext" for="color-${escapeHTML(p.id)}">Select colour</label>
-          <select id="color-${escapeHTML(p.id)}" class="product-color-select" onchange="selectProductColor('${escapeHTML(p.id)}',this.value)" ${p.out_of_stock ? 'disabled' : ''}>
-            <option value="">Choose colour</option>
-            ${p.colors.map(color => `<option value="${escapeHTML(color)}" ${selectedColors[p.id] === color ? 'selected' : ''}>${escapeHTML(color)}</option>`).join('')}
-          </select>
-        ` : ''}
-        ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `
-          <label class="subtext" for="size-${escapeHTML(p.id)}">Select size</label>
-          <div class="size-choice-buttons" aria-label="Choose size">${p.sizes.map(size => `<button type="button" class="size-choice ${selectedSizes[p.id] === size ? 'selected' : ''}" onclick="selectProductSize('${escapeHTML(p.id)}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock ? 'disabled' : ''}>${escapeHTML(size)}</button>`).join('')}</div>
-          ${p.size_chart_url ? `<a class="size-chart-link" href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">VIEW SIZE CHART</a>` : ''}
-        ` : ''}
-        ${comboPicker(p)}
-        <button class="add-button" onclick="addToCart('${escapeHTML(p.id)}')" ${p.out_of_stock ? 'disabled' : ''}>
-          ${p.out_of_stock ? 'OUT OF STOCK' : 'ADD TO BAG'}
-        </button>
+        ${p.size_chart_url ? `<a class="size-chart-link" href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener noreferrer">VIEW SIZE CHART</a>` : ''}
       </div>
     </article>
   `).join("");
@@ -3897,21 +3881,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #F65A73!important;outline
 </style>
 
 
-<!-- CHANGE ONLY THIS URL after uploading your APK to a public GitHub Release. -->
-<script>
-const VELZO_APK_DOWNLOAD_URL = "https://github.com/jayanth06x-hue/velzo-store-v2/releases/download/v1.0.0/Velzo-Collections-1.0.0-1-demo.apk"; // Example: https://github.com/USERNAME/REPO/releases/download/v1.0.0/Velzo-Collections-1.0.0-1-demo.apk
-document.querySelectorAll('[data-velzo-apk]').forEach(button => {
-  button.addEventListener('click', function(event) {
-    event.preventDefault();
-    if (!VELZO_APK_DOWNLOAD_URL || !/^https:\/\//i.test(VELZO_APK_DOWNLOAD_URL)) {
-      alert('VELZO Android app download is coming soon. Please check back shortly.');
-      return;
-    }
-    window.location.href = VELZO_APK_DOWNLOAD_URL;
-  });
-});
-</script>
-
 <!-- Diwali seasonal overlay: self-contained, does not alter existing site layout -->
 <style>
 #velzo-diwali-layer{position:fixed;inset:0;z-index:9990;pointer-events:none;overflow:hidden}
@@ -3977,7 +3946,7 @@ document.querySelectorAll('[data-velzo-apk]').forEach(button => {
 .velzo-tracking-step[aria-current="step"] .velzo-tracking-dot{outline:2px solid #c5a16b;outline-offset:3px}
 @media(max-width:420px){.velzo-tracking-step{font-size:9px}.velzo-tracking-dot{width:27px;height:27px}.velzo-tracking-step:not(:last-child)::after{top:12px;left:calc(50% + 13px);right:calc(-50% + 13px)}}
 </style>
-<a class="velzo-floating-support" href="https://wa.me/918500716966?text=Hi%20VELZO%20COLLECTIONS%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Chat with VELZO customer support on WhatsApp">✆ WhatsApp Support</a>
+<a class="velzo-floating-support" href="https://wa.me/918500716966?text=Hi%20VELZO%20COLLECTIONS%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Chat with VELZO customer support on WhatsApp" title="Chat on WhatsApp"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.2-4.7A8.5 8.5 0 1 1 20.5 11.5Z"/><path d="M9 8.5c.4 3.1 2.1 4.9 5.2 5.7l1.3-1.2 2 1.2c-.7 1.8-2.1 2.2-3.7 1.7-3.2-1-5.4-3.2-6.3-6.3-.4-1.5.1-2.9 1.6-3.6l1.3 2-1.4 1.6Z"/></svg></a>
 <script>
 async function loadVelzoReviews(productId) {
  const target=document.getElementById('velzo-review-list');if(!target)return;
@@ -4038,6 +4007,100 @@ body{padding-bottom:54px}
 @media(max-width:380px){
   #shop .product-grid{grid-template-columns:1fr!important}
   #shop .product-details{padding:15px!important}
+}
+</style>
+
+
+<!-- VELZO 2026: mobile polish. Existing bag, checkout, admin pricing and details preserved. -->
+<style id="velzo-mobile-polish-final">
+/* Floating WhatsApp chat: compact, readable, never a wide product-covering pill. */
+a.velzo-floating-support,a.velzo-floating-support:hover{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  width:50px!important;height:50px!important;min-width:50px!important;min-height:50px!important;
+  padding:0!important;border-radius:50%!important;right:14px!important;bottom:16px!important;
+  background:#138a53!important;color:#fff!important;border:2px solid #b6e4c8!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.35)!important;z-index:120!important;
+  font-size:0!important;line-height:1!important;text-decoration:none!important;
+}
+a.velzo-floating-support svg{display:block!important;width:25px!important;height:25px!important;flex:none!important}
+a.velzo-floating-support:focus-visible{outline:3px solid #fff!important;outline-offset:3px!important}
+#shop .velzo-delivery-estimate{
+  display:block!important;visibility:visible!important;opacity:1!important;
+  background:#f3f8f2!important;color:#173626!important;border:1px solid #bfd7c6!important;
+  border-radius:8px!important;padding:10px 12px!important;margin:9px 0 12px!important;
+  font-size:12px!important;line-height:1.45!important;font-weight:700!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:620px){
+  html,body{max-width:100%;overflow-x:clip}
+  .announcement{display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:center!important;flex-wrap:wrap!important;gap:6px 10px!important;
+    padding:9px 12px!important;font-size:9px!important;line-height:1.4!important;
+    letter-spacing:.065em!important;text-align:center!important}
+  .announcement .velzo-page-announcement{display:inline-flex!important;margin:0!important;
+    padding:5px 9px!important;min-height:29px!important;font-size:9px!important;border-radius:7px!important}
+  .header{display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:10px!important;padding:11px 14px 13px!important;min-height:0!important}
+  .header .logo{display:flex!important;flex-direction:row!important;align-items:baseline!important;
+    justify-content:center!important;flex:0 0 auto!important;white-space:nowrap!important;
+    font-size:23px!important;letter-spacing:.13em!important;line-height:1.1!important}
+  .header .logo small{display:inline!important;margin:0 0 0 9px!important;
+    font-size:8px!important;letter-spacing:.18em!important;white-space:nowrap!important}
+  .header .nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    width:100%!important;gap:7px!important;flex:none!important;min-width:0!important}
+  /* Instagram is already in the announcement; don't repeat it in the mobile header. */
+  .header .nav a.velzo-page-nav{display:none!important}
+  .header .nav a[href="#shop"]{order:1!important}
+  .header .nav .cart-button{order:2!important}
+  .header .nav .velzo-account-nav{order:3!important}
+  .header .nav .velzo-care-nav{order:4!important}
+  .header .nav a[href="#shop"],.header .nav .cart-button,
+  .header .nav .velzo-account-nav,.header .nav .velzo-care-nav{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    width:100%!important;min-width:0!important;min-height:40px!important;
+    padding:8px 9px!important;border-radius:9px!important;
+    font-size:11px!important;font-weight:750!important;letter-spacing:.015em!important;
+    line-height:1.25!important;white-space:normal!important;text-align:center!important;
+    overflow-wrap:anywhere!important;box-shadow:none!important}
+  .header .nav .velzo-account-nav,.header .nav .velzo-care-nav{
+    background:#143d2b!important;border-color:#3c7855!important;color:#fff!important;
+    -webkit-text-fill-color:#fff!important}
+  .hero.velzo-video-hero{margin:0!important}
+  .velzo-video-categories{gap:8px!important;padding:12px 12px 15px!important}
+  .velzo-video-categories button{min-width:0!important;min-height:40px!important;
+    padding:10px 8px!important;font-size:10px!important;letter-spacing:.1em!important}
+  #velzo-featured.velzo-featured{margin:15px auto 25px!important;padding:22px 15px 24px!important}
+  #velzo-featured .velzo-featured-copy h2{font-size:clamp(30px,8vw,43px)!important;
+    line-height:1.08!important;overflow-wrap:anywhere!important}
+  #velzo-featured .velzo-featured-bottom{display:flex!important;flex-wrap:wrap!important;
+    gap:12px!important;align-items:center!important;margin-top:14px!important}
+  #velzo-featured .velzo-featured-bottom #velzo-featured-shop{
+    width:auto!important;min-width:0!important;max-width:100%!important;
+    min-height:43px!important;padding:10px 14px!important;font-size:10px!important}
+  #shop .tools{gap:8px!important}
+  #shop .velzo-category-slider{scrollbar-width:none!important;-ms-overflow-style:none!important;
+    overflow-x:auto!important;scroll-snap-type:x proximity!important;padding-bottom:8px!important;margin-bottom:18px!important}
+  #shop .velzo-category-slider::-webkit-scrollbar{display:none!important}
+  #shop .velzo-category-slider button{padding:10px 14px!important;min-height:41px!important}
+  #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  #shop .product{min-width:0!important}
+  #shop .product-details{padding:10px 9px 13px!important}
+  #shop .product h3{font-size:12px!important;min-height:0!important}
+  #shop .product-description{font-size:10px!important;min-height:0!important}
+  #shop .product-price{font-size:17px!important;gap:3px 6px!important;margin:7px 0 8px!important}
+  #shop .product-price span{font-size:10px!important}
+  #shop .velzo-delivery-estimate{padding:8px!important;margin:7px 0 10px!important;
+    font-size:10px!important;line-height:1.4!important;border-radius:7px!important}
+  #shop .details-button,#shop .velzo-share-button{font-size:10px!important;
+    min-height:39px!important;padding:8px 5px!important;line-height:1.25!important}
+  a.velzo-floating-support{right:12px!important;bottom:14px!important;width:46px!important;
+    height:46px!important;min-width:46px!important;min-height:46px!important}
+}
+@media(max-width:360px){
+  .header .nav a[href="#shop"],.header .nav .cart-button,
+  .header .nav .velzo-account-nav,.header .nav .velzo-care-nav{font-size:10px!important}
+  #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #shop .product-details{padding:9px 6px 12px!important}
 }
 </style>
 
