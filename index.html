@@ -1906,7 +1906,7 @@ function renderFeaturedProduct() {
   const primary = chosen[0];
   document.getElementById("velzo-featured-name").textContent = primary.name || "Featured look";
   document.getElementById("velzo-featured-description").textContent = primary.description || "A signature look from Velzo Collections.";
-  document.getElementById("velzo-featured-price").textContent = money(primary.price);
+  document.getElementById("velzo-featured-price").textContent = money(discountedPrice(primary));
   const shopButton = document.getElementById("velzo-featured-shop");
   shopButton.textContent = chosen.length > 1 ? "EXPLORE THE COLLECTION ↗" : "DISCOVER THE LOOK ↗";
   shopButton.onclick = () => {
@@ -1919,7 +1919,7 @@ function renderFeaturedProduct() {
   const visual = section.querySelector(".velzo-featured-visual");
   visual.classList.add("velzo-concave-gallery");
   visual.innerHTML = '<div class="velzo-featured-orbit"></div><div class="velzo-concave-track" aria-label="Priority products">' + chosen.map((p, i) =>
-    `<button type="button" class="velzo-concave-card card-${i+1}" data-featured-id="${escapeHTML(p.id)}" aria-label="View ${escapeHTML(p.name)}"><img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="eager"><span>${escapeHTML(p.name)}</span><strong>${money(p.price)}</strong></button>`
+    `<button type="button" class="velzo-concave-card card-${i+1}" data-featured-id="${escapeHTML(p.id)}" aria-label="View ${escapeHTML(p.name)}"><img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="eager"><span>${escapeHTML(p.name)}</span><strong>${money(discountedPrice(p))}</strong></button>`
   ).join("") + '</div>';
   const selectionCards = Array.from(visual.querySelectorAll("[data-featured-id]"));
   selectionCards[0]?.classList.add('velzo-is-selected');
@@ -2061,7 +2061,7 @@ function discountedPrice(p) {
   return Math.round(Number(p.price) * (100 - rate)) / 100;
 }
 function discountMarkup(p) {
-  const rate = Number(p.discount_percent) || 0;
+  const rate = Math.min(90, Math.max(0, Number(p.discount_percent) || 0));
   return rate > 0
     ? `<span style="text-decoration:line-through;opacity:.7;font-size:.8em;margin-right:8px">${money(p.price)}</span><strong>${money(discountedPrice(p))}</strong> <span style="color:#a9f27c;font-size:.8em">${rate}% OFF</span>`
     : money(p.price);
@@ -2105,6 +2105,17 @@ async function quoteOrder(code = appliedCoupon) {
   const items = cart.map(item => ({id:item.id,qty:item.qty}));
   const {data,error} = await db.rpc("velzo_quote_order",{p_items:items,p_coupon_code:code || null});
   if (error) throw error;
+  // Never display a checkout amount inconsistent with the discounted prices.
+  // The Supabase quote RPC must use the SAME per-item discounted price rule.
+  const expectedSubtotal = Math.round(cartTotal() * 100) / 100;
+  const serverSubtotal = Number(data?.subtotal ?? (code ? NaN : data?.total));
+  if (!Number.isFinite(Number(data?.total)) ||
+      (Number.isFinite(serverSubtotal) && Math.abs(serverSubtotal - expectedSubtotal) > 0.009)) {
+    throw new Error("Discounted prices do not match the Supabase checkout calculation. Please contact VELZO before paying; the store owner must update the pricing SQL.");
+  }
+  if (!code && Math.abs(Number(data.total) - expectedSubtotal) > 0.009) {
+    throw new Error("The checkout price does not match the product discount. Please contact VELZO before paying.");
+  }
   quotedTotal = Number(data.total);
   return data;
 }
@@ -2143,8 +2154,8 @@ function renderProducts() {
     items = quickMatches.length ? quickMatches : PRODUCTS.slice();
   }
 
-  if (sorting === "low") items.sort((a, b) => a.price - b.price);
-  if (sorting === "high") items.sort((a, b) => b.price - a.price);
+  if (sorting === "low") items.sort((a, b) => discountedPrice(a) - discountedPrice(b));
+  if (sorting === "high") items.sort((a, b) => discountedPrice(b) - discountedPrice(a));
   if (sorting === "az") {
     items.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -3919,7 +3930,7 @@ document.querySelectorAll('[data-velzo-apk]').forEach(button => {
 (function(){
   'use strict';
   // Set false after the festival to turn off the complete seasonal overlay.
-  const DIWALI_EFFECTS_ENABLED = true;
+  const DIWALI_EFFECTS_ENABLED = false;
   const layer=document.getElementById('velzo-diwali-layer');
   const pill=document.getElementById('velzo-diwali-pill');
   const close=document.getElementById('velzo-diwali-close');
@@ -3987,5 +3998,46 @@ async function submitVelzoReview(event,productId){
  }catch(e){showToast('Could not submit review: '+e.message);}finally{button.disabled=false;}
 }
 </script>
+
+<!-- VELZO quality pass: responsive galleries, uncluttered checkout and legible prices -->
+<style id="velzo-quality-pass-2026">
+/* Gallery remains swipeable without exposing desktop browser scrollbars. */
+#shop .product-image-thumbs,.detail-gallery{
+  overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;
+  -ms-overflow-style:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;min-width:0;max-width:100%;
+}
+#shop .product-image-thumbs::-webkit-scrollbar,.detail-gallery::-webkit-scrollbar{display:none!important}
+#shop .product-image-thumb,.detail-gallery-thumb{scroll-snap-align:start}
+#shop .product-image-thumb:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+#shop .product-image-wrap{min-width:0;max-width:100%}
+#shop .product-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 8px;line-height:1.4;overflow-wrap:anywhere}
+#shop .product-price strong{font-weight:800}
+#shop .product-price span{white-space:normal}
+#shop .product-details{min-width:0}
+#shop .product h3{min-height:2.6em}
+#shop .product-description{min-height:2.8em}
+#shop .product-grid{align-items:stretch}
+#shop .velzo-delivery-estimate{border-radius:7px!important;min-height:0!important}
+#shop .details-button,#shop .velzo-share-button,#shop .add-button{white-space:normal;overflow-wrap:anywhere}
+.velzo-floating-support{right:16px!important;bottom:16px!important;padding:10px 13px!important;font-size:12px!important;z-index:120!important}
+/* Give the support button room without covering the last row or checkout. */
+body{padding-bottom:54px}
+#velzo-diwali-pill,#velzo-diwali-close,#velzo-diwali-layer{display:none!important}
+@media(max-width:700px){
+  #shop .product-grid{gap:12px!important}
+  #shop .product-details{padding:12px 10px 15px!important}
+  #shop .product-price{font-size:17px!important}
+  #shop .product-price span{font-size:11px!important}
+  #shop .product-image-thumb{flex:0 0 44px;width:44px;height:52px}
+  .velzo-floating-support{bottom:10px!important;right:10px!important;padding:9px 11px!important;font-size:11px!important}
+  .modal,.product-details-dialog{max-height:calc(100dvh - 24px)!important}
+}
+@media(max-width:380px){
+  #shop .product-grid{grid-template-columns:1fr!important}
+  #shop .product-details{padding:15px!important}
+}
+</style>
+
 </body>
 </html>
