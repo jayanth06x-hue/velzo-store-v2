@@ -4102,6 +4102,23 @@ a.velzo-floating-support:focus-visible{outline:3px solid #fff!important;outline-
   #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   #shop .product-details{padding:9px 6px 12px!important}
 }
+
+
+/* VELZO scroll fix: the large mobile navigation must not cover product cards.
+   Keep the normal header at the top of the page; scroll it away with content. */
+.header {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  z-index: 10 !important;
+}
+@media (max-width: 620px) {
+  .header {
+    position: relative !important;
+    top: auto !important;
+    transform: none !important;
+  }
+}
 </style>
 
 </body>
