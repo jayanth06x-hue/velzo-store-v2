@@ -1,4 +1,5 @@
+
 User-agent: *
 Allow: /
 
-Sitemap: https://velzo-store-v2.vercel.app/sitemap.xml
+Sitemap: https://velzo.in.net/sitemap.xml
