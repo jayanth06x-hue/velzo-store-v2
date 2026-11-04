@@ -221,7 +221,7 @@ button.danger { background:#8d302b; color:#fff; }
       </div>
     </section>
     <section class="panel" id="couponAdminPanel">
-      <h2>Coupon codes</h2>
+      <h2>Coupon codes & product targeting</h2>
       <p class="note">Create and manage coupons here. Coupons will not be redeemable at checkout until the server-side order pricing is upgraded.</p>
       <form id="couponForm" class="form">
         <input id="couponCode" placeholder="Code e.g. VELZO10" maxlength="32" pattern="[A-Za-z0-9_-]+" required>
@@ -230,10 +230,31 @@ button.danger { background:#8d302b; color:#fff; }
         <input id="couponMaxUses" type="number" min="1" step="1" placeholder="Maximum uses (optional)">
         <label class="field-label">Expiry date (optional)<input id="couponExpiry" type="date"></label>
         <label class="field-label"><input id="couponActive" type="checkbox" checked style="width:auto"> Active</label>
+        <div class="full" style="border:1px solid #c5a16b;padding:15px;border-radius:8px">
+          <strong>SHOW THIS COUPON NEAR WHICH PRODUCTS?</strong>
+          <p class="note">Choose All products or specific categories. Uses each product's category in VELZO Admin.</p>
+          <label><input type="checkbox" id="vzCouponAll" checked style="width:auto"> All products</label>
+          <div id="vzCouponCategories" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0">
+            <label><input type="checkbox" value="T-Shirts" style="width:auto"> T-Shirts</label>
+            <label><input type="checkbox" value="Dresses" style="width:auto"> Dresses</label>
+            <label><input type="checkbox" value="Accessories" style="width:auto"> Accessories</label>
+            <label><input type="checkbox" value="Hoodies" style="width:auto"> Hoodies</label>
+            <label><input type="checkbox" value="Sweatpants" style="width:auto"> Sweatpants</label>
+            <label><input type="checkbox" value="Combos" style="width:auto"> Combos</label>
+            <label><input type="checkbox" value="Other" style="width:auto"> Other</label>
+          </div>
+          <label class="field-label">Product-page offer title
+            <input id="vzCouponDisplayTitle" maxlength="100" placeholder="e.g. 10% OFF on T-Shirts" required>
+          </label>
+          <label class="field-label">Minimum eligible product quantity (display rule)
+            <input id="vzCouponMinQty" type="number" min="1" max="20" value="1" required>
+          </label>
+          <p class="note">These settings control which products DISPLAY the coupon. They do not change server-side coupon eligibility or create a flat ₹200 discount.</p>
+        </div>
         <button class="gold full" type="submit">SAVE COUPON</button>
       </form>
       <div id="couponMessage" class="note" role="status" style="margin:12px 0"></div>
-      <div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Expiry</th><th>Enabled</th><th>Action</th></tr></thead><tbody id="couponRows"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Expiry</th><th>Enabled</th><th>Show near</th><th>Action</th></tr></thead><tbody id="couponRows"></tbody></table></div>
     </section>
     <section class="panel">
       <div class="tabs">
@@ -389,27 +410,74 @@ function clearMessage() {
 
 // Coupon administration. Redemption is intentionally disabled until place_order
 // validates coupon usage and calculates the final total inside the database.
-async function loadCoupons() {
-  const tbody = $("couponRows");
-  const {data,error}=await db.from("coupons").select("code,discount_percent,min_order_amount,max_uses,expires_at,active").order("code");
-  if(error){$("couponMessage").textContent="Coupon table unavailable: "+error.message;return;}
-  tbody.innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.code)}</td><td>${esc(c.discount_percent)}%</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||"—")}</td><td>${c.active?"Yes":"No"}</td><td><button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?"Disable":"Enable"}</button></td></tr>`).join("")||'<tr><td colspan="6">No coupons yet</td></tr>';
+const vzCouponCategoryInputs=()=>Array.from(document.querySelectorAll('#vzCouponCategories input[type=checkbox]'));
+const vzCouponAll=document.getElementById('vzCouponAll');
+function vzCouponCategoryToggle(){
+  vzCouponCategoryInputs().forEach(el=>{el.disabled=vzCouponAll.checked;if(vzCouponAll.checked)el.checked=false;});
 }
-$("couponForm").addEventListener("submit",async e=>{
- e.preventDefault();
- const code=$("couponCode").value.trim().toUpperCase();
- const percent=Number($("couponPercent").value), minimum=Number($("couponMin").value);
- const max=$("couponMaxUses").value ? Number($("couponMaxUses").value) : null;
- if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))){$("couponMessage").textContent="Check the code and discount settings.";return;}
- const {error}=await db.from("coupons").upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$("couponExpiry").value||null,active:$("couponActive").checked},{onConflict:"code"});
- $("couponMessage").textContent=error?"Could not save coupon: "+error.message:"Coupon saved. Checkout redemption is not yet enabled.";
- if(!error)await loadCoupons();
+vzCouponAll.addEventListener('change',vzCouponCategoryToggle);
+vzCouponCategoryInputs().forEach(el=>el.addEventListener('change',()=>{if(el.checked)vzCouponAll.checked=false;vzCouponCategoryToggle();}));
+vzCouponCategoryToggle();
+let vzCouponAdminRows=[];
+let vzCouponPresentationRows=[];
+async function loadCoupons() {
+  const tbody=$('couponRows');
+  const [coupons,displays]=await Promise.all([
+    db.from('coupons').select('code,discount_percent,min_order_amount,max_uses,expires_at,active').order('code'),
+    db.from('velzo_coupon_displays').select('code,display_title,target_categories,min_quantity')
+  ]);
+  if(coupons.error){$('couponMessage').textContent='Coupon table unavailable: '+coupons.error.message;return;}
+  if(displays.error){$('couponMessage').textContent='Run the supplied coupon targeting SQL first: '+displays.error.message;return;}
+  vzCouponAdminRows=coupons.data||[];
+  vzCouponPresentationRows=displays.data||[];
+  tbody.innerHTML=vzCouponAdminRows.map(c=>{
+    const meta=vzCouponPresentationRows.find(p=>p.code===c.code);
+    const groups=meta&&meta.target_categories?.length?meta.target_categories.join(', '):'All products';
+    return `<tr><td>${esc(c.code)}</td><td>${esc(c.discount_percent)}%</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||'—')}</td><td>${c.active?'Yes':'No'}</td><td>${esc(groups)}</td><td><button class="secondary" data-coupon-edit="${esc(c.code)}">Edit</button> <button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?'Disable':'Enable'}</button></td></tr>`;
+  }).join('')||'<tr><td colspan="7">No coupons yet</td></tr>';
+}
+$('couponForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const code=$('couponCode').value.trim().toUpperCase();
+  const percent=Number($('couponPercent').value), minimum=Number($('couponMin').value);
+  const max=$('couponMaxUses').value?Number($('couponMaxUses').value):null;
+  const displayTitle=$('vzCouponDisplayTitle').value.trim();
+  const minQuantity=Number($('vzCouponMinQty').value);
+  const categories=vzCouponAll.checked?[]:vzCouponCategoryInputs().filter(el=>el.checked).map(el=>el.value);
+  if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))||!displayTitle||displayTitle.length>100||!Number.isInteger(minQuantity)||minQuantity<1||minQuantity>20||(!vzCouponAll.checked&&!categories.length)){
+    $('couponMessage').textContent='Check coupon fields and choose at least one target category, or All products.';return;
+  }
+  const {error}=await db.from('coupons').upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$('couponExpiry').value||null,active:$('couponActive').checked},{onConflict:'code'});
+  if(error){$('couponMessage').textContent='Coupon save failed: '+error.message;return;}
+  const {error:displayError}=await db.from('velzo_coupon_displays').upsert({code,display_title:displayTitle,target_categories:categories,min_quantity:minQuantity},{onConflict:'code'});
+  $('couponMessage').textContent=displayError?'Coupon saved but product targeting failed: '+displayError.message:'Coupon and product display targeting saved. Checkout validates eligibility separately.';
+  await loadCoupons();
 });
-$("couponRows").addEventListener("click",async e=>{
- const btn=e.target.closest("button[data-coupon]");if(!btn)return;
- const {error}=await db.from("coupons").update({active:btn.dataset.active!=="true"}).eq("code",btn.dataset.coupon);
- $("couponMessage").textContent=error?error.message:"Coupon updated.";
- if(!error)await loadCoupons();
+$('couponRows').addEventListener('click',async e=>{
+  const edit=e.target.closest('button[data-coupon-edit]');
+  if(edit){
+    const c=vzCouponAdminRows.find(c=>c.code===edit.dataset.couponEdit);
+    if(!c)return;
+    const meta=vzCouponPresentationRows.find(p=>p.code===c.code);
+    $('couponCode').value=c.code;
+    $('couponPercent').value=c.discount_percent;
+    $('couponMin').value=c.min_order_amount||0;
+    $('couponMaxUses').value=c.max_uses??'';
+    $('couponExpiry').value=c.expires_at?String(c.expires_at).slice(0,10):'';
+    $('couponActive').checked=c.active;
+    $('vzCouponDisplayTitle').value=meta?.display_title || (c.discount_percent+'% OFF');
+    $('vzCouponMinQty').value=meta?.min_quantity||1;
+    const groups=meta?.target_categories||[];
+    vzCouponAll.checked=!groups.length;
+    vzCouponCategoryInputs().forEach(el=>el.checked=groups.includes(el.value));
+    vzCouponCategoryToggle();
+    $('couponForm').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  const btn=e.target.closest('button[data-coupon]');if(!btn)return;
+  const {error}=await db.from('coupons').update({active:btn.dataset.active!=='true'}).eq('code',btn.dataset.coupon);
+  $('couponMessage').textContent=error?error.message:'Coupon status updated.';
+  if(!error)await loadCoupons();
 });
 
 async function adminCheck() {
