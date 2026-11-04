@@ -217,7 +217,7 @@ button.danger { background:#8d302b; color:#fff; }
         <div id="vzHeroEditor"></div>
         <button type="button" class="secondary" id="vzHeroAdd">+ ADD SLIDE</button>
         <button type="button" class="gold" id="vzHeroSave">SAVE HOMEPAGE SLIDES</button>
-        <p class="note" id="vzHeroStatus" role="status">You may add up to six slides. Banner images should use publicly accessible HTTPS image URLs, or a file path already deployed on your website.</p>
+        <p class="note" id="vzHeroStatus" role="status">You may add up to six slides. Click UPLOAD IMAGE on a slide to choose a PNG, JPG or WebP from your device (maximum 5 MB). The image will upload to Supabase and save to your live slideshow automatically.</p>
       </div>
     </section>
     <section class="panel" id="couponAdminPanel">
@@ -1143,9 +1143,47 @@ db.auth.onAuthStateChange((_event, session) => {
         const wrapper=document.createElement('label');wrapper.style.cssText='display:block;margin-bottom:10px;font-size:12px';wrapper.textContent=label;
         const field=key==='description'?document.createElement('textarea'):document.createElement('input');
         if(field.tagName==='INPUT')field.type='text';field.maxLength=max;field.value=data[key]||'';
-        field.style.cssText='display:block;width:100%;margin-top:4px;padding:10px';
+        field.style.cssText='display:block;width:100%;margin-top:4px;padding:10px';if(key==='image')field.dataset.vzImageField='true';
         field.addEventListener('input',()=>{data[key]=field.value});wrapper.append(field);item.append(wrapper);
       });
+      // Local file upload: Supabase Storage RLS allows only verified VELZO admins.
+      const imageTools=document.createElement('div');
+      imageTools.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0 15px';
+      const upload=document.createElement('button');upload.type='button';upload.className='secondary';upload.textContent='UPLOAD IMAGE';
+      const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/png,image/jpeg,image/webp';fileInput.style.display='none';
+      const feedback=document.createElement('small');feedback.style.cssText='display:block;overflow-wrap:anywhere';feedback.textContent='PNG / JPG / WebP · max 5 MB';
+      const preview=document.createElement('img');preview.alt=`Slide ${i+1} banner preview`;preview.loading='lazy';preview.style.cssText='width:min(280px,100%);max-height:130px;object-fit:cover;display:block;border-radius:5px;margin:7px 0 10px';
+      if(data.image){preview.src=data.image; preview.onerror=()=>{preview.style.display='none'}} else preview.style.display='none';
+      upload.addEventListener('click',()=>fileInput.click());
+      fileInput.addEventListener('change',async()=>{
+        const file=fileInput.files?.[0]; if(!file)return;
+        const allowedTypes={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'};
+        const ext=allowedTypes[file.type];
+        if(!ext || file.size>5*1024*1024 || !file.size){feedback.textContent='Choose a PNG, JPG or WebP image smaller than 5 MB.';fileInput.value='';return}
+        upload.disabled=true;feedback.textContent='Uploading image...';
+        try {
+          const {data:authorized,error:authError}=await db.rpc('is_velzo_admin');
+          if(authError||authorized!==true)throw new Error('Sign in with your VELZO administrator account.');
+          const bytes=crypto.getRandomValues(new Uint8Array(12));
+          const token=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+          const path=`banners/${Date.now()}-${token}.${ext}`;
+          const {error}=await db.storage.from('velzo-hero').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+          if(error)throw error;
+          const {data:urlData}=db.storage.from('velzo-hero').getPublicUrl(path);
+          if(!urlData?.publicUrl||!urlData.publicUrl.startsWith('https://'))throw new Error('Could not create image URL.');
+          // Save the image immediately; keep other slide edits as currently entered.
+          const imageBefore=data.image;
+          data.image=urlData.publicUrl;
+          try {await saveSlides('Image uploaded and saved! Refresh the storefront to see it.')} catch(saveError){
+            data.image=imageBefore;throw new Error('Image uploaded but slideshow was not saved: '+saveError.message);
+          }
+          preview.style.display='block';preview.src=data.image;
+          const imageField=item.querySelector('[data-vz-image-field]');if(imageField)imageField.value=data.image;
+          feedback.textContent='Image uploaded and saved to the live slideshow.';
+        }catch(e){feedback.textContent='Upload failed: '+(e.message||'Please try again.');status(feedback.textContent)}
+        finally{upload.disabled=false;fileInput.value=''}
+      });
+      imageTools.append(upload,fileInput,feedback);item.append(imageTools,preview);
       const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='REMOVE SLIDE';
       remove.disabled=slides.length<=1;
       remove.addEventListener('click',()=>{if(slides.length>1){slides.splice(i,1);render()}});item.append(remove);root.append(item);
@@ -1161,19 +1199,19 @@ db.auth.onAuthStateChange((_event, session) => {
     render();
   }
   $el('vzHeroAdd').addEventListener('click',()=>{if(slides.length<6){slides.push({eyebrow:'VELZO COLLECTIONS',title:'NEW COLLECTION',description:'Discover our latest styles.',button_text:'SHOP NOW →',button_link:'#shop',image:'velzo-diwali-hero.jpg'});render()}});
+  async function saveSlides(successMessage='Saved! Refresh your VELZO storefront to see the changes.') {
+    const seconds=Number($el('vzHeroSeconds').value);
+    if(!Number.isInteger(seconds)||seconds<2||seconds>20)throw new Error('Choose a duration between 2 and 20 seconds.');
+    if(!slides.length||slides.length>6||slides.some(x=>!x.title?.trim()||!safeLink(String(x.button_link||''))||!safeImage(String(x.image||''))))throw new Error('Check every slide heading, button link and image URL.');
+    const {data:allowed,error:authError}=await db.rpc('is_velzo_admin');
+    if(authError||allowed!==true)throw new Error('Administrator authorization required.');
+    const {error}=await db.from('velzo_hero_settings').upsert({id:1,interval_ms:seconds*1000,slides},{onConflict:'id'});
+    if(error)throw error;
+    status(successMessage);
+  }
   $el('vzHeroSave').addEventListener('click',async()=>{
-    const s=Number($el('vzHeroSeconds').value);
-    if(!Number.isInteger(s)||s<2||s>20){status('Choose a duration between 2 and 20 seconds.');return}
-    if(!slides.length||slides.length>6||slides.some(x=>!x.title?.trim()||!safeLink(String(x.button_link||''))||!safeImage(String(x.image||'')))){status('Check each slide heading, button link and image URL. Use HTTPS or a valid local image filename.');return}
     const btn=$el('vzHeroSave');btn.disabled=true;status('Saving slideshow...');
-    try{
-      const {data:allowed,error:authError}=await db.rpc('is_velzo_admin');
-      if(authError||allowed!==true)throw new Error('Administrator authorization required.');
-      const payload={id:1,interval_ms:s*1000,slides};
-      const {error}=await db.from('velzo_hero_settings').upsert(payload,{onConflict:'id'});
-      if(error)throw error;
-      status('Saved! Refresh your VELZO storefront to see the changes.');
-    }catch(e){status('Could not save: '+(e.message||'Unknown error'))}finally{btn.disabled=false}
+    try{await saveSlides()}catch(e){status('Could not save: '+(e.message||'Unknown error'))}finally{btn.disabled=false}
   });
   render();
   // Admin authentication may initialize asynchronously; load only after authorized dashboard appears.
