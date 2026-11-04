@@ -1752,6 +1752,19 @@ body main>.hero.vz-sale-carousel .vz-sale-cta{color:#1d1d1d!important;background
  .header.vz-icon-header>.logo{font-size:19px!important}
 }
 </style>
+
+<style id="vz-detail-offers-styles">
+.vz-detail-offers{margin:22px 0 8px;padding-top:16px;border-top:1px solid #e7e3dd;color:#222}
+.vz-detail-offers h3{margin:0 0 12px;font-size:16px;font-weight:700;letter-spacing:0}
+.vz-offer-card{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;margin:9px 0;border:1px solid #ded7ca;border-radius:10px;background:#fffdf9}
+.vz-offer-card div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.vz-offer-card strong{font-size:14px;color:#202020}
+.vz-offer-card small{font-size:11px;color:#686868;line-height:1.5}
+.vz-offer-card button{flex-shrink:0;background:#C5A16B;border:0;border-radius:6px;color:#151515;font-size:11px;font-weight:750;padding:10px 12px;min-height:42px;cursor:pointer}
+.vz-detail-offers .vz-offer-note{color:#666!important;font-size:11px!important;line-height:1.5!important;margin:10px 0!important}
+.product-details-dialog .vz-detail-add-below-offers{width:100%!important;margin:12px 0 6px!important;min-height:50px!important;background:#C5A16B!important;color:#141414!important;border:1px solid #C5A16B!important;border-radius:8px!important;display:flex!important;align-items:center;justify-content:center;font-size:13px!important;font-weight:750!important}
+@media(max-width:420px){.vz-offer-card{padding:10px;gap:6px}.vz-offer-card button{padding:9px 8px;font-size:10px}}
+</style>
 </head>
 
 <body>
@@ -1787,7 +1800,7 @@ body main>.hero.vz-sale-carousel .vz-sale-cta{color:#1d1d1d!important;background
       <a href="#shop" class="vz-sale-cta">SHOP THE COLLECTION &nbsp; →</a>
     </div>
   </div>
-  <div class="vz-sale-slide vz-sale-slide-coupon" data-slide="1" role="group" aria-roledescription="slide" aria-label="2 of 2: Checkout coupons" aria-hidden="true">
+  <div class="vz-sale-slide vz-sale-slide-coupon" data-vz-tshirt-offer="true" data-slide="1" role="group" aria-roledescription="slide" aria-label="2 of 2: Checkout coupons" aria-hidden="true">
     <div class="vz-sale-photo vz-sale-photo-alt" aria-hidden="true"></div>
     <div class="vz-sale-shade" aria-hidden="true"></div>
     <div class="vz-sale-content">
@@ -2281,11 +2294,19 @@ function renderProducts() {
     items = quickMatches.length ? quickMatches : PRODUCTS.slice();
   }
 
-  // Landing on the T-shirt offer shows only T-shirts, not every product.
-  if (window.vzTshirtOnly) {
-    items = PRODUCTS.filter(p => /(?:t[\s-]?shirts?|tees?)\b/i.test(
-      [p.category, p.name, p.description].filter(Boolean).join(" ")
-    ));
+  // VELZO2 offer: strict T-shirt-only results. Never fall back to all products.
+  if (window.vzTshirtOnly || location.hash.toLowerCase() === '#tshirts') {
+    items = PRODUCTS.filter(p => {
+      const text = [p.category, p.name, p.description].filter(Boolean).join(' ').toLowerCase();
+      // A word-boundary check avoids showing trousers, sweatpants, or accessories.
+      return /(?:^|[^a-z])(?:t[ -]?shirts?|tees?|graphic[ -]?tees?|oversized[ -]?tees?)(?=$|[^a-z])/i.test(text);
+    });
+    const shopHeading = document.querySelector('#shop .section-heading h2');
+    if (shopHeading && !shopHeading.dataset.vzOriginalHeading) shopHeading.dataset.vzOriginalHeading = shopHeading.textContent;
+    if (shopHeading) shopHeading.textContent = 'T-SHIRTS ONLY';
+  } else {
+    const shopHeading = document.querySelector('#shop .section-heading h2');
+    if (shopHeading?.dataset.vzOriginalHeading) shopHeading.textContent = shopHeading.dataset.vzOriginalHeading;
   }
 
   if (sorting === "low") items.sort((a, b) => discountedPrice(a) - discountedPrice(b));
@@ -2382,6 +2403,69 @@ async function shareVelzoProduct(id) {
   } catch (error) { if (error && error.name !== 'AbortError') showToast('Could not open sharing. Please try again.'); }
 }
 
+
+async function vzCopyOffer(code) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(code);
+    } else {
+      const field = document.createElement('textarea');
+      field.value = code;
+      field.style.position = 'fixed'; field.style.opacity = '0';
+      document.body.appendChild(field); field.select();
+      if (!document.execCommand('copy')) throw new Error('Copy unavailable');
+      field.remove();
+    }
+    showToast(code + ' copied. Apply at checkout.');
+  } catch (_) { showToast('Coupon code: ' + code); }
+}
+
+// Public coupon presentation: Supabase returns active coupons only.
+let vzPublicOffers = [];
+async function vzLoadPublicOffers() {
+  try {
+    const {data,error} = await db.rpc('velzo_public_product_offers');
+    if (error) throw error;
+    vzPublicOffers = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn('VELZO coupon display unavailable:', error.message);
+    vzPublicOffers = [];
+  }
+}
+function vzOffersForProduct(product) {
+  const category = String(product.category || '').trim().toLowerCase();
+  return vzPublicOffers.filter(offer => {
+    const choices = Array.isArray(offer.target_categories) ? offer.target_categories : [];
+    return choices.length === 0 || choices.some(c => String(c).trim().toLowerCase() === category);
+  });
+}
+function vzOfferMarkup(product) {
+  const offers = vzOffersForProduct(product);
+  if (!offers.length) return '';
+  return `<section class="vz-detail-offers" aria-label="Coupon offers">
+    <h3>Save with these coupon offers</h3>
+    ${offers.map(o => `<div class="vz-offer-card">
+      <div><strong>${escapeHTML(o.display_title || o.code)}</strong>
+      <small>${escapeHTML(o.code)} · ${Number(o.min_quantity) > 1 ? 'Minimum '+Number(o.min_quantity)+' eligible products · ' : ''}Subject to checkout eligibility</small></div>
+      <button type="button" data-vz-copy-code="${escapeHTML(o.code)}">COPY CODE</button>
+    </div>`).join('')}
+    <p class="vz-offer-note">Apply a valid coupon at checkout. The final discount is determined by Supabase.</p>
+  </section>`;
+}
+document.addEventListener('click', event => {
+  const button = event.target.closest('button[data-vz-copy-code]');
+  if (button) vzCopyOffer(button.dataset.vzCopyCode);
+});
+// Refresh promotions after the catalogue is loaded, and if a product detail is already open.
+window.addEventListener('load', async () => {
+  await vzLoadPublicOffers();
+  const modal = document.getElementById('product-details-modal');
+  if (modal && !modal.hidden) {
+    const id = modal.getAttribute('data-current-product');
+    if (id) showProductDetails(id);
+  }
+});
+
 function showProductDetails(id) {
   const p = PRODUCTS.find(item => String(item.id) === String(id));
   if (!p) return;
@@ -2404,12 +2488,14 @@ function showProductDetails(id) {
         ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
         ${comboPicker(p)}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
-        <button class="add-button" onclick="vzAddFromDetails('${safeId}')" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
+        ${vzOfferMarkup(p)}
+        <button class="add-button vz-detail-add-below-offers" onclick="vzAddFromDetails('${safeId}')" ${p.out_of_stock?'disabled':''}>${p.out_of_stock?'OUT OF STOCK':'ADD TO BAG'}</button>
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${safeId}')">↗ Share this product</button>
         <section class="velzo-reviews"><h3>Customer reviews</h3><div id="velzo-review-list">Loading reviews…</div><form id="velzo-review-form" onsubmit="submitVelzoReview(event, '${safeId}')"><label>Rating <select name="rating" required><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option><option value="3">★★★ 3</option><option value="2">★★ 2</option><option value="1">★ 1</option></select></label><label>Your review <textarea name="body" required minlength="10" maxlength="1000" placeholder="Share your genuine experience"></textarea></label><button type="submit" class="gold-button">SUBMIT REVIEW</button><p class="subtext">Sign in to submit. Your review will appear publicly immediately.</p></form></section>
       </div>
     </div>`;
   const modal = document.getElementById('product-details-modal');
+  modal.setAttribute('data-current-product', String(p.id));
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
   loadVelzoReviews(p.id);
@@ -4555,7 +4641,11 @@ html,body{background:#fff!important;color:#171717!important}
       const eyebrow=document.createElement('div');eyebrow.className='vz-sale-eyebrow';eyebrow.textContent=String(data.eyebrow||'VELZO COLLECTIONS').slice(0,110);
       const heading=document.createElement('h1');heading.textContent=String(data.title||'SHOP VELZO').slice(0,75);
       const description=document.createElement('p');description.textContent=String(data.description||'Explore our collection.').slice(0,300);
-      const link=document.createElement('a');link.className='vz-sale-cta';link.href=safeUrl(data.button_link,'#shop');link.textContent=String(data.button_text||'SHOP NOW →').slice(0,65);
+      const link=document.createElement('a');link.className='vz-sale-cta';
+      const looksLikeTshirtOffer = /velzo2|buy\s*2|t[ -]?shirts?|₹\s*200\s*off/i.test([data.title,data.description,data.eyebrow,data.image,data.button_link].join(' ')) || (i === 1 && /coupon/i.test(String(data.title || '')));
+      if(looksLikeTshirtOffer) section.dataset.vzTshirtOffer = 'true';
+      link.href = looksLikeTshirtOffer ? '#tshirts' : safeUrl(data.button_link,'#shop');
+      link.textContent=String(data.button_text||'SHOP NOW →').slice(0,65);
       box.append(eyebrow,heading,description,link);section.append(photo,shade,box);hero.insertBefore(section,hero.querySelector('.vz-sale-prev'));
       const dot=document.createElement('button');dot.type='button';dot.setAttribute('aria-label',`Show slide ${i+1}`);dot.addEventListener('click',()=>window.vzSaleShow(i));container.appendChild(dot);
     }
@@ -4669,27 +4759,55 @@ html body main section.hero.vz-sale-carousel .vz-sale-dots {z-index:5 !important
 @media(prefers-reduced-motion:reduce) {
  html body main section.hero.vz-sale-carousel > .vz-sale-slide {transition:none !important;}
 }
+html body main section.hero.vz-sale-carousel > .vz-sale-slide-coupon .vz-sale-photo {cursor:pointer !important;}
 </style>
 
 
 <script id="vz-tshirt-offer-routing">
-(function(){
-  window.vzTshirtOnly = false;
-  document.addEventListener('click', function(event){
-    const link = event.target.closest('a[href="#tshirts"]');
-    if (!link) return;
-    event.preventDefault();
+(function () {
+  // Keep the existing hero artwork and display. Only change link behavior.
+  window.vzTshirtOnly = location.hash.toLowerCase() === '#tshirts';
+  window.vzShopTshirts = function () {
     window.vzTshirtOnly = true;
     window.velzoQuickCategory = '';
     const search = document.getElementById('search');
     const category = document.getElementById('category');
     if (search) search.value = '';
     if (category) category.value = '';
+    history.replaceState(null, '', location.pathname + location.search + '#tshirts');
     if (typeof renderProducts === 'function') renderProducts();
-    document.getElementById('shop')?.scrollIntoView({behavior:'smooth'});
+    document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  function isTshirtOffer(slide) {
+    if (!slide) return false;
+    if (slide.dataset.vzTshirtOffer === 'true') return true;
+    const txt = (slide.textContent || '').toLowerCase();
+    const img = slide.querySelector('.vz-sale-photo');
+    const background = (img?.style.backgroundImage || '').toLowerCase();
+    const href = slide.querySelector('a.vz-sale-cta')?.getAttribute('href') || '';
+    return href === '#tshirts' || /velzo2|buy\s*2|t[ -]?shirts?|₹\s*200\s*off/.test(txt + ' ' + background);
+  }
+  // Capture phase prevents any older #shop navigation handlers from taking over.
+  document.addEventListener('click',function(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const link = target.closest('a[href="#tshirts"]');
+    const slide = target.closest('.vz-sale-slide');
+    if (!link && !(slide && isTshirtOffer(slide))) return;
+    if (slide && target.closest('.vz-sale-arrow, .vz-sale-dots, button')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.vzShopTshirts();
+  },true);
+  // A direct visit to /#tshirts also filters after products load.
+  window.addEventListener('hashchange',function(){
+    window.vzTshirtOnly = location.hash.toLowerCase() === '#tshirts';
+    if (typeof renderProducts === 'function') renderProducts();
   });
-  document.getElementById('search')?.addEventListener('input', function(){
+  document.getElementById('search')?.addEventListener('input',function(){
     window.vzTshirtOnly = false;
+    if (location.hash.toLowerCase() === '#tshirts')
+      history.replaceState(null,'',location.pathname+location.search+'#shop');
   });
 })();
 </script>
