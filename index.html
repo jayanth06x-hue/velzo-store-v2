@@ -2099,7 +2099,7 @@ async function loadProducts() {
 
   const { data, error } = await db
     .from("products")
-    .select("id,name,category,price,discount_percent,compare_at_price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock")
+    .select("id,name,category,price,discount_percent,compare_at_price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock,color_image_map")
     .eq("active", true)
     .order("created_at", { ascending: false });
 
@@ -2327,7 +2327,7 @@ function renderProducts() {
   }
 
   target.innerHTML = items.map(p => `
-    <article class="product velzo-tile-reveal">
+    <article class="product velzo-tile-reveal vz-open-product" role="link" tabindex="0" data-open-product="${escapeHTML(p.id)}" aria-label="View ${escapeHTML(p.name)} details">
       <div class="product-image-wrap">
         <button type="button" class="vz-heart" data-vz-product="${escapeHTML(p.id)}" onclick="vzToggleWishlist(this.dataset.vzProduct)" aria-label="Save ${escapeHTML(p.name)} to wishlist" aria-pressed="false">♡</button>
         ${p.tag
@@ -2466,16 +2466,26 @@ window.addEventListener('load', async () => {
   }
 });
 
+function vzColourProductPhoto(product, colour) {
+  const map = product && product.color_image_map;
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return '';
+  const key = Object.keys(map).find(k => k.trim().toLowerCase() === String(colour || '').trim().toLowerCase());
+  const url = key ? String(map[key] || '') : '';
+  return /^https:\/\/[^\s"'<>]+$/i.test(url) ? url : '';
+}
+
 function showProductDetails(id) {
   const p = PRODUCTS.find(item => String(item.id) === String(id));
   if (!p) return;
   const images = [p.image_url, ...(Array.isArray(p.image_urls) ? p.image_urls : [])].filter(Boolean).slice(0, 13);
   const safeId = escapeHTML(p.id);
+  const chosenColourPhoto = vzColourProductPhoto(p, selectedColors[p.id]);
+  const initialPhoto = chosenColourPhoto || images[0] || '';
   const content = document.getElementById("product-details-content");
   content.innerHTML = `
     <div class="detail-layout">
       <div>
-        <img id="detail-main-image" src="${escapeHTML(images[0] || '')}" alt="${escapeHTML(p.name)}" onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
+        <img id="detail-main-image" src="${escapeHTML(initialPhoto)}" alt="${escapeHTML(p.name)}" onerror="this.onerror=null;this.src='https://placehold.co/600x720/f7f5f0/555?text=Velzo+Collections'">
         ${images.length > 1 ? `<div class="detail-gallery">${images.map((url,i) => `<button type="button" class="detail-gallery-thumb ${i===0?'active':''}" aria-label="Show product image ${i+1}" onclick="document.getElementById('detail-main-image').src='${escapeHTML(url)}';this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===this))"><img src="${escapeHTML(url)}" alt="Product view ${i+1}" loading="lazy"></button>`).join('')}</div>` : ''}
       </div>
       <div>
@@ -2484,7 +2494,7 @@ function showProductDetails(id) {
         <h3>${discountMarkup(p)}</h3>
         ${p.out_of_stock ? '<p><strong>Currently out of stock</strong></p>' : '<p class="detail-meta">Available to order</p>'}
         <p>${escapeHTML(p.description || 'Contact us for more product information.')}</p>
-        ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `<label>Choose colour</label><select class="product-color-select" onchange="selectProductColor('${safeId}',this.value)"><option value="">Choose colour</option>${p.colors.map(color=>`<option value="${escapeHTML(color)}" ${selectedColors[p.id]===color?'selected':''}>${escapeHTML(color)}</option>`).join('')}</select>` : ''}
+        ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `<div class="vz-colour-block"><strong>Colour: <span id="vz-current-colour">${escapeHTML(selectedColors[p.id]||'Select a colour')}</span></strong><div class="vz-colour-grid" role="group" aria-label="Available colours">${p.colors.map((color,i)=>`<button type="button" class="vz-colour-choice ${selectedColors[p.id]===color?'selected':''}" data-vz-colour-index="${i}" data-vz-colour="${escapeHTML(color)}" aria-label="Select ${escapeHTML(color)}" aria-pressed="${selectedColors[p.id]===color}"><span class="vz-colour-dot" style="background:${vzSafeSwatchColour(color)}">${vzColourProductPhoto(p,color)?`<img src="${escapeHTML(vzColourProductPhoto(p,color))}" alt="${escapeHTML(color)} product" loading="lazy">`:``}</span><span>${escapeHTML(color)}</span></button>`).join('')}</div></div>` : ''}
         ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
         ${comboPicker(p)}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
@@ -2521,6 +2531,17 @@ function selectProductSize(id, size) {
 
 function selectProductColor(id, color) {
   selectedColors[id] = color;
+  const product = PRODUCTS.find(p => String(p.id) === String(id));
+  const modal = document.getElementById('product-details-modal');
+  if (product && modal && !modal.hidden && modal.getAttribute('data-current-product') === String(id)) {
+    const photo = vzColourProductPhoto(product, color) || product.image_url;
+    const main = modal.querySelector('#detail-main-image');
+    if (main && photo) {
+      main.src = photo;
+      main.alt = `${product.name} — ${color}`;
+    }
+    modal.querySelectorAll('.detail-gallery-thumb').forEach(b => b.classList.remove('active'));
+  }
   document.querySelectorAll(`[id="color-${CSS.escape(String(id))}"]`).forEach(el => { if (el.value !== color) el.value = color; });
 }
 
@@ -5036,5 +5057,140 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
   check();
 })();
 </script>
+
+<style id="velzo-full-product-page-v1">
+/* Product detail experience: full viewport, not a popup. */
+#product-details-modal.product-details-modal{
+  position:fixed!important;inset:0!important;z-index:110000!important;
+  display:block!important;width:100%!important;height:100dvh!important;
+  max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:0!important;margin:0!important;background:#fff!important;
+  overscroll-behavior:contain!important;isolation:isolate!important;
+}
+#product-details-modal[hidden]{display:none!important}
+#product-details-modal .product-details-backdrop{display:none!important}
+#product-details-modal .product-details-dialog{
+  position:relative!important;width:100%!important;max-width:1280px!important;
+  max-height:none!important;min-height:100dvh!important;height:auto!important;
+  overflow:visible!important;margin:0 auto!important;padding:clamp(18px,3vw,42px)!important;
+  background:#fff!important;color:#191919!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;animation:none!important;transform:none!important;
+}
+#product-details-modal #product-details-content{display:block!important;clear:both!important;width:100%!important;max-width:none!important;overflow:visible!important;padding:0!important;color:#191919!important}
+#product-details-modal .product-details-close{
+  position:sticky!important;top:0!important;float:right!important;z-index:30!important;
+  width:auto!important;min-width:100px!important;height:43px!important;
+  border:1px solid #ddd!important;border-radius:8px!important;background:#fff!important;color:#151515!important;
+  font-family:Arial,sans-serif!important;font-size:16px!important;font-weight:700!important;
+  padding:8px 14px!important;cursor:pointer!important;box-shadow:0 1px 5px #0001!important;
+}
+#product-details-modal .product-details-close::before{content:'Back  ';font-size:13px}
+#product-details-modal .detail-layout{
+  display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr)!important;
+  gap:clamp(24px,4vw,65px)!important;clear:both!important;align-items:start!important;
+}
+#product-details-modal .detail-layout>div{min-width:0!important;max-width:none!important}
+#product-details-modal #detail-main-image{
+  display:block!important;width:100%!important;height:auto!important;max-height:75vh!important;
+  aspect-ratio:4/5!important;object-fit:contain!important;background:#f5f5f5!important;
+  border-radius:10px!important;
+}
+#product-details-modal .detail-gallery{display:flex!important;gap:10px!important;overflow-x:auto!important;margin-top:12px!important;padding-bottom:5px!important}
+#product-details-modal .detail-gallery-thumb{flex:0 0 78px!important;width:78px!important;height:88px!important;border-radius:7px!important;overflow:hidden!important}
+#product-details-modal .detail-gallery-thumb img{width:100%!important;height:100%!important;object-fit:cover!important}
+#product-details-modal .detail-layout h2{font-size:clamp(24px,3vw,39px)!important;line-height:1.2!important;margin:13px 0!important}
+#product-details-modal .detail-size-buttons{gap:9px!important;display:flex!important;flex-wrap:wrap!important}
+#product-details-modal .size-choice{min-width:54px!important;min-height:46px!important;background:#fff!important;color:#111!important;border:1px solid #ddd!important;border-radius:8px!important}
+#product-details-modal .size-choice.selected{background:#171717!important;color:white!important;border-color:#171717!important}
+#product-details-modal .vz-colour-block{margin:20px 0!important}
+#product-details-modal .vz-colour-grid{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 8px}
+#product-details-modal .vz-colour-choice{width:88px;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:8px 5px;background:#fff!important;color:#222!important;border:1px solid #ddd;border-radius:9px;cursor:pointer;font-size:12px}
+#product-details-modal .vz-colour-choice.selected{border:2px solid #c5a16b!important;box-shadow:0 0 0 2px #c5a16b33!important}
+#product-details-modal .vz-colour-dot{display:block;width:50px;height:50px;border:1px solid #bbb;border-radius:6px}
+#product-details-modal .vz-colour-dot img{display:block;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:5px}
+#product-details-modal .vz-detail-add-below-offers{width:100%!important;min-height:54px!important;background:#f5c94e!important;color:#171717!important;font-weight:800!important;border:none!important;border-radius:8px!important}
+#shop .vz-open-product{cursor:pointer}
+#shop .vz-open-product:focus-visible{outline:3px solid #c5a16b;outline-offset:3px}
+@media(max-width:760px){
+ #product-details-modal.product-details-modal{padding:0!important}
+ #product-details-modal .product-details-dialog{padding:12px 14px 36px!important;border-radius:0!important;min-height:100dvh!important;height:auto!important;max-height:none!important}
+ #product-details-modal #product-details-content{padding:0!important}
+ #product-details-modal .detail-layout{grid-template-columns:minmax(0,1fr)!important;gap:20px!important}
+ #product-details-modal #detail-main-image{height:auto!important;max-height:52dvh!important;aspect-ratio:4/4.3!important;object-fit:contain!important}
+ #product-details-modal .product-details-close{top:0!important;right:0!important;width:auto!important;min-width:90px!important;height:42px!important}
+ #product-details-modal .detail-gallery-thumb{flex-basis:63px!important;width:63px!important;height:72px!important}
+ #product-details-modal .detail-layout h2{font-size:24px!important}
+ #product-details-modal .vz-colour-grid{gap:8px}
+ #product-details-modal .vz-colour-choice{width:70px;min-height:85px;font-size:11px}
+ #product-details-modal .vz-colour-dot{width:42px;height:42px}
+}
+</style>
+<script id="velzo-full-product-page-navigation-v1">
+(function(){
+ const originalShow=window.showProductDetails;
+ const originalClose=window.closeProductDetails;
+ if(typeof originalShow!=='function'||typeof originalClose!=='function')return;
+ function productInUrl(){return new URLSearchParams(window.location.search).get('product')}
+ function updateUrl(id){
+   const url=new URL(window.location.href);
+   if(String(url.searchParams.get('product')||'')===String(id))return;
+   url.searchParams.set('product',String(id));
+   history.pushState({velzoProduct:String(id)},'',url.pathname+url.search+url.hash);
+ }
+ window.showProductDetails=function(id){
+   originalShow(id);
+   const modal=document.getElementById('product-details-modal');
+   if(modal&&!modal.hidden){updateUrl(id);modal.scrollTop=0;}
+ };
+ window.closeProductDetails=function(){
+   originalClose();
+   const url=new URL(window.location.href);
+   if(url.searchParams.has('product')){
+     url.searchParams.delete('product');
+     history.replaceState(null,'',url.pathname+url.search+url.hash);
+   }
+ };
+ // Cards open details by clicking anywhere except controls with their own action.
+ document.getElementById('products')?.addEventListener('click',function(event){
+   if(event.target.closest('button,a,input,select,textarea,[role="button"]'))return;
+   const card=event.target.closest('[data-open-product]');
+   if(card)window.showProductDetails(card.dataset.openProduct);
+ });
+ document.getElementById('products')?.addEventListener('keydown',function(event){
+   if(event.target.closest('button,a,input,select,textarea'))return;
+   if(event.key==='Enter' || event.key===' '){
+     const card=event.target.closest('[data-open-product]');
+     if(card){event.preventDefault();window.showProductDetails(card.dataset.openProduct);}
+   }
+ });
+ function normaliseColor(value){return String(value||'').trim().toLowerCase()}
+ const colorNames={black:'#151515',white:'#fff',red:'#ba2330',blue:'#2957a7',navy:'#182744',green:'#31754c',olive:'#646c3d',pink:'#ec9ebc',purple:'#7145a3',grey:'#8c8c8c',gray:'#8c8c8c',beige:'#d6c6ae',cream:'#f2e5ca',brown:'#78523e',yellow:'#f4d447',orange:'#e88a39',maroon:'#722339'};
+ window.vzSafeSwatchColour=function(name){
+   const value=normaliseColor(name);
+   const exact=colorNames[value];if(exact)return exact;
+   if(/^#[0-9a-f]{3,8}$/.test(value))return value;
+   for(const key of Object.keys(colorNames))if(value.includes(key))return colorNames[key];
+   return '#d7d7d7';
+ };
+ document.getElementById('product-details-modal')?.addEventListener('click',function(event){
+   const btn=event.target.closest('[data-vz-colour]');if(!btn)return;
+   const id=this.getAttribute('data-current-product');
+   if(!id)return;
+   const color=btn.dataset.vzColour;
+   if(typeof window.selectProductColor==='function')window.selectProductColor(id,color);
+   const name=this.querySelector('#vz-current-colour');if(name)name.textContent=color;
+   this.querySelectorAll('.vz-colour-choice').forEach(el=>{const isActive=el===btn;el.classList.toggle('selected',isActive);el.setAttribute('aria-pressed',String(isActive));});
+   // The selected colour photo is shown by selectProductColor().
+ });
+ window.addEventListener('popstate',function(){
+   const id=productInUrl();
+   if(id){
+      originalShow(id);
+      document.getElementById('product-details-modal')?.scrollTo(0,0);
+   }else originalClose();
+ });
+})();
+</script>
+
 </body>
 </html>
