@@ -1681,28 +1681,30 @@ body { background:#e9e7e2; }
 </head>
 
 <body>
-  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎ OUR PAGE</a></div>
+  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎</a></div>
 
-  <header class="header">
+  <header class="header vz-icon-header">
+    <button class="vz-menu-trigger vz-header-icon" type="button" onclick="vzOpenMenu()" aria-label="Open sidebar menu" title="Menu" aria-expanded="false" aria-controls="vz-side-menu">☰</button>
     <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
     <nav class="nav" aria-label="Main navigation">
-      <a href="#shop">Shop</a>
-      <a class="optional-link velzo-page-nav" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">Our Page ↗</a>
-      <button class="cart-button" onclick="openCart()" aria-label="Open shopping cart">
-        Bag (<span id="cart-count">0</span>)
-      </button>
-      <button class="velzo-account-nav" id="velzo-account-btn" type="button" onclick="velzoOpenAccount()">Register / Login</button>
-      <a class="velzo-care-nav" href="https://wa.me/918500716966?text=Hello%20Velzo%20Collections%2C%20I%20need%20customer%20support." target="_blank" rel="noopener noreferrer">Customer Care</a>
+      <a class="vz-header-icon vz-search-shortcut" href="#shop" aria-label="Browse products" title="Shop">⌕</a>
+      <button class="vz-wishlist-nav vz-header-icon" type="button" onclick="vzOpenWishlist()" aria-label="Open wishlist" title="Wishlist">♡<span class="vz-count" id="vz-wishlist-count">0</span></button>
+      <button class="cart-button vz-header-icon" type="button" onclick="openCart()" aria-label="Open shopping bag" title="My Bag">▣<span class="vz-bag-count" id="cart-count">0</span></button>
+      <button class="velzo-account-nav vz-header-icon" id="velzo-account-btn" type="button" onclick="velzoOpenAccount()" aria-label="Login, register or my account" title="Login / Register">♙</button>
+      <a class="velzo-care-nav vz-header-icon" href="https://wa.me/918500716966?text=Hello%20Velzo%20Collections%2C%20I%20need%20customer%20support." target="_blank" rel="noopener noreferrer" aria-label="Customer care" title="Customer care">✆</a>
     </nav>
   </header>
 
   <main>
-    <section class="hero velzo-video-hero" aria-label="Velzo Collections fashion video">
-      <video class="velzo-hero-video" autoplay muted loop playsinline preload="auto" poster="/velzo-hero.png" aria-label="Velzo Collections fashion video">
-        <source src="/velzo-hero.mp4" type="video/mp4">
-      </video>
-      <div class="velzo-hero-overlay" aria-hidden="true"></div>
-      <a class="velzo-shop-now-overlay" href="#shop" aria-label="Shop Velzo collection">SHOP NOW <span aria-hidden="true">→</span></a>
+    <section class="hero velzo-video-hero vz-diwali-hero" aria-label="VELZO Diwali collection">
+      <div class="vz-diwali-hero-photo" role="img" aria-label="Festive diya lights and warm Diwali decorations"></div>
+      <div class="vz-diwali-hero-fade" aria-hidden="true"></div>
+      <div class="vz-diwali-hero-copy">
+        <span>VELZO COLLECTIONS · FESTIVE EDIT</span>
+        <h1>DIWALI<br>COLLECTION</h1>
+        <p>Celebrate your style. Explore the latest looks from VELZO.</p>
+        <a href="#shop" class="vz-diwali-hero-shop">EXPLORE COLLECTION →</a>
+      </div>
     </section>
     <nav class="velzo-video-categories" aria-label="Shop categories">
       <button type="button" onclick="shopAccessories()">ACCESSORIES</button>
@@ -1813,6 +1815,27 @@ body { background:#e9e7e2; }
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
       <button class="modal-close" onclick="closeCart()" aria-label="Close cart">×</button>
       <div id="cart-content"></div>
+    </section>
+  </div>
+  <!-- VELZO navigation drawer; independent of commerce and auth logic -->
+  <div class="vz-drawer-backdrop" id="vz-drawer-backdrop" onclick="vzCloseMenu()" hidden></div>
+  <aside class="vz-side-menu" id="vz-side-menu" aria-label="Shop menu" aria-hidden="true">
+    <div class="vz-drawer-head"><strong>VELZO COLLECTIONS</strong><button type="button" onclick="vzCloseMenu()" aria-label="Close menu">×</button></div>
+    <a href="#shop" onclick="vzCloseMenu()">Shop All</a>
+    <button type="button" onclick="vzNavigateCategory('hoodie')">Hoodies</button>
+    <button type="button" onclick="vzNavigateCategory('shirt')">T-Shirts & Shirts</button>
+    <button type="button" onclick="vzNavigateCategory('dress')">Dresses</button>
+    <button type="button" onclick="vzNavigateCategory('accessor')">Accessories</button>
+    <button type="button" onclick="vzCloseMenu();vzOpenWishlist()">♡ My Wishlist</button>
+    <button type="button" onclick="vzCloseMenu();openCart()">My Bag</button>
+    <button type="button" onclick="vzCloseMenu();velzoOpenAccount()">Login / Register / My Account</button>
+    <a href="https://wa.me/918500716966" target="_blank" rel="noopener noreferrer">Customer Care</a>
+  </aside>
+  <div class="vz-wishlist-overlay" id="vz-wishlist-overlay" onclick="if(event.target===this)vzCloseWishlist()" hidden>
+    <section class="vz-wishlist-panel" role="dialog" aria-modal="true" aria-labelledby="vz-wishlist-title">
+      <div class="vz-wishlist-top"><h2 id="vz-wishlist-title">My Wishlist</h2><button type="button" onclick="vzCloseWishlist()" aria-label="Close wishlist">×</button></div>
+      <p class="vz-wishlist-note">Favorites saved on this browser. Sign-in syncing is not yet enabled.</p>
+      <div id="vz-wishlist-items"></div>
     </section>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2180,6 +2203,7 @@ function renderProducts() {
   target.innerHTML = items.map(p => `
     <article class="product velzo-tile-reveal">
       <div class="product-image-wrap">
+        <button type="button" class="vz-heart" data-vz-product="${escapeHTML(p.id)}" onclick="vzToggleWishlist(this.dataset.vzProduct)" aria-label="Save ${escapeHTML(p.name)} to wishlist" aria-pressed="false">♡</button>
         ${p.tag
           ? `<span class="product-tag">${escapeHTML(p.tag)}</span>`
           : ""}
@@ -2205,6 +2229,7 @@ function renderProducts() {
       </div>
     </article>
   `).join("");
+  if (typeof window.vzSyncHearts === 'function') window.vzSyncHearts();
   // Progressive enhancement: cards are ALWAYS visible, even when JS or the observer fails.
   // The observer only ADDS a small entrance animation; it never controls visibility.
   const revealCards = Array.from(target.querySelectorAll('.product.velzo-tile-reveal'));
@@ -2964,7 +2989,9 @@ body { background:#fff; color:#151515; }
     const signedIn = !!currentUser;
     $('velzo-auth-view').style.display = signedIn ? 'none' : 'block';
     $('velzo-customer-view').style.display = signedIn ? 'block' : 'none';
-    accountButton.textContent = signedIn ? 'My Account' : 'Register / Login';
+    accountButton.textContent = '♙';
+    accountButton.setAttribute('aria-label', signedIn ? 'My account' : 'Login or register');
+    accountButton.title = signedIn ? 'My Account' : 'Login / Register';
     title.textContent = signedIn ? 'My Account' : (mode === 'login' ? 'Welcome back' : 'Create your Velzo account');
     intro.textContent = signedIn ? 'Manage your orders and saved delivery addresses.' : (mode === 'login' ? 'Sign in using your registered email and password.' : 'Register with your name, email and password.');
     $('velzo-signed-in-email').textContent = signedIn ? 'Logged in as ' + (currentUser.email || 'your account') : '';
@@ -3218,7 +3245,7 @@ body { background:#fff; color:#151515; }
       if(error) throw error;
       currentUser = null;
       mode='register';
-      accountButton.textContent='Register / Login';
+      accountButton.textContent='♙'; accountButton.setAttribute('aria-label', 'Login or register'); accountButton.title='Login / Register';
       setSignedInView(null);
       velzoSetAccountMode('login');
       msg.textContent='You have signed out.';
@@ -3227,11 +3254,11 @@ body { background:#fff; color:#151515; }
 
   db.auth.onAuthStateChange((_event, session)=>{
     currentUser = session && session.user ? session.user : null;
-    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
+    accountButton.textContent = '♙'; accountButton.setAttribute('aria-label', currentUser ? 'My account' : 'Login or register'); accountButton.title = currentUser ? 'My Account' : 'Login / Register';
   });
   db.auth.getSession().then(({data})=>{
     currentUser = data.session && data.session.user ? data.session.user : null;
-    accountButton.textContent = currentUser ? 'My Account' : 'Register / Login';
+    accountButton.textContent = '♙'; accountButton.setAttribute('aria-label', currentUser ? 'My account' : 'Login or register'); accountButton.title = currentUser ? 'My Account' : 'Login / Register';
   }).catch(()=>{});
 })();
 </script>
@@ -4133,5 +4160,181 @@ a.velzo-floating-support:focus-visible{outline:3px solid #fff!important;outline-
 }
 </style>
 
+
+<!-- Navigation and wishlist enhancement: keeps existing colors, commerce, authentication and layout. -->
+<style id="vz-navigation-wishlist-final">
+.header .nav .vz-menu-trigger,.header .nav .vz-wishlist-nav{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;cursor:pointer;min-height:42px;padding:9px 13px!important;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;visibility:visible!important;opacity:1!important;font-size:13px;font-weight:700;white-space:nowrap}
+.header .nav .vz-wishlist-nav{font-size:21px;line-height:1}
+.header .nav .vz-wishlist-nav span:not(.vz-count){font-size:12px}
+.header .nav .vz-count{font-size:11px;line-height:1;border:1px solid currentColor;padding:2px 6px;border-radius:50px}
+.header .nav .cart-button{white-space:nowrap!important}
+.vz-heart{position:absolute!important;z-index:5!important;top:11px!important;right:11px!important;width:39px!important;height:39px!important;min-height:39px!important;padding:0!important;border-radius:50%!important;border:1px solid #ddd!important;background:#fff!important;color:#191919!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:27px!important;line-height:1!important;box-shadow:0 2px 10px #0002!important;visibility:visible!important;opacity:1!important}
+.vz-heart[aria-pressed="true"]{color:#c81d3a!important}
+.vz-drawer-backdrop[hidden],.vz-wishlist-overlay[hidden]{display:none!important}
+.vz-drawer-backdrop{position:fixed;inset:0;background:#0009;z-index:20002}
+.vz-side-menu{position:fixed;top:0;left:0;bottom:0;z-index:20003;width:min(350px,88vw);overflow-y:auto;background:#fff;color:#171717;box-shadow:12px 0 35px #0003;transform:translateX(-105%);transition:transform .25s ease;padding:18px;display:flex;flex-direction:column;gap:5px}
+.vz-side-menu.vz-open{transform:translateX(0)}
+.vz-drawer-head,.vz-wishlist-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0 18px;border-bottom:1px solid #ddd;margin-bottom:12px}
+.vz-drawer-head button,.vz-wishlist-top button{background:transparent;color:inherit;border:0;font-size:30px;min-width:42px;min-height:42px}
+.vz-side-menu>a,.vz-side-menu>button{width:100%;display:block!important;text-align:left!important;font-size:15px!important;line-height:1.45!important;padding:15px 12px!important;background:transparent!important;color:#222!important;border:0!important;border-bottom:1px solid #ececec!important;text-decoration:none!important;box-shadow:none!important;border-radius:0!important;min-height:45px!important;letter-spacing:0!important}
+.vz-side-menu>a:hover,.vz-side-menu>button:hover{background:#f4f4f4!important}
+.vz-wishlist-overlay{position:fixed;inset:0;z-index:20005;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px}
+.vz-wishlist-panel{width:min(600px,100%);max-height:85vh;overflow:auto;background:#fff;color:#222;padding:22px;border-radius:14px;box-shadow:0 12px 48px #0005}
+.vz-wishlist-top{margin:0 0 8px}.vz-wishlist-top h2{margin:0;font-size:25px}.vz-wishlist-note{font-size:12px;color:#666;margin-bottom:15px}
+.vz-wishlist-item{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid #eee;align-items:center}.vz-wishlist-item img{width:70px;height:90px;object-fit:cover;border-radius:7px}.vz-wishlist-item strong{display:block;font-size:14px}.vz-wishlist-item p{margin:5px 0;font-size:13px}.vz-wishlist-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.vz-wishlist-actions button{background:#fff;color:#222;border:1px solid #bbb;padding:8px 12px;border-radius:8px;min-height:36px;font-size:12px}
+@media(max-width:620px){
+ .header .nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;gap:7px!important}
+ .header .nav .vz-menu-trigger,.header .nav .vz-wishlist-nav{min-width:0!important;width:100%!important;min-height:43px!important;padding:7px 4px!important;white-space:nowrap!important}
+ .header .nav .vz-menu-trigger{order:1!important}.header .nav a[href="#shop"]{order:2!important}.header .nav .vz-wishlist-nav{order:3!important}.header .nav .cart-button{order:4!important}.header .nav .velzo-account-nav{order:5!important}.header .nav .velzo-care-nav{order:6!important}
+ .header .nav a[href="#shop"],.header .nav .cart-button,.header .nav .velzo-account-nav,.header .nav .velzo-care-nav{width:100%!important;min-width:0!important;font-size:10px!important;padding:8px 5px!important;white-space:normal!important}
+ .header .nav .vz-wishlist-nav span:not(.vz-count){font-size:10px!important}.vz-heart{width:34px!important;height:34px!important;min-height:34px!important;font-size:23px!important}
+}
+@media(prefers-reduced-motion:reduce){.vz-side-menu{transition:none}}
+</style>
+<script id="vz-navigation-wishlist-script">
+(function(){
+ const KEY='velzo:wishlist:v1';
+ let favorites=[];
+ try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(Array.isArray(data))favorites=data.filter(v=>typeof v==='string'||typeof v==='number').map(String).slice(0,250);}catch(e){}
+ const byId=id=>document.getElementById(id);
+ const find=id=>typeof PRODUCTS!=='undefined'?PRODUCTS.find(p=>String(p.id)===String(id)):null;
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(favorites))}catch(e){} sync();}
+ function safe(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+ function sync(){
+   const count=byId('vz-wishlist-count');if(count)count.textContent=String(favorites.length);
+   document.querySelectorAll('.vz-heart[data-vz-product]').forEach(btn=>{const on=favorites.includes(String(btn.dataset.vzProduct));btn.textContent=on?'♥':'♡';btn.setAttribute('aria-pressed',String(on));btn.setAttribute('aria-label',on?'Remove from wishlist':'Add to wishlist');});
+ }
+ window.vzSyncHearts=sync;
+ window.vzToggleWishlist=function(id){id=String(id);if(!find(id))return;favorites=favorites.includes(id)?favorites.filter(v=>v!==id):[...favorites,id];save();if(!byId('vz-wishlist-overlay').hidden)renderWishlist();if(typeof showToast==='function')showToast(favorites.includes(id)?'Saved to wishlist.':'Removed from wishlist.');};
+ function renderWishlist(){const target=byId('vz-wishlist-items');if(!target)return;const items=favorites.map(find).filter(Boolean);if(!items.length){target.innerHTML='<p class="empty-state">Your wishlist is empty. Tap the heart on a product to save it.</p>';return;}
+ target.innerHTML=items.map(p=>'<div class="vz-wishlist-item"><img alt="" src="'+safe(p.image_url||'')+'"><div><strong>'+safe(p.name)+'</strong><p>'+safe(typeof money==='function'?money(typeof discountedPrice==='function'?discountedPrice(p):p.price):p.price)+'</p><div class="vz-wishlist-actions"><button type="button" data-action="view" data-id="'+safe(p.id)+'">View details</button><button type="button" data-action="remove" data-id="'+safe(p.id)+'">Remove ♡</button></div></div></div>').join('');}
+ byId('vz-wishlist-items').addEventListener('click',e=>{const btn=e.target.closest('button[data-action]');if(!btn)return;const id=btn.dataset.id;if(btn.dataset.action==='remove')window.vzToggleWishlist(id);if(btn.dataset.action==='view'){window.vzCloseWishlist();if(typeof showProductDetails==='function')showProductDetails(id);}});
+ window.vzOpenWishlist=function(){renderWishlist();byId('vz-wishlist-overlay').hidden=false;};
+ window.vzCloseWishlist=function(){byId('vz-wishlist-overlay').hidden=true;};
+ window.vzOpenMenu=function(){byId('vz-drawer-backdrop').hidden=false;byId('vz-side-menu').classList.add('vz-open');byId('vz-side-menu').setAttribute('aria-hidden','false');const t=document.querySelector('.vz-menu-trigger');if(t)t.setAttribute('aria-expanded','true');};
+ window.vzCloseMenu=function(){byId('vz-drawer-backdrop').hidden=true;byId('vz-side-menu').classList.remove('vz-open');byId('vz-side-menu').setAttribute('aria-hidden','true');const t=document.querySelector('.vz-menu-trigger');if(t)t.setAttribute('aria-expanded','false');};
+ window.vzNavigateCategory=function(term){window.vzCloseMenu();window.velzoQuickCategory=term;const filter=byId('search');if(filter)filter.value='';const cat=byId('category');if(cat)cat.value='';if(typeof renderProducts==='function')renderProducts();byId('shop')?.scrollIntoView({behavior:'smooth'});};
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){window.vzCloseMenu();window.vzCloseWishlist();}});
+ sync();
+})();
+</script>
+
+<style id="vz-icon-nav-diwali-2026">
+/* Header icon arrangement only: colors and rest of site remain as before. */
+.header.vz-icon-header{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;gap:clamp(8px,1.5vw,20px)!important;padding:12px 3.5%!important;position:sticky!important;top:0!important;z-index:1000!important;transform:none!important}
+.header.vz-icon-header>.vz-menu-trigger{flex:0 0 auto!important;order:0!important;margin-right:4px!important}
+.header.vz-icon-header>.logo{flex:0 0 auto!important;order:1!important}
+.header.vz-icon-header>.nav{display:flex!important;flex:1 1 auto!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;width:auto!important;min-width:0!important;gap:clamp(3px,1.15vw,14px)!important;order:2!important}
+.header.vz-icon-header .vz-header-icon{box-sizing:border-box!important;display:inline-flex!important;position:relative!important;justify-content:center!important;align-items:center!important;flex:0 0 auto!important;min-width:38px!important;width:42px!important;height:42px!important;min-height:42px!important;margin:0!important;padding:0!important;border:0!important;border-radius:8px!important;background:transparent!important;color:inherit!important;-webkit-text-fill-color:currentColor!important;font:normal 26px/1 Arial,sans-serif!important;text-decoration:none!important;letter-spacing:0!important;box-shadow:none!important;transform:none!important;white-space:nowrap!important;visibility:visible!important;opacity:1!important;overflow:visible!important}
+.header.vz-icon-header .vz-header-icon:hover,.header.vz-icon-header .vz-header-icon:focus-visible{background:rgba(150,150,150,.12)!important}
+.header.vz-icon-header .vz-header-icon::after{display:none!important}
+.header.vz-icon-header .vz-count,.header.vz-icon-header .vz-bag-count{position:absolute!important;top:0!important;right:0!important;min-width:16px!important;height:16px!important;line-height:16px!important;padding:0 2px!important;border-radius:12px!important;text-align:center!important;background:#c5a16b!important;color:#171717!important;-webkit-text-fill-color:#171717!important;font:700 10px/16px Arial,sans-serif!important}
+.header.vz-icon-header .vz-search-shortcut{font-size:34px!important}
+/* Hero festive photography, replacing the original looping video only. */
+.hero.velzo-video-hero.vz-diwali-hero{display:block!important;position:relative!important;overflow:hidden!important;isolation:isolate!important;min-height:clamp(390px,47vw,610px)!important;padding:0!important;margin:0!important;background:#160f0a!important;animation:none!important;filter:none!important}
+.hero.vz-diwali-hero::before,.hero.vz-diwali-hero::after{content:none!important;display:none!important}
+.vz-diwali-hero-photo{position:absolute;inset:0 47% 0 0;background-image:url('velzo-diwali-hero.jpg');background-size:cover;background-position:32% center;pointer-events:none;z-index:0}
+.vz-diwali-hero-fade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(19,12,9,0) 5%,rgba(19,12,9,.44) 40%,#170e0b 65%);pointer-events:none;z-index:1}
+.vz-diwali-hero-copy{position:relative!important;z-index:2!important;box-sizing:border-box!important;min-height:clamp(390px,47vw,610px);margin-left:48%;padding:55px 7% 55px 2%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;color:#f8e5bc}
+.vz-diwali-hero-copy>span{font-size:clamp(10px,1vw,13px);letter-spacing:3px;color:#d5b77f;font-weight:700}
+.vz-diwali-hero-copy h1{font-family:Georgia,serif!important;text-transform:none!important;letter-spacing:-.03em!important;line-height:1.03!important;color:#ffe7aa!important;font-size:clamp(42px,5.7vw,83px)!important;margin:18px 0!important;font-weight:600!important;animation:none!important}
+.vz-diwali-hero-copy p{margin:0 0 22px;color:#f4e9dd;font-size:clamp(13px,1.2vw,17px);max-width:440px;line-height:1.65}
+.vz-diwali-hero-shop{display:inline-block;padding:13px 22px;background:#c5a16b;color:#171717!important;text-decoration:none;font-size:12px;font-weight:800;letter-spacing:.5px}
+@media(max-width:700px){
+ .header.vz-icon-header{padding:11px 3%!important;gap:6px!important}
+ .header.vz-icon-header .logo{font-size:clamp(17px,4vw,23px)!important;letter-spacing:1px!important}
+ .header.vz-icon-header .logo small{font-size:7px!important;letter-spacing:1.3px!important}
+ .header.vz-icon-header>.nav{gap:0!important}
+ .header.vz-icon-header .vz-header-icon{min-width:35px!important;width:35px!important;height:40px!important;padding:0!important;font-size:23px!important}
+ .header.vz-icon-header .vz-search-shortcut{font-size:29px!important}
+ .header.vz-icon-header .velzo-care-nav{display:none!important}
+ .vz-diwali-hero-photo{inset:0;background-position:22% center;opacity:.8}
+ .vz-diwali-hero-fade{background:linear-gradient(90deg,rgba(15,10,8,.56),rgba(15,10,8,.8))}
+ .vz-diwali-hero-copy{margin-left:0;min-height:430px;padding:55px 7%;align-items:center;text-align:center}
+ .vz-diwali-hero-copy h1{font-size:clamp(42px,10vw,64px)!important}
+ .vz-diwali-hero-copy p{font-size:14px}
+}
+@media(max-width:390px){.header.vz-icon-header .vz-header-icon{width:32px!important;min-width:32px!important}.header.vz-icon-header .vz-search-shortcut{display:none!important}}
+</style>
+
+<style id="vz-header-layout-repair">
+/* Repairs the old multi-row header overrides, without recoloring the theme. */
+.header.vz-icon-header {
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  grid-template-rows:auto!important;
+  align-items:center!important;
+  column-gap:clamp(8px,1.6vw,22px)!important;
+  row-gap:0!important;
+  width:100%!important;
+  min-height:78px!important;
+  padding:12px clamp(12px,3vw,44px)!important;
+  flex-direction:row!important;
+}
+.header.vz-icon-header>.vz-menu-trigger {
+  grid-column:1!important;grid-row:1!important;order:initial!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;
+  padding:0!important;margin:0!important;position:relative!important;
+  background:transparent!important;border:0!important;border-radius:6px!important;
+  box-shadow:none!important;color:inherit!important;font-size:25px!important;
+  letter-spacing:0!important;line-height:1!important;
+}
+.header.vz-icon-header>.logo {
+  grid-column:2!important;grid-row:1!important;
+  display:inline-block!important;justify-self:start!important;align-self:center!important;
+  width:max-content!important;max-width:100%!important;min-width:0!important;
+  white-space:nowrap!important;overflow:visible!important;
+  font-size:clamp(19px,2.3vw,28px)!important;
+  letter-spacing:clamp(1px,.25vw,4px)!important;
+  line-height:1.1!important;word-break:normal!important;
+  text-align:center!important;
+}
+.header.vz-icon-header>.logo small {
+  display:block!important;white-space:nowrap!important;margin:5px 0 0!important;
+  font-size:8px!important;letter-spacing:clamp(1px,.35vw,4px)!important;
+}
+.header.vz-icon-header>.nav {
+  grid-column:3!important;grid-row:1!important;
+  display:flex!important;flex-direction:row!important;
+  flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;
+  width:max-content!important;min-width:0!important;max-width:100%!important;
+  padding:0!important;margin:0!important;gap:clamp(3px,.6vw,10px)!important;
+}
+.header.vz-icon-header>.nav>.vz-header-icon {
+  display:inline-flex!important;justify-content:center!important;align-items:center!important;
+  position:relative!important;flex:0 0 42px!important;
+  width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+  padding:0!important;margin:0!important;overflow:visible!important;
+  border:0!important;border-radius:6px!important;background:transparent!important;
+  color:inherit!important;-webkit-text-fill-color:currentColor!important;
+  font-size:25px!important;line-height:1!important;
+  text-align:center!important;white-space:nowrap!important;
+  font-weight:400!important;letter-spacing:0!important;
+  transform:none!important;box-shadow:none!important;
+}
+.header.vz-icon-header>.nav>.vz-header-icon .vz-count,
+.header.vz-icon-header>.nav>.vz-header-icon .vz-bag-count {
+  position:absolute!important;top:-2px!important;right:-2px!important;
+  font-size:10px!important;-webkit-text-fill-color:#171717!important;
+}
+@media (max-width:700px){
+  .header.vz-icon-header{grid-template-columns:34px minmax(0,1fr) auto!important;column-gap:5px!important;min-height:62px!important;padding:9px 10px!important}
+  .header.vz-icon-header>.vz-menu-trigger{width:32px!important;min-width:32px!important;max-width:32px!important;font-size:22px!important}
+  .header.vz-icon-header>.logo{font-size:clamp(15px,3.8vw,20px)!important;letter-spacing:.6px!important}
+  .header.vz-icon-header>.logo small{font-size:6px!important;letter-spacing:1px!important;margin-top:3px!important}
+  .header.vz-icon-header>.nav{gap:1px!important}
+  .header.vz-icon-header>.nav>.vz-header-icon{flex:0 0 33px!important;width:33px!important;min-width:33px!important;max-width:33px!important;height:36px!important;min-height:36px!important;font-size:21px!important}
+  .header.vz-icon-header>.nav>.velzo-care-nav{display:none!important}
+}
+@media(max-width:420px){
+  .header.vz-icon-header>.nav>.vz-search-shortcut{display:none!important}
+  .header.vz-icon-header>.nav>.vz-header-icon{flex-basis:31px!important;width:31px!important;min-width:31px!important;max-width:31px!important}
+}
+/* Relative image path also works when opening index.html locally next to image. */
+.vz-diwali-hero-photo{background-image:url('velzo-diwali-hero.jpg')!important}
+</style>
 </body>
 </html>
