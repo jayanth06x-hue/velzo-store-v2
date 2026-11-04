@@ -1696,16 +1696,34 @@ body { background:#e9e7e2; }
   </header>
 
   <main>
-    <section class="hero velzo-video-hero vz-diwali-hero" aria-label="VELZO Diwali collection">
-      <div class="vz-diwali-hero-photo" role="img" aria-label="Festive diya lights and warm Diwali decorations"></div>
-      <div class="vz-diwali-hero-fade" aria-hidden="true"></div>
-      <div class="vz-diwali-hero-copy">
-        <span>VELZO COLLECTIONS · FESTIVE EDIT</span>
-        <h1>DIWALI<br>COLLECTION</h1>
-        <p>Celebrate your style. Explore the latest looks from VELZO.</p>
-        <a href="#shop" class="vz-diwali-hero-shop">EXPLORE COLLECTION →</a>
-      </div>
-    </section>
+    <section class="hero velzo-video-hero vz-diwali-hero vz-sale-carousel" aria-label="VELZO festive promotions" aria-roledescription="carousel">
+  <div class="vz-sale-slide vz-sale-slide-main is-current" data-slide="0" role="group" aria-roledescription="slide" aria-label="1 of 2: Diwali collection" aria-hidden="false">
+    <div class="vz-sale-photo" aria-hidden="true"></div>
+    <div class="vz-sale-shade" aria-hidden="true"></div>
+    <div class="vz-sale-content">
+      <div class="vz-sale-eyebrow">VELZO COLLECTIONS · FESTIVE EDIT</div>
+      <h1>DIWALI <em>SALE</em></h1>
+      <p>Fresh fits for the festive season. Explore available offers on your favorite styles.</p>
+      <a href="#shop" class="vz-sale-cta">SHOP THE COLLECTION &nbsp; →</a>
+    </div>
+  </div>
+  <div class="vz-sale-slide vz-sale-slide-coupon" data-slide="1" role="group" aria-roledescription="slide" aria-label="2 of 2: Checkout coupons" aria-hidden="true">
+    <div class="vz-sale-photo vz-sale-photo-alt" aria-hidden="true"></div>
+    <div class="vz-sale-shade" aria-hidden="true"></div>
+    <div class="vz-sale-content">
+      <div class="vz-sale-eyebrow">VELZO COLLECTIONS · YOUR STYLE, YOUR DEAL</div>
+      <h1>COUPON <em>DEALS</em></h1>
+      <p>Have a VELZO coupon? Apply your valid code at checkout to see eligible savings before placing your order.</p>
+      <a href="#shop" class="vz-sale-cta">EXPLORE PRODUCTS &nbsp; →</a>
+    </div>
+  </div>
+  <button type="button" class="vz-sale-arrow vz-sale-prev" aria-label="Previous slide" onclick="vzSaleMove(-1)">‹</button>
+  <button type="button" class="vz-sale-arrow vz-sale-next" aria-label="Next slide" onclick="vzSaleMove(1)">›</button>
+  <div class="vz-sale-dots" aria-label="Choose banner slide">
+    <button type="button" class="is-current" aria-label="Show Diwali sale slide" aria-current="true" onclick="vzSaleShow(0)"></button>
+    <button type="button" aria-label="Show coupon slide" aria-current="false" onclick="vzSaleShow(1)"></button>
+  </div>
+</section>
     <nav class="velzo-video-categories" aria-label="Shop categories">
       <button type="button" onclick="shopAccessories()">ACCESSORIES</button>
       <button type="button" onclick="shopDresses()">DRESSES</button>
@@ -4336,5 +4354,132 @@ a.velzo-floating-support:focus-visible{outline:3px solid #fff!important;outline-
 /* Relative image path also works when opening index.html locally next to image. */
 .vz-diwali-hero-photo{background-image:url('velzo-diwali-hero.jpg')!important}
 </style>
+
+<style id="vz-white-collection-and-sale-slider">
+/* VELZO white storefront: header, shopping section and footer. Retain the brand's
+   current typography, product content, buttons, checkout and sidebar behavior. */
+html,body{background:#fff!important;color:#171717!important}
+.announcement{background:#fafafa!important;color:#232323!important;border-bottom:1px solid #ebebeb!important}
+.announcement a{color:#262626!important}
+.header.vz-icon-header{background:#fff!important;color:#171717!important;border-bottom:1px solid #ececec!important;box-shadow:0 2px 14px rgba(0,0,0,.035)!important;}
+.header.vz-icon-header>.logo,.header.vz-icon-header .nav a,.header.vz-icon-header .vz-header-icon{color:#151515!important;-webkit-text-fill-color:currentColor!important}
+.header.vz-icon-header .logo span{color:#bd9150!important;-webkit-text-fill-color:#bd9150!important}
+#shop.section{background:#fff!important;color:#171717!important;isolation:auto!important}
+#shop.section::before{display:none!important}
+#shop .section-heading h2,#shop .section-heading p,#shop .velzo-shop-kicker,#shop .velzo-shop-afterword{color:#222!important}
+#shop .product-grid .product{background:#fff!important;color:#171717!important;border:1px solid #ececec!important;box-shadow:0 3px 12px rgba(0,0,0,.045)!important}
+#shop .product h3,#shop .product-category,#shop .product-price,#shop .product-description{color:#242424!important}
+#shop .product-image-wrap{background:#f4f4f4!important}
+#shop .tools input,#shop .tools select{background:#fff!important;color:#222!important;border-color:#d9d9d9!important}
+#shop .tools input::placeholder{color:#777!important}
+#shop .velzo-category-slider button{color:#222!important;background:#fff!important;border-color:#ddd!important}
+#shop .velzo-delivery-estimate{color:#444!important}
+#shop .details-button,#shop .velzo-share-button,#shop .add-button{color:#222!important;background:#fff!important;border-color:#aaa!important}
+#shop .details-button:hover,#shop .velzo-share-button:hover,#shop .add-button:hover{background:#111!important;color:#fff!important}
+.benefits,.footer{background:#fafafa!important;color:#222!important}
+.footer .logo,.footer p,.footer small{color:#222!important}
+.footer .logo span{color:#bd9150!important}
+/* Diwali sale + coupon slides: image remains a separate file. */
+.hero.vz-sale-carousel{display:block!important;position:relative!important;isolation:isolate!important;overflow:hidden!important;min-height:clamp(420px,43vw,620px)!important;padding:0!important;background:#17110d!important;animation:none!important;filter:none!important}
+.hero.vz-sale-carousel::before,.hero.vz-sale-carousel::after{content:none!important;display:none!important}
+.vz-sale-slide{position:absolute;inset:0;visibility:hidden;opacity:0;transition:opacity .5s ease,visibility .5s;pointer-events:none}
+.vz-sale-slide.is-current{visibility:visible;opacity:1;pointer-events:auto;z-index:1}
+.vz-sale-photo{position:absolute;inset:0 40% 0 0;background-image:url('velzo-diwali-hero.jpg');background-position:30% center;background-size:cover}
+.vz-sale-photo-alt{background-position:55% center;filter:saturate(.82) brightness(.86)}
+.vz-sale-shade{position:absolute;inset:0;background:linear-gradient(90deg,transparent 5%,rgba(17,11,8,.4) 39%,#21120c 67%)}
+.vz-sale-slide-coupon .vz-sale-shade{background:linear-gradient(90deg,rgba(16,12,11,.13) 0%,rgba(17,12,13,.54) 37%,#171319 69%)}
+.vz-sale-content{position:relative;z-index:2;box-sizing:border-box;margin-left:46%;min-height:clamp(420px,43vw,620px);padding:48px 7% 75px 2%;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#fff}
+.vz-sale-eyebrow{font-size:clamp(10px,1vw,13px);font-weight:700;letter-spacing:2.7px;color:#e7c487}
+.vz-sale-content h1{font-family:Georgia,'Times New Roman',serif!important;color:#fff1cc!important;font-size:clamp(43px,6.2vw,88px)!important;font-weight:600!important;letter-spacing:-.045em!important;line-height:.98!important;text-transform:none!important;margin:20px 0 18px!important;animation:none!important}
+.vz-sale-content h1 em{font-style:normal;color:#e5b965}
+.vz-sale-content p{color:#f4efea!important;font-size:clamp(13px,1.15vw,16px)!important;max-width:420px;line-height:1.75;margin:0 0 22px!important}
+.vz-sale-cta{color:#1d1d1d!important;background:#e7bd73;display:inline-block;text-decoration:none;padding:14px 22px;font-size:12px;font-weight:750;letter-spacing:1px}
+.vz-sale-cta:focus-visible,.vz-sale-arrow:focus-visible,.vz-sale-dots button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.vz-sale-arrow{position:absolute;z-index:3;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.5);width:37px;height:49px;border-radius:4px;font-size:28px;line-height:1}
+.vz-sale-prev{left:12px}.vz-sale-next{right:12px}
+.vz-sale-dots{position:absolute;z-index:3;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.vz-sale-dots button{height:11px;width:11px;border-radius:99px;background:#ffffff85;border:1px solid #fff9;padding:0}
+.vz-sale-dots button.is-current{background:#fff;width:25px}
+@media(max-width:700px){
+ .hero.vz-sale-carousel{min-height:475px!important}
+ .vz-sale-photo,.vz-sale-photo-alt{inset:0;background-position:28% center;opacity:.88}
+ .vz-sale-shade,.vz-sale-slide-coupon .vz-sale-shade{background:linear-gradient(90deg,#160e0ccc,rgba(20,11,8,.73))}
+ .vz-sale-content{margin:0;min-height:475px;padding:50px 14% 65px;text-align:center;align-items:center}
+ .vz-sale-content h1{font-size:clamp(42px,11vw,69px)!important}
+ .vz-sale-content p{font-size:13px!important}
+ .vz-sale-arrow{width:28px;height:40px;font-size:23px;background:#0005}
+ .vz-sale-prev{left:5px}.vz-sale-next{right:5px}
+}
+@media(prefers-reduced-motion:reduce){.vz-sale-slide{transition:none}}
+</style>
+<script id="vz-sale-slider-control">
+(function(){
+  const hero=document.querySelector('.vz-sale-carousel');
+  if(!hero)return;
+  const initialSlides=[
+    {eyebrow:'VELZO COLLECTIONS · FESTIVE EDIT',title:'DIWALI SALE',description:'Fresh fits for the festive season. Explore available offers on your favorite styles.',button_text:'SHOP THE COLLECTION →',button_link:'#shop',image:'velzo-diwali-hero.jpg'},
+    {eyebrow:'VELZO COLLECTIONS · YOUR STYLE, YOUR DEAL',title:'COUPON DEALS',description:'Have a VELZO coupon? Apply your valid code at checkout to see eligible savings before placing your order.',button_text:'EXPLORE PRODUCTS →',button_link:'#shop',image:'velzo-diwali-hero.jpg'}
+  ];
+  const container=hero.querySelector('.vz-sale-dots');
+  let slides=Array.from(hero.querySelectorAll('.vz-sale-slide'));
+  let dots=Array.from(container.querySelectorAll('button'));
+  let active=0,handle=null,interval=3000;
+  function safeUrl(value, fallback){
+    if(typeof value!=='string'||!value.trim())return fallback;
+    let s=value.trim();
+    if(s.startsWith('/')&&!s.startsWith('//'))return s;
+    if(s.startsWith('#')&&fallback==='#shop')return s;
+    if(/^[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|avif)(?:\?[\w=&.-]+)?$/i.test(s)&&fallback!=='#shop')return s;
+    try{const u=new URL(s,location.href);if((u.protocol==='https:'|| (u.protocol==='http:'&&u.origin===location.origin))&& !s.startsWith('//'))return u.href}catch(_e){}
+    return fallback;
+  }
+  function stop(){if(handle!==null){clearInterval(handle);handle=null}}
+  function show(index){
+    if(!slides.length)return;
+    active=(index+slides.length)%slides.length;
+    slides.forEach((slide,i)=>{const current=i===active;slide.classList.toggle('is-current',current);slide.setAttribute('aria-hidden',String(!current));slide.querySelectorAll('a').forEach(a=>a.tabIndex=current?0:-1)});
+    dots.forEach((dot,i)=>{dot.classList.toggle('is-current',i===active);dot.setAttribute('aria-current',String(i===active))});
+  }
+  function start(){
+    stop();
+    if(slides.length<2||document.hidden||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    handle=setInterval(()=>show(active+1),interval);
+  }
+  function applySlides(settings){
+    if(settings&&Number.isInteger(settings.interval_ms)&&settings.interval_ms>=2000&&settings.interval_ms<=20000)interval=settings.interval_ms;
+    const content=Array.isArray(settings?.slides)?settings.slides.slice(0,6):[];
+    if(!content.length){start();return}
+    hero.querySelectorAll('.vz-sale-slide').forEach(s=>s.remove());container.replaceChildren();
+    for(const [i,obj] of content.entries()){
+      const data=obj&&typeof obj==='object'?obj:{};
+      const section=document.createElement('div');section.className='vz-sale-slide '+(i===0?'vz-sale-slide-main':'vz-sale-slide-coupon');
+      section.setAttribute('role','group');section.setAttribute('aria-roledescription','slide');section.setAttribute('aria-label',`${i+1} of ${content.length}`);
+      const photo=document.createElement('div');photo.className='vz-sale-photo';photo.setAttribute('aria-hidden','true');
+      const photoUrl=safeUrl(data.image,'velzo-diwali-hero.jpg');photo.style.backgroundImage=`url(${JSON.stringify(photoUrl)})`;
+      const shade=document.createElement('div');shade.className='vz-sale-shade';shade.setAttribute('aria-hidden','true');
+      const box=document.createElement('div');box.className='vz-sale-content';
+      const eyebrow=document.createElement('div');eyebrow.className='vz-sale-eyebrow';eyebrow.textContent=String(data.eyebrow||'VELZO COLLECTIONS').slice(0,110);
+      const heading=document.createElement('h1');heading.textContent=String(data.title||'SHOP VELZO').slice(0,75);
+      const description=document.createElement('p');description.textContent=String(data.description||'Explore our collection.').slice(0,300);
+      const link=document.createElement('a');link.className='vz-sale-cta';link.href=safeUrl(data.button_link,'#shop');link.textContent=String(data.button_text||'SHOP NOW →').slice(0,65);
+      box.append(eyebrow,heading,description,link);section.append(photo,shade,box);hero.insertBefore(section,hero.querySelector('.vz-sale-prev'));
+      const dot=document.createElement('button');dot.type='button';dot.setAttribute('aria-label',`Show slide ${i+1}`);dot.addEventListener('click',()=>window.vzSaleShow(i));container.appendChild(dot);
+    }
+    slides=Array.from(hero.querySelectorAll('.vz-sale-slide'));dots=Array.from(container.querySelectorAll('button'));
+    show(0);start();
+  }
+  window.vzSaleShow=function(i){show(i);start()};
+  window.vzSaleMove=function(step){show(active+step);start()};
+  hero.addEventListener('mouseenter',stop);hero.addEventListener('mouseleave',start);
+  hero.addEventListener('focusin',stop);hero.addEventListener('focusout',e=>{if(!hero.contains(e.relatedTarget))start()});
+  document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
+  show(0);start(); // Works immediately even before Supabase settings are installed.
+  if(typeof db!=='undefined'){
+    db.from('velzo_hero_settings').select('interval_ms,slides').eq('id',1).maybeSingle()
+      .then(({data,error})=>{if(error){console.info('VELZO hero uses built-in slides until slider SQL is installed.');return}if(data)applySlides(data)})
+      .catch(()=>{});
+  }
+})();
+</script>
 </body>
 </html>
