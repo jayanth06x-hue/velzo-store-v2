@@ -306,6 +306,9 @@ button.danger { background:#8d302b; color:#fff; }
             <label for="productColors" class="field-label" style="font-weight:700;font-size:14px">PRODUCT COLOUR OPTIONS</label>
             <input id="productColors" style="width:100%;margin-top:7px" placeholder="e.g. Black, White, Navy Blue" maxlength="300" autocomplete="off">
             <p class="note" style="margin:7px 0 0">Type colours separated by commas. Example: Black, White, Navy Blue. Leave empty if this product has no colour choices.</p>
+            <label for="productColorImageMap" class="field-label" style="font-weight:700;margin-top:14px">COLOUR PRODUCT PHOTOS — optional</label>
+            <textarea id="productColorImageMap" rows="4" style="width:100%" placeholder="Black | https://example.com/black-shirt.jpg&#10;White | https://example.com/white-shirt.jpg"></textarea>
+            <p class="note">Enter <strong>one colour and its image URL per line</strong>, separated by |. The colour must match an option above. On the product page, tapping Black shows the Black photo, tapping White shows the White photo. Use HTTPS image URLs.</p>
           </div>
           <div class="full" id="comboOptionsPanel" style="padding:16px;border:1px solid #c5a16b;border-radius:8px;background:rgba(197,161,107,.08);display:none">
             <h3 style="margin:0 0 8px">T-shirt + Sweatpants Combo Options</h3>
@@ -691,7 +694,7 @@ $("saveFeaturedProduct").addEventListener("click", async () => {
 
 async function loadProducts() {
   const {data, error} = await db.from("products")
-    .select("id,name,category,price,compare_at_price,discount_percent,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options")
+    .select("id,name,category,price,compare_at_price,discount_percent,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options,color_image_map")
     .order("created_at", {ascending:false});
 
   if (error) throw error;
@@ -884,6 +887,7 @@ function resetProductForm() {
   $("productHasSizes").checked = false;
   $("productSizes").value = "";
   $("productColors").value = "";
+  $("productColorImageMap").value = "";
   $("productDiscount").value = "0";
   $("productFinalPrice").value = "";
   updateProductPricePreview();
@@ -958,6 +962,7 @@ $("productRows").addEventListener("click", async event => {
       $("productDescription").value = product.description;
       $("productMeeshoUrl").value = product.meesho_url || "";
       $("productColors").value = Array.isArray(product.colors) ? product.colors.join(", ") : "";
+      $("productColorImageMap").value = Object.entries(product.color_image_map || {}).map(([c,url]) => `${c} | ${url}`).join("\n");
       $("comboShirtColors").value = (product.combo_options?.shirt_colors || []).join(", ");
       $("comboPantColors").value = (product.combo_options?.pant_colors || []).join(", ");
       $("comboShirtSizes").value = (product.combo_options?.shirt_sizes || product.sizes || []).join(", ");
@@ -1082,6 +1087,20 @@ $("productForm").addEventListener("submit", async event => {
   if (product.combo_options && (product.combo_options.shirt_sizes.length > 20 || product.combo_options.pant_sizes.length > 20)) {
     return message("For combos, enter at most 20 sizes per item, or leave sizes blank.");
   }
+  const colourPhotos = {};
+  const colourLines = $("productColorImageMap").value.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  for (const line of colourLines) {
+    const splitAt = line.indexOf('|');
+    if (splitAt <= 0) return message("Colour photos: use Colour | https://image-url on each line.");
+    const name = line.slice(0, splitAt).trim();
+    const url = line.slice(splitAt + 1).trim();
+    const match = product.colors.find(c => c.toLowerCase() === name.toLowerCase());
+    if (!match) return message(`Colour photo '${name}' must match a colour listed in PRODUCT COLOUR OPTIONS.`);
+    if (!/^https:\/\/[^\s"'<>]+$/i.test(url)) return message(`Colour photo for ${name} must use a valid HTTPS image URL.`);
+    if (Object.keys(colourPhotos).some(c => c.toLowerCase() === name.toLowerCase())) return message(`Duplicate colour photo: ${name}`);
+    colourPhotos[match] = url;
+  }
+  product.color_image_map = colourPhotos;
   if (product.colors.length > 20) {
     return message("Use up to 20 colour options per product.");
   }
