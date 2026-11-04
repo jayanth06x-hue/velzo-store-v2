@@ -222,7 +222,7 @@ button.danger { background:#8d302b; color:#fff; }
     </section>
     <section class="panel" id="couponAdminPanel">
       <h2>Coupon codes & product targeting</h2>
-      <p class="note">Create and manage coupons here. Coupons will not be redeemable at checkout until the server-side order pricing is upgraded.</p>
+      <p class="note">Create and manage coupons here. Enable flat ₹ coupons only after deploying the server-side coupon pricing and redemption SQL and testing checkout.</p>
       <form id="couponForm" class="form">
         <input id="couponCode" placeholder="Code e.g. VELZO10" maxlength="32" pattern="[A-Za-z0-9_-]+" required>
         <label class="field-label">Choose discount type
@@ -237,7 +237,7 @@ button.danger { background:#8d302b; color:#fff; }
         <label class="field-label" id="vzCouponFlatWrap" hidden>Flat discount amount (₹)
           <input id="vzCouponFlatAmount" type="number" min="0.01" max="99999" step="0.01" placeholder="e.g. 200" disabled>
         </label>
-        <p class="note full" id="vzCouponModeNote">Only the selected discount is required. Percentage coupons continue working as before. Flat ₹ coupons can be saved as inactive drafts, but cannot be redeemed until checkout pricing supports them.</p>
+        <p class="note full" id="vzCouponModeNote">Only the selected discount is required. Percentage coupons continue working as before. Flat ₹ coupons can be enabled after installing and testing the coupon checkout SQL.</p>
         <input id="couponMin" type="number" min="0" step=".01" placeholder="Minimum order ₹" value="0" required>
         <input id="couponMaxUses" type="number" min="1" step="1" placeholder="Maximum uses (optional)">
         <label class="field-label">Expiry date (optional)<input id="couponExpiry" type="date"></label>
@@ -436,7 +436,7 @@ async function loadCoupons() {
   const tbody=$('couponRows');
   const [coupons,displays]=await Promise.all([
     db.from('coupons').select('code,discount_percent,min_order_amount,max_uses,expires_at,active').order('code'),
-    db.from('velzo_coupon_displays').select('code,display_title,target_categories,min_quantity,flat_discount_amount')
+    db.from('velzo_coupon_displays').select('code,display_title,target_categories,min_quantity,flat_discount_amount,discount_mode')
   ]);
   if(coupons.error){$('couponMessage').textContent='Coupon table unavailable: '+coupons.error.message;return;}
   if(displays.error){$('couponMessage').textContent='Run the supplied coupon targeting SQL first: '+displays.error.message;return;}
@@ -445,7 +445,7 @@ async function loadCoupons() {
   tbody.innerHTML=vzCouponAdminRows.map(c=>{
     const meta=vzCouponPresentationRows.find(p=>p.code===c.code);
     const groups=meta&&meta.target_categories?.length?meta.target_categories.join(', '):'All products';
-    return `<tr><td>${esc(c.code)}</td><td>${Number(meta?.flat_discount_amount)>0?`₹${esc(meta.flat_discount_amount)} (draft)`:`${esc(c.discount_percent)}%`}</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||'—')}</td><td>${c.active?'Yes':'No'}</td><td>${esc(groups)}</td><td><button class="secondary" data-coupon-edit="${esc(c.code)}">Edit</button> <button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?'Disable':'Enable'}</button></td></tr>`;
+    return `<tr><td>${esc(c.code)}</td><td>${meta?.discount_mode==='flat'?`₹${esc(meta.flat_discount_amount)}`:`${esc(c.discount_percent)}%`}</td><td>${money(c.min_order_amount)}</td><td>${esc(c.expires_at||'—')}</td><td>${c.active?'Yes':'No'}</td><td>${esc(groups)}</td><td><button class="secondary" data-coupon-edit="${esc(c.code)}">Edit</button> <button class="secondary" data-coupon="${esc(c.code)}" data-active="${c.active}">${c.active?'Disable':'Enable'}</button></td></tr>`;
   }).join('')||'<tr><td colspan="7">No coupons yet</td></tr>';
 }
 const vzCouponMode=$('vzCouponDiscountMode');
@@ -460,10 +460,9 @@ function vzCouponSwitchMode(){
   $('vzCouponFlatAmount').required=flat;
   $('vzCouponFlatAmount').disabled=!flat;
   $('vzCouponModeNote').textContent=flat
-    ? 'Flat ₹ coupon: the amount is required; percentage is optional and inactive. Flat discounts are saved as disabled drafts until checkout pricing supports them.'
+    ? 'Flat ₹ coupon: the amount is required. Percentage is inactive. Enable only after testing server-side checkout pricing.'
     : 'Percentage coupon: the percentage is required; the ₹ amount is optional and inactive. Existing percentage checkout stays unchanged.';
-  $('couponActive').disabled=flat;
-  if(flat){$('couponActive').checked=false;}
+  $('couponActive').disabled=false;
 }
 vzCouponMode.addEventListener('change',vzCouponSwitchMode);
 vzCouponSwitchMode();
@@ -485,17 +484,25 @@ $('couponForm').addEventListener('submit',async e=>{
   if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||(!flatMode&&!percentText)||!Number.isFinite(minimum)||minimum<0||(max!==null&&(!Number.isInteger(max)||max<1))||!displayTitle||displayTitle.length>100||!Number.isInteger(minQuantity)||minQuantity<1||minQuantity>20||!Number.isFinite(flatAmount)||(flatMode&&flatAmount<=0)||flatAmount>99999||Math.abs(flatAmount*100-flatCents)>0.000001||(!vzCouponAll.checked&&!categories.length)){
     $('couponMessage').textContent='Check the selected discount amount and coupon fields, and choose at least one category or All products.';return;
   }
-  // Flat discounts have no live checkout support; never accidentally activate
-  // the historical percentage discount under a new flat coupon code.
-  const active=flatMode?false:$('couponActive').checked;
+  // Save disabled first; enable only after both coupon and metadata writes succeed.
+  const requestedActive=$('couponActive').checked;
+  const active=false;
   const {error}=await db.from('coupons').upsert({code,discount_percent:percent,min_order_amount:minimum,max_uses:max,expires_at:$('couponExpiry').value||null,active},{onConflict:'code'});
   if(error){$('couponMessage').textContent='Coupon save failed: '+error.message;return;}
-  const {error:displayError}=await db.from('velzo_coupon_displays').upsert({code,display_title:displayTitle,target_categories:categories,min_quantity:minQuantity,flat_discount_amount:flatAmount},{onConflict:'code'});
-  $('couponMessage').textContent=displayError
-    ? 'Coupon saved but display settings failed: '+displayError.message
-    : flatMode
-      ? '₹ discount saved as an inactive draft. It will not apply at checkout until the Supabase pricing function is upgraded.'
-      : 'Percentage coupon and category settings saved. Flat ₹ discount is not active.';
+  const {error:displayError}=await db.from('velzo_coupon_displays').upsert({code,display_title:displayTitle,target_categories:categories,min_quantity:minQuantity,flat_discount_amount:flatAmount,discount_mode:flatMode?'flat':'percent'},{onConflict:'code'});
+  if(displayError){
+    $('couponMessage').textContent='Coupon saved inactive; offer settings failed: '+displayError.message;
+    await loadCoupons();
+    return;
+  }
+  if(requestedActive){
+    const {error:activateError}=await db.from('coupons').update({active:true}).eq('code',code);
+    $('couponMessage').textContent=activateError
+      ? 'Offer saved inactive; activation failed: '+activateError.message
+      : 'Coupon and category settings saved and enabled.';
+  }else{
+    $('couponMessage').textContent='Coupon saved inactive.';
+  }
   await loadCoupons();
 });
 $('couponRows').addEventListener('click',async e=>{
@@ -505,7 +512,7 @@ $('couponRows').addEventListener('click',async e=>{
     if(!c)return;
     const meta=vzCouponPresentationRows.find(p=>p.code===c.code);
     $('couponCode').value=c.code;
-    const isFlat=Number(meta?.flat_discount_amount)>0;
+    const isFlat=meta?.discount_mode==='flat';
     vzCouponMode.value=isFlat?'flat':'percent';
     $('couponPercent').value=isFlat?'':c.discount_percent;
     $('vzCouponFlatAmount').value=isFlat?meta.flat_discount_amount:'';
@@ -513,7 +520,7 @@ $('couponRows').addEventListener('click',async e=>{
     $('couponMin').value=c.min_order_amount||0;
     $('couponMaxUses').value=c.max_uses??'';
     $('couponExpiry').value=c.expires_at?String(c.expires_at).slice(0,10):'';
-    $('couponActive').checked=isFlat?false:c.active;
+    $('couponActive').checked=c.active;
     $('vzCouponDisplayTitle').value=meta?.display_title || (isFlat?'₹'+meta.flat_discount_amount+' OFF':c.discount_percent+'% OFF');
     $('vzCouponMinQty').value=meta?.min_quantity||1;
     const groups=meta?.target_categories||[];
@@ -524,7 +531,6 @@ $('couponRows').addEventListener('click',async e=>{
     return;
   }
   const btn=e.target.closest('button[data-coupon]');if(!btn)return;
-  if(btn.dataset.active!=='true' && Number(vzCouponPresentationRows.find(x=>x.code===btn.dataset.coupon)?.flat_discount_amount)>0){$('couponMessage').textContent='Flat ₹ coupons cannot be enabled until checkout pricing supports them.';return;}
   const {error}=await db.from('coupons').update({active:btn.dataset.active!=='true'}).eq('code',btn.dataset.coupon);
   $('couponMessage').textContent=error?error.message:'Coupon status updated.';
   if(!error)await loadCoupons();
