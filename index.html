@@ -2523,20 +2523,22 @@ function vzSimilarProductsMarkup(current) {
     Math.abs(Number(discountedPrice(a))-price) -
     Math.abs(Number(discountedPrice(b))-price)
   );
-  const selected = sameCategory.slice(0, 4);
-  // If the category has fewer than four choices, suggest other store products.
-  if (selected.length < 4) {
-    for (const item of available) {
-      if (selected.length >= 4) break;
-      if (!selected.some(x => String(x.id) === String(item.id))) selected.push(item);
-    }
-  }
+  // Display ALL products, ordered by relevance: same category first,
+  // then other available collections as additional recommendations.
+  const otherCategory = available.filter(item =>
+    String(item.category || '').trim().toLowerCase() !== category
+  );
+  otherCategory.sort((a,b) =>
+    Math.abs(Number(discountedPrice(a))-price) -
+    Math.abs(Number(discountedPrice(b))-price)
+  );
+  const selected = sameCategory.concat(otherCategory);
   if (!selected.length) return '';
   return `<section class="vz-related-section" aria-labelledby="vz-related-heading">
     <h3 id="vz-related-heading">Similar Products</h3>
-    <p class="vz-related-intro">You may also like</p>
+    <p class="vz-related-intro">You may also like · ${selected.length} products</p>
     <div class="vz-related-grid">${selected.map(item => `
-      <button type="button" class="vz-related-card" data-vz-related-id="${escapeHTML(String(item.id))}" aria-label="View ${escapeHTML(item.name)}">
+      <button type="button" class="vz-related-card" data-vz-related-id="${escapeHTML(String(item.id))}" onclick="event.stopPropagation(); window.vzViewSimilarProduct(this.dataset.vzRelatedId)" aria-label="View ${escapeHTML(item.name)}">
         <img src="${escapeHTML(item.image_url)}" alt="${escapeHTML(item.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/320x400/f7f5f0/555?text=VELZO'">
         <span class="vz-related-name">${escapeHTML(item.name)}</span>
         <span class="vz-related-category">${escapeHTML(item.category || 'VELZO')}</span>
@@ -2594,8 +2596,8 @@ document.getElementById('product-details-modal')?.addEventListener('click', even
   const card = event.target.closest('[data-vz-related-id]');
   if (!card) return;
   event.preventDefault();
-  showProductDetails(card.dataset.vzRelatedId);
-  document.getElementById('product-details-modal')?.scrollTo(0,0);
+  // Direct buttons handle navigation; this is a fallback for legacy cards.
+  window.vzViewSimilarProduct(card.dataset.vzRelatedId);
 });
 
 function changeProductImage(id, url, button) {
@@ -5238,7 +5240,21 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
  window.showProductDetails=function(id){
    originalShow(id);
    const modal=document.getElementById('product-details-modal');
-   if(modal&&!modal.hidden){updateUrl(id);modal.scrollTop=0;}
+   if(modal&&!modal.hidden){
+     updateUrl(id);
+     modal.scrollTop=0;
+     const dialog=modal.querySelector('.product-details-dialog');
+     if(dialog) dialog.scrollTop=0;
+     window.scrollTo({top:0,behavior:'instant'});
+   }
+ };
+ window.vzViewSimilarProduct=function(id){
+   if(!id)return;
+   window.showProductDetails(String(id));
+   // Keep the customer at the top of the newly selected product page.
+   const modal=document.getElementById('product-details-modal');
+   const dialog=modal&&modal.querySelector('.product-details-dialog');
+   if(dialog)dialog.scrollTop=0;
  };
  window.closeProductDetails=function(){
    originalClose();
