@@ -2507,6 +2507,44 @@ function vzColourProductPhoto(product, colour) {
   return /^https:\/\/[^\s"'<>]+$/i.test(url) ? url : '';
 }
 
+// Related products: same category first; exclude the viewed product.
+function vzSimilarProductsMarkup(current) {
+  const available = PRODUCTS.filter(item =>
+    item && item.active !== false && !item.out_of_stock &&
+    String(item.id) !== String(current.id) && item.image_url
+  );
+  const category = String(current.category || '').trim().toLowerCase();
+  const sameCategory = available.filter(item =>
+    String(item.category || '').trim().toLowerCase() === category
+  );
+  // Prefer products with a similar price within the same category.
+  const price = Number(discountedPrice(current)) || 0;
+  sameCategory.sort((a,b) =>
+    Math.abs(Number(discountedPrice(a))-price) -
+    Math.abs(Number(discountedPrice(b))-price)
+  );
+  const selected = sameCategory.slice(0, 4);
+  // If the category has fewer than four choices, suggest other store products.
+  if (selected.length < 4) {
+    for (const item of available) {
+      if (selected.length >= 4) break;
+      if (!selected.some(x => String(x.id) === String(item.id))) selected.push(item);
+    }
+  }
+  if (!selected.length) return '';
+  return `<section class="vz-related-section" aria-labelledby="vz-related-heading">
+    <h3 id="vz-related-heading">Similar Products</h3>
+    <p class="vz-related-intro">You may also like</p>
+    <div class="vz-related-grid">${selected.map(item => `
+      <button type="button" class="vz-related-card" data-vz-related-id="${escapeHTML(String(item.id))}" aria-label="View ${escapeHTML(item.name)}">
+        <img src="${escapeHTML(item.image_url)}" alt="${escapeHTML(item.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/320x400/f7f5f0/555?text=VELZO'">
+        <span class="vz-related-name">${escapeHTML(item.name)}</span>
+        <span class="vz-related-category">${escapeHTML(item.category || 'VELZO')}</span>
+        <span class="vz-related-price">${money(discountedPrice(item))}</span>
+      </button>`).join('')}</div>
+  </section>`;
+}
+
 function showProductDetails(id) {
   const p = PRODUCTS.find(item => String(item.id) === String(id));
   if (!p) return;
@@ -2536,7 +2574,8 @@ function showProductDetails(id) {
         <button type="button" class="velzo-share-button" onclick="shareVelzoProduct('${safeId}')">↗ Share this product</button>
         <section class="velzo-reviews"><h3>Customer reviews</h3><div id="velzo-review-list">Loading reviews…</div><form id="velzo-review-form" onsubmit="submitVelzoReview(event, '${safeId}')"><label>Rating <select name="rating" required><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option><option value="3">★★★ 3</option><option value="2">★★ 2</option><option value="1">★ 1</option></select></label><label>Your review <textarea name="body" required minlength="10" maxlength="1000" placeholder="Share your genuine experience"></textarea></label><button type="submit" class="gold-button">SUBMIT REVIEW</button><p class="subtext">Sign in to submit. Your review will appear publicly immediately.</p></form></section>
       </div>
-    </div>`;
+    </div>
+    ${vzSimilarProductsMarkup(p)}`;
   const modal = document.getElementById('product-details-modal');
   modal.setAttribute('data-current-product', String(p.id));
   modal.hidden = false;
@@ -2549,6 +2588,15 @@ function closeProductDetails() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeProductDetails(); });
+
+// Event delegation survives changes between individual full-page products.
+document.getElementById('product-details-modal')?.addEventListener('click', event => {
+  const card = event.target.closest('[data-vz-related-id]');
+  if (!card) return;
+  event.preventDefault();
+  showProductDetails(card.dataset.vzRelatedId);
+  document.getElementById('product-details-modal')?.scrollTo(0,0);
+});
 
 function changeProductImage(id, url, button) {
   const main = document.querySelector(`[data-product-image="${CSS.escape(id)}"]`);
@@ -5157,6 +5205,23 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
  #product-details-modal .vz-colour-choice{width:70px;min-height:85px;font-size:11px}
  #product-details-modal .vz-colour-dot{width:42px;height:42px}
 }
+
+/* VELZO Similar Products — below reviews, full-width, mobile-friendly */
+#product-details-modal .vz-related-section {
+  display:block!important; clear:both!important; width:100%!important;
+  margin:46px 0 18px!important; padding:26px 0 0!important;
+  border-top:1px solid #e8e8e8!important; color:#171717!important;
+}
+#product-details-modal .vz-related-section h3{font-size:clamp(22px,2.4vw,30px)!important;margin:0 0 6px!important;font-weight:800!important;letter-spacing:-.4px!important}
+#product-details-modal .vz-related-intro{font-size:13px!important;color:#777!important;margin:0 0 19px!important}
+#product-details-modal .vz-related-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important}
+#product-details-modal .vz-related-card{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;padding:0 0 14px!important;border:1px solid #eee!important;border-radius:9px!important;overflow:hidden!important;box-shadow:none!important;cursor:pointer!important;background:#fff!important;color:#161616!important;text-align:left!important;line-height:1.4!important;transition:border-color .15s ease!important}
+#product-details-modal .vz-related-card:hover,#product-details-modal .vz-related-card:focus-visible{border-color:#c5a16b!important;outline:2px solid #c5a16b33!important}
+#product-details-modal .vz-related-card img{display:block!important;width:100%!important;height:auto!important;aspect-ratio:4/5!important;object-fit:cover!important;background:#f6f6f6!important}
+#product-details-modal .vz-related-name{display:block!important;font-weight:700!important;font-size:13px!important;padding:11px 10px 0!important;overflow-wrap:anywhere!important}
+#product-details-modal .vz-related-category{display:block!important;font-size:11px!important;color:#777!important;padding:5px 10px 0!important}
+#product-details-modal .vz-related-price{display:block!important;font-size:14px!important;font-weight:800!important;padding:7px 10px 0!important}
+@media(max-width:760px){#product-details-modal .vz-related-section{margin-top:29px!important;padding-top:19px!important}#product-details-modal .vz-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}#product-details-modal .vz-related-name{font-size:12px!important}}
 </style>
 <script id="velzo-full-product-page-navigation-v1">
 (function(){
