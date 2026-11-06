@@ -1843,6 +1843,38 @@ body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){.vz-orbit-card{transition:none!important}}
 </style>
+
+<style id="vz-drop-editions-style">
+.vz-drops{padding:clamp(22px,3.5vw,52px) clamp(14px,5vw,80px);background:#f8f6f0;color:#161616}
+.vz-drops-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:19px}
+.vz-drops-heading span{color:#9e8055;font-size:11px;letter-spacing:.24em;font-weight:800}
+.vz-drops-heading h2{font-family:Arial,Helvetica,sans-serif;font-size:clamp(26px,3vw,45px);letter-spacing:-.04em;line-height:1.1;margin:8px 0 0}
+.vz-drops-heading p{color:#555;font-size:13px;margin:0 0 3px}
+.vz-drop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.vz-drop-card{position:relative;display:flex;min-height:clamp(270px,32vw,440px);overflow:hidden;background:#181818;color:#fff;text-decoration:none;cursor:pointer;border:0;border-radius:8px;isolation:isolate;padding:0;text-align:left}
+.vz-drop-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;transition:transform .7s ease;filter:brightness(.74)}
+.vz-drop-card:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 10%,#00000012 30%,#000c 100%);z-index:1;pointer-events:none}
+.vz-drop-card:hover img,.vz-drop-card:focus-visible img{transform:scale(1.045)}
+.vz-drop-card:focus-visible{outline:3px solid #caa76c;outline-offset:3px}
+.vz-drop-info{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:end;width:100%;padding:clamp(16px,3vw,35px);pointer-events:none}
+.vz-drop-label{display:inline-flex;padding:8px 11px;background:#111;color:#e8c688;font-size:11px;letter-spacing:.18em;font-weight:800;margin-bottom:auto}
+.vz-drop-number{font-size:clamp(43px,6vw,85px);font-weight:900;letter-spacing:-.085em;line-height:.95;margin:25px 0 10px}
+.vz-drop-name{font-size:clamp(12px,1.3vw,17px);font-weight:700;line-height:1.3;max-width:85%;text-transform:uppercase;letter-spacing:.045em}
+.vz-drop-action{display:inline-block;background:#d6ad6a;color:#121212;padding:11px 15px;font-size:11px;font-weight:850;letter-spacing:.06em;margin-top:19px}
+@media(max-width:700px){.vz-drops{padding:23px 12px 30px}.vz-drops-heading{align-items:start;flex-direction:column;gap:6px}.vz-drop-grid{gap:10px}.vz-drop-card{min-height:300px;border-radius:5px}.vz-drop-info{padding:12px}.vz-drop-label{font-size:9px;letter-spacing:.08em;padding:6px}.vz-drop-number{font-size:clamp(32px,8vw,57px);margin:12px 0}.vz-drop-name{font-size:11px;max-width:100%}.vz-drop-action{margin-top:12px;font-size:9px;padding:10px 9px}}
+@media(max-width:380px){.vz-drop-card{min-height:260px}}
+@media(prefers-reduced-motion:reduce){.vz-drop-card img{transition:none}}
+</style>
+<style id="vz-custom-drops-style">
+#vz-drops[hidden]{display:none!important}
+#vz-drop-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:18px}
+#vz-drop-grid .vz-drop-card{width:100%}
+.vz-drop-sidebar-links{display:flex;flex-direction:column}
+.vz-drop-sidebar-links>button{width:100%;display:block;text-align:left;font-size:15px;line-height:1.45;padding:15px 12px;background:transparent;color:#222;border:0;border-bottom:1px solid #ececec;cursor:pointer}
+.vz-drop-sidebar-links>button:hover{background:#f4f4f4}
+.vz-drop-info .vz-drop-name{font-size:14px}
+@media(max-width:700px){#vz-drop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+</style>
 </head>
 
 <body>
@@ -1914,6 +1946,12 @@ body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
     <button type="button" aria-label="Show coupon slide" aria-current="false" onclick="vzSaleShow(1)"></button>
   </div>
 </section>
+
+    <!-- Dynamic DROP collections, configured from VELZO Admin -->
+    <section class="vz-drops" id="vz-drops" aria-label="VELZO clothing drops" hidden>
+      <div class="vz-drops-heading"><div><span>VELZO COLLECTIONS / NEW RELEASES</span><h2>EXPLORE THE DROPS.</h2></div><p>Curated collections.</p></div>
+      <div class="vz-drop-grid" id="vz-drop-grid"></div>
+    </section>
     <nav class="velzo-video-categories" aria-label="Shop categories">
       <button type="button" onclick="shopAccessories()">ACCESSORIES</button>
       <button type="button" onclick="shopDresses()">DRESSES</button>
@@ -2029,7 +2067,8 @@ body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
   <div class="vz-drawer-backdrop" id="vz-drawer-backdrop" onclick="vzCloseMenu()" hidden></div>
   <aside class="vz-side-menu" id="vz-side-menu" aria-label="Shop menu" aria-hidden="true">
     <div class="vz-drawer-head"><strong>VELZO COLLECTIONS</strong><button type="button" onclick="vzCloseMenu()" aria-label="Close menu">×</button></div>
-    <a href="#shop" onclick="vzCloseMenu()">Shop All</a>
+<a href="#shop" onclick="window.vzClearDropFilter?.();vzCloseMenu()">Shop All</a>
+    <div id="vz-drop-sidebar-links" class="vz-drop-sidebar-links"></div>
     <button type="button" onclick="vzNavigateCategory('hoodie')">Hoodies</button>
     <button type="button" onclick="vzNavigateCategory('shirt')">T-Shirts & Shirts</button>
     <button type="button" onclick="vzNavigateCategory('dress')">Dresses</button>
@@ -2404,6 +2443,14 @@ function renderProducts() {
   } else {
     const shopHeading = document.querySelector('#shop .section-heading h2');
     if (shopHeading?.dataset.vzOriginalHeading) shopHeading.textContent = shopHeading.dataset.vzOriginalHeading;
+  }
+
+  // Curated DROP collection view (Admin-selected IDs; no unrelated fallback products).
+  if (Array.isArray(window.vzActiveDropIds)) {
+    const allowed = new Set(window.vzActiveDropIds.map(String));
+    items = PRODUCTS.filter(p => allowed.has(String(p.id)));
+    const heading = document.querySelector('#shop .section-heading h2');
+    if (heading) heading.textContent = window.vzActiveDropTitle || 'VELZO DROP';
   }
 
   if (sorting === "low") items.sort((a, b) => discountedPrice(a) - discountedPrice(b));
@@ -4576,7 +4623,7 @@ a.velzo-floating-support:focus-visible{outline:3px solid #fff!important;outline-
  window.vzCloseWishlist=function(){byId('vz-wishlist-overlay').hidden=true;};
  window.vzOpenMenu=function(){byId('vz-drawer-backdrop').hidden=false;byId('vz-side-menu').classList.add('vz-open');byId('vz-side-menu').setAttribute('aria-hidden','false');const t=document.querySelector('.vz-menu-trigger');if(t)t.setAttribute('aria-expanded','true');};
  window.vzCloseMenu=function(){byId('vz-drawer-backdrop').hidden=true;byId('vz-side-menu').classList.remove('vz-open');byId('vz-side-menu').setAttribute('aria-hidden','true');const t=document.querySelector('.vz-menu-trigger');if(t)t.setAttribute('aria-expanded','false');};
- window.vzNavigateCategory=function(term){window.vzCloseMenu();window.vzTshirtOnly=false;window.velzoQuickCategory=term;const filter=byId('search');if(filter)filter.value='';const cat=byId('category');if(cat)cat.value='';if(typeof renderProducts==='function')renderProducts();byId('shop')?.scrollIntoView({behavior:'smooth'});};
+ window.vzNavigateCategory=function(term){window.vzCloseMenu();window.vzActiveDropIds=null;window.vzActiveDropTitle='';window.vzTshirtOnly=false;window.velzoQuickCategory=term;const filter=byId('search');if(filter)filter.value='';const cat=byId('category');if(cat)cat.value='';if(typeof renderProducts==='function')renderProducts();byId('shop')?.scrollIntoView({behavior:'smooth'});};
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){window.vzCloseMenu();window.vzCloseWishlist();}});
  sync();
 })();
@@ -5481,6 +5528,75 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
  if(productGrid)new MutationObserver(()=>refresh()).observe(productGrid,{childList:true});
  let tries=0;const starter=setInterval(()=>{refresh();if(++tries>25||items.length)clearInterval(starter)},500);
  paintSky();requestAnimationFrame(tick);
+})();
+</script>
+
+
+<script id="vz-custom-drop-collections">
+(function(){
+  'use strict';
+  const section=document.getElementById('vz-drops');
+  const grid=document.getElementById('vz-drop-grid');
+  const sidebar=document.getElementById('vz-drop-sidebar-links');
+  if(!section||!grid||!sidebar)return;
+  const escapeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safePhoto=url=>/^https:\/\/[^\s"'<>]+$/i.test(String(url||''))?String(url):'';
+  let drops=[];
+  const getProducts=()=>{try{return typeof PRODUCTS!=='undefined' && Array.isArray(PRODUCTS)?PRODUCTS:[]}catch(_){return []}};
+  const bySlug=slug=>drops.find(d=>d.slug===slug && d.active);
+  function clearDropFilter(){
+    window.vzActiveDropIds=null;window.vzActiveDropTitle='';window.velzoQuickCategory='';window.vzTshirtOnly=false;
+    const search=document.getElementById('search');if(search)search.value='';
+    const cat=document.getElementById('category');if(cat)cat.value='';
+    if(typeof renderProducts==='function')renderProducts();
+  }
+  window.vzClearDropFilter=clearDropFilter;
+  window.vzOpenDrop=function(slug,updateHash=true){
+    const drop=bySlug(slug);if(!drop)return;
+    if(typeof window.vzCloseMenu==='function')window.vzCloseMenu();
+    window.velzoQuickCategory='';window.vzTshirtOnly=false;
+    window.vzActiveDropIds=(drop.product_ids||[]).map(String);
+    window.vzActiveDropTitle=drop.title;
+    const search=document.getElementById('search');if(search)search.value='';
+    const cat=document.getElementById('category');if(cat)cat.value='';
+    if(typeof renderProducts==='function')renderProducts();
+    if(updateHash && location.hash!=='#drop-'+slug)history.pushState(null,'','#drop-'+slug);
+    document.getElementById('shop')?.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  function render(){
+    const products=getProducts();
+    const visible=drops.filter(d=>d.active);
+    section.hidden=!visible.some(d=>d.show_hero);
+    grid.replaceChildren();sidebar.replaceChildren();
+    visible.forEach(d=>{
+      const selected=products.filter(p=>(d.product_ids||[]).map(String).includes(String(p.id))&&p.active!==false);
+      const picture=safePhoto(d.image_url)||safePhoto(selected.find(p=>p.image_url)?.image_url)||'';
+      if(d.show_hero){
+        const card=document.createElement('button');card.type='button';card.className='vz-drop-card';
+        card.setAttribute('aria-label','Explore '+d.title);
+        card.innerHTML=`${picture?`<img loading="lazy" src="${escapeText(picture)}" alt="${escapeText(d.title)} clothing">`:''}<span class="vz-drop-info"><span class="vz-drop-label">VELZO / ${escapeText(String(selected.length))} STYLES</span><strong class="vz-drop-number">${escapeText(d.title)}</strong><span class="vz-drop-name">${escapeText(d.subtitle||'Explore the collection')}</span><span class="vz-drop-action">VIEW COLLECTION →</span></span>`;
+        card.addEventListener('click',()=>window.vzOpenDrop(d.slug));grid.append(card);
+      }
+      if(d.show_sidebar){
+        const link=document.createElement('button');link.type='button';link.textContent=d.title;
+        link.addEventListener('click',()=>window.vzOpenDrop(d.slug));sidebar.append(link);
+      }
+    });
+    const slug=decodeURIComponent((location.hash.match(/^#drop-(.+)$/)||[])[1]||'');
+    if(slug && bySlug(slug))window.vzOpenDrop(slug,false);
+  }
+  async function load(){
+    try{
+      const {data,error}=await db.from('velzo_drops').select('slug,title,subtitle,image_url,product_ids,active,show_hero,show_sidebar,sort_order').eq('active',true).order('sort_order',{ascending:true});
+      if(error)throw error;
+      drops=data||[];render();
+    }catch(error){console.warn('VELZO drops not available:',error.message||error);section.hidden=true}
+  }
+  window.vzLoadDrops=load;
+  window.addEventListener('popstate',()=>{const slug=(location.hash.match(/^#drop-(.+)$/)||[])[1];if(slug && bySlug(slug))window.vzOpenDrop(slug,false);else clearDropFilter()});
+  let lastCount=-1;
+  setInterval(()=>{const count=getProducts().length;if(count!==lastCount){lastCount=count;render()}},1500);
+  load();
 })();
 </script>
 </body>
