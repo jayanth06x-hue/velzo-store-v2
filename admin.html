@@ -144,6 +144,14 @@ button.danger { background:#8d302b; color:#fff; }
 
 .admin-size-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.admin-size-buttons label{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:9px 12px;border:1px solid #555;border-radius:7px;cursor:pointer;background:#171717;color:#eee}.admin-size-buttons label:has(input:checked){background:#d4b16a;color:#111;border-color:#d4b16a}.admin-size-buttons input{position:absolute;opacity:0;width:1px;height:1px}.field-label{display:block;font-size:13px;margin:8px 0;color:inherit}
 </style>
+<style id="vz-drop-admin-css">
+.vz-drop-product-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;max-height:300px;overflow:auto;padding:8px}
+.vz-drop-product-list label{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #7776;font-size:12px}
+.vz-drop-product-list img{width:35px;height:43px;object-fit:cover}
+#vzDropExisting{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:16px 0}
+.vz-drop-admin-item{border:1px solid #7776;padding:14px}.vz-drop-admin-item strong{display:block;margin-bottom:6px}.vz-drop-admin-item p{font-size:12px}
+.vz-drops-admin .form input[type="checkbox"]{width:auto;margin-right:5px}
+</style>
 </head>
 <body>
 
@@ -183,6 +191,25 @@ button.danger { background:#8d302b; color:#fff; }
       <div class="stat"><span>Placed / confirmed</span><strong id="pendingTotal">0</strong></div>
     </div>
 
+    <section class="panel vz-drops-admin" id="vzDropsAdminPanel">
+      <h2>DROP Collections — Hero & Sidebar</h2>
+      <p class="note">Create unlimited DROP collections. Select multiple existing products for each drop. Set cover photo URL, title, description, order, and visibility on the homepage and sidebar. All products retain their original price, stock and checkout settings.</p>
+      <p id="vzDropStatus" class="note" role="status"></p>
+      <div id="vzDropExisting"></div>
+      <form id="vzDropEditor" class="form">
+        <input type="hidden" id="vzDropCurrentSlug">
+        <label>Collection name <input id="vzDropTitle" maxlength="70" placeholder="DROP 01" required></label>
+        <label>URL slug <input id="vzDropSlug" maxlength="60" pattern="[a-z0-9-]+" placeholder="drop-01" required></label>
+        <label class="full">Short description <input id="vzDropSubtitle" maxlength="160" placeholder="The urban essentials edit"></label>
+        <label class="full">Hero cover image URL (HTTPS) <input id="vzDropImage" type="url" placeholder="https://.../cover.jpg"></label>
+        <label>Display order <input id="vzDropSort" type="number" min="0" max="9999" value="1" required></label>
+        <label><input id="vzDropActive" type="checkbox" checked> Active collection</label>
+        <label><input id="vzDropOnHero" type="checkbox" checked> Show near hero</label>
+        <label><input id="vzDropOnSidebar" type="checkbox" checked> Show in sidebar</label>
+        <fieldset class="full" style="border:1px solid #777;padding:12px;min-width:0"><legend>Products in this collection</legend><div class="vz-drop-product-list" id="vzDropProductList">Loading your products…</div></fieldset>
+        <div class="actions full"><button class="gold" type="submit">SAVE COLLECTION</button><button class="secondary" type="button" id="vzDropNew">NEW COLLECTION</button></div>
+      </form>
+    </section>
     <section class="panel" id="deliveryEstimatePanel">
       <h2>Estimated delivery days</h2>
       <p class="muted">Set the delivery window manually. The storefront will show estimated dates based on the order date, not a courier guarantee.</p>
@@ -700,6 +727,7 @@ async function loadProducts() {
   if (error) throw error;
 
   allProducts = data || [];
+  if (typeof window.vzRefreshDropProductChoices === "function") window.vzRefreshDropProductChoices();
   updateFeaturedProductSelectOptions();
   renderProducts();
   renderStats();
@@ -1405,6 +1433,77 @@ db.auth.onAuthStateChange((_event, session) => {
   const observer=new MutationObserver(()=>{if(!dashboard.classList.contains('hidden'))load()});
   observer.observe(dashboard,{attributes:true,attributeFilter:['class']});
   if(!dashboard.classList.contains('hidden'))load();
+})();
+</script>
+<script id="vz-drop-admin-functionality">
+(function(){
+  'use strict';
+  const e=id=>document.getElementById(id);
+  const st=s=>{e('vzDropStatus').textContent=s};
+  const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let rows=[];
+  function productChoices(){
+    const list=e('vzDropProductList');
+    list.innerHTML=(typeof allProducts!=='undefined'?allProducts:[]).map(p=>`<label><input type="checkbox" name="vzDropProduct" value="${html(p.id)}"><img src="${html(p.image_url||'')}" alt=""><span>${html(p.name)} <small>(${html(p.category)})</small></span></label>`).join('')||'No products found. Add products first.';
+  }
+  function reset(){e('vzDropEditor').reset();e('vzDropCurrentSlug').value='';e('vzDropSort').value=rows.length+1;e('vzDropActive').checked=true;e('vzDropOnHero').checked=true;e('vzDropOnSidebar').checked=true;productChoices()}
+  function edit(row){
+    productChoices();e('vzDropCurrentSlug').value=row.slug;
+    e('vzDropSlug').value=row.slug;e('vzDropTitle').value=row.title;
+    e('vzDropSubtitle').value=row.subtitle||'';e('vzDropImage').value=row.image_url||'';
+    e('vzDropSort').value=row.sort_order||0;e('vzDropActive').checked=row.active;
+    e('vzDropOnHero').checked=row.show_hero;e('vzDropOnSidebar').checked=row.show_sidebar;
+    const ids=new Set((row.product_ids||[]).map(String));
+    e('vzDropProductList').querySelectorAll('input').forEach(x=>x.checked=ids.has(x.value));
+    e('vzDropEditor').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function render(){
+    const container=e('vzDropExisting');container.replaceChildren();
+    rows.forEach(row=>{
+      const card=document.createElement('div');card.className='vz-drop-admin-item';
+      card.innerHTML=`<strong>${html(row.title)}</strong><p>${html((row.product_ids||[]).length)} products · ${row.active?'Active':'Inactive'} · ${row.show_hero?'Hero':''} ${row.show_sidebar?'Sidebar':''}</p>`;
+      const actions=document.createElement('div');actions.className='actions';
+      const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='secondary';editBtn.textContent='EDIT';editBtn.onclick=()=>edit(row);
+      const delBtn=document.createElement('button');delBtn.type='button';delBtn.className='danger';delBtn.textContent='DELETE';delBtn.onclick=async()=>{
+        if(!confirm('Delete '+row.title+' collection? Products will NOT be deleted.'))return;
+        const {error}=await db.from('velzo_drops').delete().eq('slug',row.slug);
+        if(error)st('Delete failed: '+error.message);else await load();
+      };
+      actions.append(editBtn,delBtn);card.append(actions);container.append(card);
+    });
+  }
+  async function load(){
+    const {data,error}=await db.from('velzo_drops').select('*').order('sort_order',{ascending:true});
+    if(error){st('Run the included Supabase SQL first: '+error.message);return}
+    rows=data||[];render();productChoices();st(rows.length+' collection(s) loaded.');
+  }
+  async function save(ev){
+    ev.preventDefault();
+    const selected=Array.from(e('vzDropProductList').querySelectorAll('input:checked')).map(x=>x.value);
+    if(!selected.length){st('Select at least one product for this collection.');return}
+    const slug=e('vzDropSlug').value.trim().toLowerCase();
+    if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){st('Use a lowercase URL slug such as drop-01');return}
+    const photo=e('vzDropImage').value.trim();
+    if(photo && !/^https:\/\//i.test(photo)){st('Use an HTTPS cover photo URL.');return}
+    const payload={slug,title:e('vzDropTitle').value.trim(),subtitle:e('vzDropSubtitle').value.trim(),image_url:photo||null,product_ids:selected,sort_order:Number(e('vzDropSort').value)||0,active:e('vzDropActive').checked,show_hero:e('vzDropOnHero').checked,show_sidebar:e('vzDropOnSidebar').checked};
+    const old=e('vzDropCurrentSlug').value;
+    const action=old?db.from('velzo_drops').update(payload).eq('slug',old):db.from('velzo_drops').insert(payload);
+    const {error}=await action;
+    if(error){st('Save failed: '+error.message);return}
+    await load();reset();st('Collection saved successfully. Refresh your VELZO website.');
+  }
+  e('vzDropEditor').addEventListener('submit',save);
+  e('vzDropNew').addEventListener('click',reset);
+  // Only request drop settings after the existing admin authorization reveals dashboard.
+  const dashboard=e('dashboard');let initialized=false;
+  const check=()=>{
+    if(dashboard.classList.contains('hidden')){initialized=false;return}
+    if(!initialized){initialized=true;load()}
+  };
+  new MutationObserver(check).observe(dashboard,{attributes:true,attributeFilter:['class']});
+  setTimeout(check,500);
+  window.vzRefreshDropProductChoices=productChoices;
+  e('refreshProducts')?.addEventListener('click',()=>setTimeout(productChoices,500));
 })();
 </script>
 </body>
