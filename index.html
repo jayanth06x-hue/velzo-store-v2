@@ -1800,6 +1800,49 @@ body main>.hero.vz-sale-carousel .vz-sale-cta{color:#1d1d1d!important;background
         min-width: 40px !important; font-size: 9px !important; top: 8px !important; left: 8px !important; }
     }
   </style>
+<style id="vz-product-orbit-style">
+/* Hero is isolated from historic banner styles. The old carousel remains a fallback. */
+.vz-orbit-shell{display:none;position:relative;isolation:isolate;min-height:clamp(490px,45vw,670px);overflow:hidden;background:radial-gradient(ellipse at 75% 45%,#2f3433 0%,#171b1b 43%,#101313 75%);color:#f6f3ea;font-family:Arial,Helvetica,sans-serif}
+body.vz-orbit-ready .vz-orbit-shell{display:grid;grid-template-columns:minmax(300px,42%) minmax(0,58%);grid-template-rows:1fr auto}
+body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
+.vz-orbit-copy{position:relative;z-index:6;align-self:center;padding:clamp(26px,5vw,90px);padding-right:12px;pointer-events:none}
+.vz-orbit-overline{font-size:11px;font-weight:700;letter-spacing:.28em;color:#d6b774}
+.vz-orbit-copy h1{font-weight:850;letter-spacing:-.055em;font-size:clamp(43px,5.1vw,84px);line-height:.98;margin:22px 0 24px;color:#fff}
+.vz-orbit-copy h1 em{font-style:normal;color:#dfbd78}
+.vz-orbit-copy p{line-height:1.65;max-width:390px;font-size:clamp(14px,1.2vw,17px);color:#d3d1ca;margin-bottom:26px}
+.vz-orbit-actions{display:flex;flex-wrap:wrap;gap:10px;pointer-events:auto}
+.vz-orbit-primary,.vz-orbit-secondary{border:1px solid #d5b46d;border-radius:2px;padding:14px 16px;font-size:12px;letter-spacing:.08em;font-weight:750;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px}
+.vz-orbit-primary{background:#e3bc74;color:#131717;cursor:pointer}
+.vz-orbit-secondary{background:transparent;color:#f1efe6}
+.vz-orbit-primary:hover{background:#f4d394}.vz-orbit-secondary:hover{background:#ffffff13}
+.vz-orbit-current{display:flex;gap:15px;justify-content:space-between;align-items:center;border-top:1px solid #ffffff30;max-width:390px;margin-top:35px;padding-top:13px;color:#ddd;font-size:12px;letter-spacing:.05em}
+.vz-orbit-current span:last-child{white-space:nowrap;color:#d7b778}
+.vz-orbit-view{position:relative;min-width:0;min-height:500px;overflow:hidden;outline-offset:-5px;touch-action:pan-y;user-select:none;cursor:grab}
+.vz-orbit-view.vz-orbit-dragging{cursor:grabbing}
+.vz-orbit-view canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.vz-orbit-cards{position:absolute;inset:0;perspective:950px;transform-style:preserve-3d;pointer-events:none}
+.vz-orbit-card{position:absolute;top:49%;left:50%;width:clamp(156px,18vw,248px);height:clamp(224px,27vw,355px);background:#ece9e1;box-shadow:0 28px 55px #0009,0 0 0 1px #ffffff52;overflow:hidden;will-change:transform,opacity;transform-origin:center center;cursor:pointer;pointer-events:auto;border:none;padding:0;border-radius:9px;transition:filter .15s;display:block;backface-visibility:hidden}
+.vz-orbit-card img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;pointer-events:none}
+.vz-orbit-card::after{content:'';position:absolute;inset:0;background:linear-gradient(130deg,#ffffff42,transparent 37%,#07070714 78%);pointer-events:none}
+.vz-orbit-card .vz-orbit-card-tag{position:absolute;bottom:8px;left:8px;background:#0a1512;color:#e8c57f;padding:6px 8px;font-size:9px;letter-spacing:.13em;font-weight:800;z-index:1}
+.vz-orbit-card:focus-visible{outline:3px solid #e8c57f;outline-offset:3px}
+.vz-orbit-hint{position:absolute;right:16px;bottom:45px;font-size:10px;letter-spacing:.16em;color:#f7f2e1ba;pointer-events:none}
+.vz-orbit-bottom{grid-column:1/-1;z-index:3;display:flex;justify-content:space-between;gap:20px;padding:15px 4%;border-top:1px solid #ffffff1c;color:#e3d8c2;font-size:10px;letter-spacing:.22em}
+@media(max-width:750px){
+ body.vz-orbit-ready .vz-orbit-shell{grid-template-columns:100%;grid-template-rows:auto auto auto;min-height:0;margin:10px 10px 25px;border-radius:12px}
+ .vz-orbit-copy{padding:25px 19px 0;align-self:start}
+ .vz-orbit-overline{font-size:9px;letter-spacing:.16em}
+ .vz-orbit-copy h1{font-size:clamp(37px,10vw,56px);margin:12px 0 8px}
+ .vz-orbit-copy p{font-size:12px;line-height:1.5;margin:0 0 15px;max-width:330px}
+ .vz-orbit-actions{gap:8px}.vz-orbit-primary,.vz-orbit-secondary{font-size:10px;padding:11px;min-height:40px}
+ .vz-orbit-current{margin-top:12px;padding-top:9px;font-size:10px}
+ .vz-orbit-view{height:320px;min-height:320px;max-height:360px}
+ .vz-orbit-card{width:158px;height:224px;border-radius:6px}
+ .vz-orbit-bottom{padding:12px 17px;font-size:8px;letter-spacing:.1em}
+ .vz-orbit-hint{right:12px;bottom:11px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.vz-orbit-card{transition:none!important}}
+</style>
 </head>
 
 <body>
@@ -1824,6 +1867,25 @@ body main>.hero.vz-sale-carousel .vz-sale-cta{color:#1d1d1d!important;background
       <a href="#shop"><span aria-hidden="true">◇</span><b>Shop</b></a>
       <button type="button" onclick="vzOpenWishlist()"><span aria-hidden="true">♡</span><b>For You</b></button>
     </nav>
+    <!-- VELZO PRODUCT ORBIT HERO: dynamic live-catalogue showcase -->
+    <section class="vz-orbit-shell" id="vz-product-orbit" aria-label="Explore featured VELZO products in an interactive orbit">
+      <div class="vz-orbit-copy">
+        <span class="vz-orbit-overline">VELZO COLLECTIONS / THE NEW ROTATION</span>
+        <h1>YOUR STYLE.<br><em>IN MOTION.</em></h1>
+        <p>Explore the collection in 360°. Drag to rotate, then choose a piece to see its full details.</p>
+        <div class="vz-orbit-actions">
+          <button id="vz-orbit-discover" type="button" class="vz-orbit-primary">VIEW THIS PRODUCT <span aria-hidden="true">↗</span></button>
+          <a class="vz-orbit-secondary" href="#shop">SHOP ALL PRODUCTS ↗</a>
+        </div>
+        <div class="vz-orbit-current" aria-live="polite"><span id="vz-orbit-current-name">Discover VELZO</span><span id="vz-orbit-current-number">01 / 06</span></div>
+      </div>
+      <div class="vz-orbit-view" id="vz-orbit-view" tabindex="0" role="region" aria-label="Interactive product carousel. Drag sideways or use left and right arrow keys to rotate.">
+        <canvas id="vz-orbit-canvas" aria-hidden="true"></canvas>
+        <div class="vz-orbit-cards" id="vz-orbit-cards"></div>
+        <div class="vz-orbit-hint" aria-hidden="true">↔ DRAG TO ROTATE</div>
+      </div>
+      <div class="vz-orbit-bottom"><span>CURATED FOR YOUR EVERYDAY</span><span>VELZO / VOL. 01</span></div>
+    </section>
     <section class="hero vz-diwali-hero vz-sale-carousel" aria-label="VELZO festive promotions" aria-roledescription="carousel">
   <div class="vz-sale-slide vz-sale-slide-main is-current" data-slide="0" role="group" aria-roledescription="slide" aria-label="1 of 2: Diwali collection" aria-hidden="false">
     <div class="vz-sale-photo" aria-hidden="true"></div>
@@ -5306,5 +5368,120 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
 })();
 </script>
 
+<script id="vz-product-orbit-script">
+(function(){
+ 'use strict';
+ const hero=document.getElementById('vz-product-orbit');
+ const view=document.getElementById('vz-orbit-view');
+ const cardBox=document.getElementById('vz-orbit-cards');
+ const canvas=document.getElementById('vz-orbit-canvas');
+ if(!hero||!view||!cardBox||!canvas)return;
+ const ctx=canvas.getContext('2d');
+ const nameEl=document.getElementById('vz-orbit-current-name');
+ const countEl=document.getElementById('vz-orbit-current-number');
+ const button=document.getElementById('vz-orbit-discover');
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+ const ORBIT_SPEED=.12,MAX_RELEASE_SPEED=2.4;
+ let items=[],cards=[],yaw=0,velocity=ORBIT_SPEED,lastTime=0,dragging=false,dragMoved=false,downX=0,lastX=0,lastDragTime=0,dragVelocity=0,releaseTime=0,releaseStart=0,frontIndex=-1,visible=true;
+ const safeName=v=>String(v||'VELZO product');
+ function catalogue(){
+   try{return (typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)?PRODUCTS:[])
+     .filter(p=>p&&p.active!==false&&!p.out_of_stock&&p.image_url).slice(0,8)}catch(_){return []}
+ }
+ function openProduct(index){
+   const p=items[index];if(!p)return;
+   if(typeof showProductDetails==='function'){showProductDetails(p.id);return}
+   location.href='?product='+encodeURIComponent(p.id);
+ }
+ function chooseFront(){
+   if(!items.length)return;
+   let best=-2,idx=0;
+   items.forEach((_,i)=>{const z=Math.cos(yaw+i*Math.PI*2/items.length);if(z>best){best=z;idx=i}});
+   if(frontIndex!==idx){frontIndex=idx;nameEl.textContent=safeName(items[idx].name);countEl.textContent=String(idx+1).padStart(2,'0')+' / '+String(items.length).padStart(2,'0')}
+ }
+ function refresh(){
+   const next=catalogue();
+   if(!next.length)return;
+   const key=next.map(p=>String(p.id)).join('|');
+   if(key===hero.dataset.orbitKey)return;
+   hero.dataset.orbitKey=key;items=next;
+   cardBox.replaceChildren();cards=[];
+   items.forEach((p,index)=>{
+     const card=document.createElement('button');card.type='button';card.className='vz-orbit-card';
+     card.setAttribute('aria-label','View '+safeName(p.name)+' product details');
+     const img=document.createElement('img');img.src=p.image_url;img.alt=safeName(p.name);img.loading=index<3?'eager':'lazy';img.decoding='async';
+     img.onerror=function(){this.onerror=null;this.src='https://placehold.co/400x600/ebe8e0/131313?text=VELZO'};
+     const tag=document.createElement('span');tag.className='vz-orbit-card-tag';tag.textContent='VELZO';
+     card.append(img,tag);
+     card.addEventListener('click',()=>{if(!dragMoved)openProduct(index)});
+     cardBox.appendChild(card);cards.push(card);
+   });
+   document.body.classList.add('vz-orbit-ready');
+   chooseFront();render(performance.now());
+ }
+ function paintSky(){
+   if(!ctx)return;
+   const w=view.clientWidth,h=view.clientHeight,dpr=Math.min(window.devicePixelRatio||1,2);
+   if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)}
+   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+   const glow=ctx.createRadialGradient(w*.5,h*.46,2,w*.5,h*.46,Math.max(w,h)*.6);
+   glow.addColorStop(0,'#405048');glow.addColorStop(.42,'#24302e');glow.addColorStop(1,'#101617');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+   const floor=ctx.createLinearGradient(0,h*.7,0,h);floor.addColorStop(0,'#c6a56a00');floor.addColorStop(.45,'#bb995b19');floor.addColorStop(1,'#0b1218aa');ctx.fillStyle=floor;ctx.fillRect(0,h*.7,w,h*.3);
+   ctx.strokeStyle='#dfc38b2d';ctx.lineWidth=1;
+   ctx.beginPath();ctx.ellipse(w*.5,h*.82,w*.4,18,0,0,Math.PI*2);ctx.stroke();
+ }
+ function render(now){
+   if(!items.length)return;
+   chooseFront();const w=view.clientWidth,mobile=w<520,radius=Math.min(mobile?w*.34:w*.35,mobile?145:300);
+   const total=items.length;
+   items.forEach((_,i)=>{
+     const a=yaw+i*Math.PI*2/total,z=Math.cos(a),x=Math.sin(a)*radius;
+     const scale=.61+.42*(z+1)/2,opacity=.36+.64*(z+1)/2;
+     const card=cards[i];
+     card.style.transform=`translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${(-11+15*(1-z)).toFixed(1)}px,${(z*70).toFixed(1)}px) scale(${scale.toFixed(3)}) rotateY(${(-Math.sin(a)*18).toFixed(1)}deg)`;
+     card.style.zIndex=String(Math.round((z+1)*500));card.style.opacity=String(opacity.toFixed(2));
+     card.style.filter=`brightness(${(.64+.36*(z+1)/2).toFixed(2)})`;
+     card.tabIndex=z>.25?0:-1;
+   });
+ }
+ function tick(t){
+   const dt=Math.min(Math.max((t-(lastTime||t))/1000,0),.05);lastTime=t;
+   if(visible&&items.length&&!reduced.matches){
+     if(!dragging){
+       if(releaseTime){
+         const u=Math.min((t-releaseTime)/2400,1),ease=1-Math.pow(1-u,3);
+         velocity=releaseStart+(ORBIT_SPEED-releaseStart)*ease;if(u===1)releaseTime=0;
+       }
+       yaw+=velocity*dt;
+     }
+     render(t);
+   }
+   requestAnimationFrame(tick);
+ }
+ view.addEventListener('pointerdown',e=>{
+   if(e.button!==0&&e.pointerType==='mouse')return;
+   dragging=true;dragMoved=false;downX=lastX=e.clientX;lastDragTime=performance.now();dragVelocity=0;releaseTime=0;
+   view.classList.add('vz-orbit-dragging');
+   try{view.setPointerCapture(e.pointerId)}catch(_){ }
+ });
+ view.addEventListener('pointermove',e=>{
+   if(!dragging)return;
+   const dx=e.clientX-lastX,dt=Math.max(.016,(performance.now()-lastDragTime)/1000);
+   if(Math.abs(e.clientX-downX)>8)dragMoved=true;
+   yaw+=dx*.009;dragVelocity=Math.max(-MAX_RELEASE_SPEED,Math.min(MAX_RELEASE_SPEED,dx*.009/dt));
+   lastX=e.clientX;lastDragTime=performance.now();render(performance.now());
+ });
+ function stopDrag(){if(!dragging)return;dragging=false;view.classList.remove('vz-orbit-dragging');releaseStart=Math.max(-MAX_RELEASE_SPEED,Math.min(MAX_RELEASE_SPEED,dragVelocity));velocity=releaseStart;releaseTime=performance.now();setTimeout(()=>{dragMoved=false},90)}
+ view.addEventListener('pointerup',stopDrag);view.addEventListener('pointercancel',stopDrag);view.addEventListener('lostpointercapture',stopDrag);
+ view.addEventListener('keydown',e=>{if(e.target!==view||!items.length)return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();yaw+=(e.key==='ArrowLeft'?1:-1)*Math.PI*2/items.length;velocity=ORBIT_SPEED;releaseTime=0;render(performance.now())}if(e.key==='Enter'){openProduct(frontIndex)}});
+ button.addEventListener('click',()=>openProduct(frontIndex));
+ document.addEventListener('visibilitychange',()=>{visible=!document.hidden;lastTime=0});
+ window.addEventListener('resize',()=>{paintSky();render(performance.now())},{passive:true});
+ const productGrid=document.getElementById('products');
+ if(productGrid)new MutationObserver(()=>refresh()).observe(productGrid,{childList:true});
+ let tries=0;const starter=setInterval(()=>{refresh();if(++tries>25||items.length)clearInterval(starter)},500);
+ paintSky();requestAnimationFrame(tick);
+})();
+</script>
 </body>
 </html>
