@@ -5600,55 +5600,62 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
 })();
 </script>
 
-<style id="velzo-maxxing-inspired-product-view-v1">
-/* VELZO product-card presentation only — catalogue data and commerce logic remain untouched. */
+<style id="velzo-clean-premium-product-view-v2">
+/* Clean editorial product presentation + original VELZO shopping controls. */
 #shop.section{background:#fff!important;color:#111!important;padding:clamp(42px,6vw,88px) clamp(16px,4.2vw,72px) clamp(55px,7vw,96px)!important}
 #shop.section::before{display:none!important}
-#shop .velzo-shop-kicker{color:#777!important;font-size:9px!important;letter-spacing:.2em!important;margin-bottom:20px!important}
+#shop .velzo-shop-kicker{color:#777!important;font-size:9px!important;letter-spacing:.2em!important;margin-bottom:18px!important}
 #shop .velzo-shop-kicker-line{background:#111!important;width:24px!important}
 #shop .velzo-shop-kicker-number{color:#999!important}
-#shop .section-heading{margin-bottom:clamp(24px,3vw,40px)!important;align-items:end!important}
+#shop .section-heading{margin-bottom:clamp(24px,3vw,38px)!important;align-items:end!important}
 #shop .section-heading h2{color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(32px,4.6vw,62px)!important;font-weight:700!important;letter-spacing:-.065em!important;line-height:.98!important;text-transform:uppercase!important}
 #shop .section-heading h2 em{color:#777!important;font-style:normal!important}
 #shop .section-heading p:not(#result-count){color:#666!important;font-size:12px!important;line-height:1.6!important}
 #shop #result-count{color:#555!important;border:0!important;border-radius:0!important;padding:0!important;font-size:9px!important;letter-spacing:.12em!important}
-#shop .tools{gap:10px!important;margin-bottom:22px!important}
-#shop .tools input,#shop .tools select{height:44px!important;min-height:44px!important;border:1px solid #dedede!important;border-radius:0!important;background:#fff!important;color:#111!important;box-shadow:none!important;font-size:11px!important;letter-spacing:.025em!important}
+#shop .tools{gap:9px!important;margin-bottom:22px!important}
+#shop .tools input,#shop .tools select{height:43px!important;min-height:43px!important;border:1px solid #dedede!important;border-radius:0!important;background:#fff!important;color:#111!important;box-shadow:none!important;font-size:11px!important;letter-spacing:.025em!important}
 #shop .tools input::placeholder{color:#888!important}
 #shop .velzo-category-slider{margin-bottom:26px!important;scrollbar-color:#999 #eee!important}
 #shop .velzo-category-slider button{background:#fff!important;color:#222!important;border:1px solid #ddd!important;border-radius:0!important;font-size:9px!important;letter-spacing:.12em!important;text-transform:uppercase!important}
 #shop .velzo-category-slider button.active,#shop .velzo-category-slider button:hover{background:#111!important;color:#fff!important;border-color:#111!important}
-#shop .product-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:clamp(24px,3.2vw,48px) clamp(12px,1.8vw,26px)!important;perspective:none!important;align-items:start!important}
+#shop .product-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:clamp(25px,3.2vw,46px) clamp(13px,1.8vw,26px)!important;perspective:none!important;align-items:start!important}
 #shop .product-grid>.product{display:flex!important;flex-direction:column!important;min-width:0!important;overflow:visible!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#111!important;box-shadow:none!important;translate:none!important;transform:none!important;transition:none!important}
 #shop .product-grid>.product:hover{border:0!important;box-shadow:none!important;translate:none!important}
-#shop .product-image-wrap{position:relative!important;width:100%!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:#f4f4f2!important;isolation:isolate!important}
+#shop .product-image-wrap{position:relative!important;width:100%!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:#f3f3f1!important;isolation:isolate!important}
 #shop .product-image-wrap::after{display:none!important}
-#shop .product-image{display:block!important;width:100%!important;aspect-ratio:4/5!important;max-height:none!important;object-fit:contain!important;object-position:center!important;background:#f4f4f2!important;transform:none!important;filter:none!important;transition:transform .65s cubic-bezier(.2,.7,.2,1)!important}
+#shop .product-image{display:block!important;width:100%!important;aspect-ratio:4/5!important;max-height:none!important;object-fit:cover!important;object-position:center!important;background:#f3f3f1!important;transform:none!important;filter:none!important;transition:transform .65s cubic-bezier(.2,.7,.2,1)!important}
 @media(hover:hover) and (pointer:fine){#shop .product-grid>.product:hover .product-image{transform:scale(1.035)!important}}
-#shop .product-tag,#shop .vz-heart,#shop .product-image-thumbs{display:none!important}
-#shop .product-details{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:0!important;min-width:0!important;padding:13px 0 0!important;background:transparent!important}
-#shop .product-category,#shop .product-description,#shop .velzo-delivery-estimate,#shop .details-button,#shop .velzo-share-button,#shop .add-button,#shop .product-color-select,#shop .product-size-select,#shop label.subtext,#shop .size-choice-buttons,#shop .size-chart-link,#shop .stock-label{display:none!important}
-#shop .product h3{display:block!important;min-height:0!important;margin:0 0 6px!important;color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(10px,.92vw,13px)!important;font-weight:600!important;line-height:1.35!important;letter-spacing:.045em!important;text-transform:uppercase!important;overflow-wrap:anywhere!important}
+#shop .product-tag{left:10px!important;top:10px!important;padding:6px 8px!important;background:#fff!important;color:#111!important;border:0!important;font-size:8px!important;letter-spacing:.12em!important;text-transform:uppercase!important}
+#shop .vz-heart{display:flex!important;visibility:visible!important;opacity:1!important;top:10px!important;right:10px!important;width:34px!important;height:34px!important;min-height:34px!important;border:1px solid #e5e5e5!important;border-radius:50%!important;background:#fff!important;color:#111!important;font-size:22px!important;box-shadow:none!important}
+#shop .vz-heart[aria-pressed="true"]{color:#111!important}
+#shop .product-details{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:0!important;min-width:0!important;padding:12px 0 0!important;background:transparent!important}
+#shop .product-category,#shop .product-description,#shop .velzo-delivery-estimate,#shop .velzo-share-button,#shop .product-color-select,#shop .product-size-select,#shop label.subtext,#shop .size-choice-buttons,#shop .size-chart-link{display:none!important}
+#shop .product h3{display:block!important;min-height:0!important;margin:0 0 5px!important;color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(10px,.92vw,13px)!important;font-weight:600!important;line-height:1.35!important;letter-spacing:.035em!important;text-transform:uppercase!important;overflow-wrap:anywhere!important}
 #shop .product-price{display:block!important;margin:0!important;padding:0!important;color:#444!important;font-family:Arial,Helvetica,sans-serif!important;font-size:12px!important;font-weight:400!important;line-height:1.4!important}
 #shop .product-price strong{font-weight:600!important}
 #shop .product-price del{color:#999!important;font-size:10px!important}
+#shop .details-button{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;width:auto!important;min-height:0!important;margin:9px 0 0!important;padding:0 0 3px!important;border:0!important;border-bottom:1px solid #aaa!important;border-radius:0!important;background:transparent!important;color:#333!important;font-size:9px!important;font-weight:600!important;letter-spacing:.12em!important;text-transform:uppercase!important;box-shadow:none!important}
+#shop .details-button:hover{border-color:#111!important;color:#111!important;background:transparent!important}
+#shop .stock-label{display:inline-block!important;margin:7px 0 0!important;color:#777!important;font-size:9px!important;letter-spacing:.1em!important;text-transform:uppercase!important}
 #shop .product-grid>.product:focus-visible{outline:1px solid #111!important;outline-offset:5px!important}
 #shop .empty-state{color:#333!important;border:1px solid #ddd!important;border-radius:0!important}
 #shop .velzo-shop-afterword{border-top:1px solid #e8e8e8!important;color:#777!important}
 #shop .velzo-shop-afterword a{color:#111!important}
 @media(max-width:900px){#shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:28px 14px!important}}
 @media(max-width:600px){
- #shop.section{padding:42px 14px 55px!important}
- #shop .section-heading{margin-bottom:22px!important}
+ #shop.section{padding:40px 14px 54px!important}
+ #shop .section-heading{margin-bottom:21px!important}
  #shop .section-heading h2{font-size:clamp(31px,9vw,46px)!important}
  #shop .tools{grid-template-columns:1fr 1fr!important;gap:7px!important}
  #shop .tools input{grid-column:1/-1!important}
- #shop .tools input,#shop .tools select{height:42px!important;min-height:42px!important;padding:0 10px!important;font-size:10px!important}
- #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:23px 10px!important}
+ #shop .tools input,#shop .tools select{height:41px!important;min-height:41px!important;padding:0 10px!important;font-size:10px!important}
+ #shop .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px 10px!important}
  #shop .product-image{aspect-ratio:4/5!important}
- #shop .product-details{padding-top:10px!important}
- #shop .product h3{font-size:10px!important;line-height:1.35!important;letter-spacing:.025em!important;margin-bottom:5px!important}
+ #shop .product-details{padding-top:9px!important}
+ #shop .product h3{font-size:10px!important;line-height:1.35!important;letter-spacing:.02em!important;margin-bottom:4px!important}
  #shop .product-price{font-size:11px!important}
+ #shop .details-button{font-size:8px!important;margin-top:8px!important}
+ #shop .vz-heart{width:31px!important;height:31px!important;min-height:31px!important;font-size:20px!important}
 }
 @media(prefers-reduced-motion:reduce){#shop .product-image{transition:none!important}}
 </style>
