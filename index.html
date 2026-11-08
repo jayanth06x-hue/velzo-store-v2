@@ -1875,6 +1875,46 @@ body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
 .vz-drop-info .vz-drop-name{font-size:14px}
 @media(max-width:700px){#vz-drop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 </style>
+
+<style id="velzo-clean-upper-editorial-v2">
+/* VELZO clean monochrome upper-page refresh */
+:root{--vl-ink:#101010;--vl-paper:#fff;--vl-muted:#777;--vl-line:#e8e8e8}
+body{background:#fff!important;color:#111!important}
+.vz-orbit-shell{min-height:clamp(410px,43vw,590px)!important;background:#f4f4f2!important;color:#111!important;border-bottom:1px solid #e7e7e7!important}
+body.vz-orbit-ready .vz-orbit-shell{grid-template-columns:minmax(290px,39%) minmax(0,61%)!important}
+.vz-orbit-copy{padding:clamp(34px,6vw,88px)!important;align-self:center!important}
+.vz-orbit-overline{color:#777!important;letter-spacing:.24em!important;font-size:9px!important;font-weight:700!important}
+.vz-orbit-copy h1{color:#111!important;font-family:Georgia,'Times New Roman',serif!important;font-weight:400!important;letter-spacing:-.065em!important;line-height:.98!important;font-size:clamp(43px,6vw,82px)!important}
+.vz-orbit-copy h1 em{color:#777!important;font-style:italic!important}
+.vz-orbit-copy p{color:#666!important;max-width:370px!important;font-size:13px!important;line-height:1.85!important}
+.vz-orbit-primary{background:#111!important;color:#fff!important;border:1px solid #111!important;border-radius:0!important;letter-spacing:.12em!important}
+.vz-orbit-secondary{color:#111!important;border-bottom:1px solid #999!important;letter-spacing:.1em!important}
+.vz-orbit-current{border-top:1px solid #d7d7d7!important;color:#555!important}
+.vz-orbit-current span:first-child{color:#111!important}
+.vz-orbit-view{min-height:360px!important}
+.vz-orbit-card{border:1px solid rgba(0,0,0,.12)!important;background:#fff!important;box-shadow:0 20px 55px rgba(0,0,0,.10)!important}
+.vz-orbit-card-tag{background:#111!important;color:#fff!important}
+.vz-orbit-hint{color:#777!important;letter-spacing:.18em!important}
+.vz-orbit-bottom{color:#777!important;border-top:1px solid #ddd!important}
+html body main section.hero.vz-sale-carousel{border-radius:0!important;box-shadow:none!important;margin:0!important}
+html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.06))!important}
+.vz-sale-content h1{letter-spacing:-.055em!important}
+.vz-sale-cta{border-radius:0!important;background:#fff!important;color:#111!important;border:1px solid #fff!important}
+.velzo-video-categories{background:#fff!important}
+.velzo-video-categories button{background:#111!important;border:1px solid #111!important;color:#fff!important;border-radius:0!important}
+.velzo-video-categories button:hover{background:#444!important;border-color:#444!important}
+.velzo-campaign-ribbon{background:#fff!important;color:#555!important;border-block:1px solid #eee!important}
+.velzo-ribbon-mark{color:#111!important}.velzo-ribbon-dot{color:#777!important}.velzo-ribbon-edition,.velzo-ribbon-secondary{color:#777!important}
+@media(max-width:700px){
+ body.vz-orbit-ready .vz-orbit-shell{grid-template-columns:1fr!important;grid-template-rows:auto auto auto!important;min-height:0!important;margin:0 0 16px!important;border-radius:0!important}
+ .vz-orbit-copy{padding:34px 22px 18px!important}
+ .vz-orbit-copy h1{font-size:clamp(42px,12vw,62px)!important;margin:15px 0 10px!important}
+ .vz-orbit-view{min-height:270px!important;height:290px!important}
+ .vz-orbit-bottom{padding:12px 18px!important;font-size:8px!important}
+}
+@media(prefers-reduced-motion:reduce){.vz-orbit-card,.vz-orbit-shell *{animation:none!important;transition:none!important}}
+</style>
+
 </head>
 
 <body>
@@ -1967,17 +2007,7 @@ body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
       <span class="velzo-ribbon-edition">VOL. 01 — THE COLLECTION</span>
     </div>
 
-    <section class="velzo-featured" id="velzo-featured" aria-live="polite" hidden>
-      <div class="velzo-featured-copy">
-        <span class="velzo-featured-kicker"><span class="velzo-featured-spark"></span> THE CURATED EDIT / 001</span>
-        <p class="velzo-featured-label">Handpicked for your rotation</p>
-        <h2 id="velzo-featured-name">The featured piece</h2>
-        <p id="velzo-featured-description">A signature look from Velzo Collections.</p>
-        <div class="velzo-featured-bottom"><strong id="velzo-featured-price"></strong><button type="button" id="velzo-featured-shop">DISCOVER THE LOOK ↗</button></div>
-      </div>
-      <div class="velzo-featured-visual"><div class="velzo-featured-orbit"></div><img id="velzo-featured-image" alt="Featured Velzo product" loading="eager"></div>
-      <div class="velzo-featured-corner" aria-hidden="true">VELZO / SELECTION 01—03</div>
-    </section>
+    <!-- Priority trio removed: products remain available in the main shop grid. -->
 
     <section class="section" id="shop">
       <div class="velzo-shop-kicker"><span class="velzo-shop-kicker-line"></span> THE COMPLETE COLLECTION <span class="velzo-shop-kicker-number">/ VELZO 2026</span></div>
