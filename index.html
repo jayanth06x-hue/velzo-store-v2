@@ -2265,7 +2265,7 @@ async function loadProducts() {
 
   const { data, error } = await db
     .from("products")
-    .select("id,name,category,price,discount_percent,compare_at_price,tag,description,image_url,image_urls,active,has_sizes,sizes,colors,combo_options,size_chart_url,meesho_url,out_of_stock,color_image_map")
+    .select("id,name,category,price,discount_percent,compare_at_price,tag,description,image_url,image_urls,active,has_sizes,sizes,stock_by_size,colors,combo_options,size_chart_url,meesho_url,out_of_stock,color_image_map")
     .eq("active", true)
     .order("created_at", { ascending: false });
 
@@ -2707,7 +2707,7 @@ function showProductDetails(id) {
         ${p.out_of_stock ? '<p><strong>Currently out of stock</strong></p>' : '<p class="detail-meta">Available to order</p>'}
         <p>${escapeHTML(p.description || 'Contact us for more product information.')}</p>
         ${!isCombo(p) && Array.isArray(p.colors) && p.colors.length ? `<div class="vz-colour-block"><strong>Colour: <span id="vz-current-colour">${escapeHTML(selectedColors[p.id]||'Select a colour')}</span></strong><div class="vz-colour-grid" role="group" aria-label="Available colours">${p.colors.map((color,i)=>`<button type="button" class="vz-colour-choice ${selectedColors[p.id]===color?'selected':''}" data-vz-colour-index="${i}" data-vz-colour="${escapeHTML(color)}" aria-label="Select ${escapeHTML(color)}" aria-pressed="${selectedColors[p.id]===color}"><span class="vz-colour-dot" style="background:${vzSafeSwatchColour(color)}">${vzColourProductPhoto(p,color)?`<img src="${escapeHTML(vzColourProductPhoto(p,color))}" alt="${escapeHTML(color)} product" loading="lazy">`:``}</span><span>${escapeHTML(color)}</span></button>`).join('')}</div></div>` : ''}
-        ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>`<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this))" ${p.out_of_stock?'disabled':''}>${escapeHTML(size)}</button>`).join('')}</div>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
+        ${!isCombo(p) && p.has_sizes && Array.isArray(p.sizes) && p.sizes.length ? `<label>Choose size</label><div class="size-choice-buttons detail-size-buttons">${p.sizes.map(size=>{const stock=availableStockForSize(p,size);const soldOut=stock!==null&&stock<=0;return `<button type="button" class="size-choice ${selectedSizes[p.id]===size?'selected':''}" onclick="selectProductSize('${safeId}','${escapeHTML(size)}');this.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b===this));const status=this.parentElement.nextElementSibling;if(status)status.textContent='${escapeHTML(size)}: ${stock===null?'Stock status not tracked':stock+' in stock'}'" ${p.out_of_stock||soldOut?'disabled':''} title="${stock===null?'Stock status not tracked':stock+' in stock'}">${escapeHTML(size)}${stock===0?' · 0':''}</button>`;}).join('')}</div><p class="detail-meta" aria-live="polite">${selectedSizes[p.id] ? `${escapeHTML(selectedSizes[p.id])}: ${sizeStockLabel(p,selectedSizes[p.id]) || 'Stock status not tracked'}` : 'Select an available size'}</p>${p.size_chart_url?`<p><a href="${escapeHTML(p.size_chart_url)}" target="_blank" rel="noopener">View size chart</a></p>`:''}` : ''}
         ${comboPicker(p)}
         ${p.meesho_url ? `<p><a href="${escapeHTML(p.meesho_url)}" target="_blank" rel="noopener">Supplier product reference</a></p>` : ''}
         ${vzOfferMarkup(p)}
@@ -2748,6 +2748,13 @@ function changeProductImage(id, url, button) {
 }
 
 function selectProductSize(id, size) {
+  const product = PRODUCTS.find(p => String(p.id) === String(id));
+  if (!product) return;
+  const stock = availableStockForSize(product, size);
+  if (product.out_of_stock || (stock !== null && stock <= 0)) {
+    showToast(`Size ${size} is out of stock.`);
+    return;
+  }
   selectedSizes[id] = size;
 }
 
@@ -2771,6 +2778,24 @@ function cartKey(item) {
   return [item.id,item.size,item.color,item.shirt_color,item.pant_color,item.shirt_size,item.pant_size].map(v => v || "").join("::");
 }
 
+function sizeStockTracked(product) {
+  return !!(product && product.has_sizes && product.stock_by_size && typeof product.stock_by_size === "object" && !Array.isArray(product.stock_by_size));
+}
+function availableStockForSize(product, size) {
+  if (!sizeStockTracked(product)) return null; // legacy/untracked products remain purchasable until inventory is configured
+  const raw = product.stock_by_size[size];
+  return Number.isInteger(Number(raw)) && Number(raw) >= 0 ? Number(raw) : 0;
+}
+function cartQuantityForVariant(id, size) {
+  return cart.filter(item => String(item.id) === String(id) && String(item.size || "") === String(size || ""))
+    .reduce((total, item) => total + Number(item.qty || 0), 0);
+}
+function sizeStockLabel(product, size) {
+  const stock = availableStockForSize(product, size);
+  if (stock === null) return "";
+  return stock > 0 ? `${stock} in stock` : "Out of stock";
+}
+
 function addToCart(id) {
   const product = PRODUCTS.find(p => p.id === id);
   if (!product) return false;
@@ -2781,6 +2806,11 @@ function addToCart(id) {
   const color = !combo && Array.isArray(product.colors) && product.colors.length ? (selectedColors[id] || "") : "";
   if (!combo && product.has_sizes && !size) { showToast("Please select a size first."); return false; }
   if (!combo && Array.isArray(product.colors) && product.colors.length && !color) { showToast("Please select a colour first."); return false; }
+  if (!combo && product.has_sizes && size) {
+    const stock = availableStockForSize(product, size);
+    if (stock !== null && stock <= 0) { showToast(`Size ${size} is out of stock.`); return false; }
+    if (stock !== null && cartQuantityForVariant(id, size) >= stock) { showToast(`Only ${stock} unit(s) of size ${size} are available.`); return false; }
+  }
   const chosen = combo ? (selectedCombo[id] || {}) : {};
   if (combo) {
     for (const [key,label,source] of [["shirt_color","T-shirt colour","shirt_colors"],["pant_color","sweatpants colour","pant_colors"],["shirt_size","T-shirt size","shirt_sizes"],["pant_size","sweatpants size","pant_sizes"]]) {
@@ -2826,6 +2856,16 @@ function changeQuantity(key, change) {
   const item = cart.find(i => cartKey(i) === key);
   if (!item) return;
 
+  if (change > 0) {
+    const product = PRODUCTS.find(p => String(p.id) === String(item.id));
+    if (product && product.has_sizes && item.size) {
+      const stock = availableStockForSize(product, item.size);
+      if (stock !== null && cartQuantityForVariant(item.id, item.size) >= stock) {
+        showToast(`Only ${stock} unit(s) of size ${item.size} are available.`);
+        return;
+      }
+    }
+  }
   item.qty += change;
 
   if (item.qty <= 0) {
@@ -2871,7 +2911,7 @@ function renderCart() {
           <div>
             <strong>${escapeHTML(p.name)}</strong>
             ${item.color ? `<p>Colour: ${escapeHTML(item.color)}</p>` : ''}
-            ${item.size ? `<p>Size: ${escapeHTML(item.size)}</p>` : ''}
+            ${item.size ? `<p>Size: ${escapeHTML(item.size)}${(() => { const stock = availableStockForSize(p,item.size); return stock === null ? "" : ` · ${stock} currently available`; })()}</p>` : ''}
             ${item.shirt_color || item.shirt_size ? `<p>T-shirt: ${[item.shirt_color,item.shirt_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
             ${item.pant_color || item.pant_size ? `<p>Sweatpants: ${[item.pant_color,item.pant_size].filter(Boolean).map(escapeHTML).join(" / ")}</p>` : ""}
             <p>${money(discountedPrice(p))} each</p>
@@ -3065,6 +3105,18 @@ async function submitOrder(event) {
       throw new Error("After paying by UPI, enter your transaction ID / UTR below the QR code (6–100 characters).");
     }
 
+    // Refresh the authoritative catalogue before checkout; the database RPC below
+    // repeats this validation under row locks to prevent simultaneous overselling.
+    await loadProducts();
+    for (const item of cart) {
+      const product = PRODUCTS.find(p => String(p.id) === String(item.id));
+      if (!product) throw new Error("A product in your bag is no longer available. Please review your bag.");
+      if (product.out_of_stock) throw new Error(`${product.name} is currently out of stock.`);
+      if (product.has_sizes && item.size) {
+        const stock = availableStockForSize(product, item.size);
+        if (stock !== null && stock < Number(item.qty)) throw new Error(`${product.name} — size ${item.size}: only ${stock} unit(s) remain. Please update your bag.`);
+      }
+    }
     const freshQuote = await quoteOrder();
     if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal() + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
     const orderItems = cart.map(item => ({
@@ -3081,7 +3133,7 @@ async function submitOrder(event) {
     // The database validates the products and calculates the actual total.
     // Save the chosen method atomically with the order on the server.
     // Requires VELZO_storefront_payment_method_setup.sql in Supabase.
-    const { data, error } = await db.rpc("place_order_with_shipping", {
+    const { data, error } = await db.rpc("place_order_with_shipping_stock", {
       p_customer_name: name,
       p_customer_phone: phone,
       p_customer_email: email,
