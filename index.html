@@ -2009,7 +2009,45 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
 
     <!-- Priority trio removed: products remain available in the main shop grid. -->
 
-    <section class="section" id="shop">
+    <!-- VELZO IN-PAGE BARGAIN STUDIO -->
+<section id="vz-deal-studio" aria-labelledby="vz-deal-title">
+  <div class="vz-deal-inner">
+    <div class="vz-deal-copy">
+      <span class="vz-deal-kicker">THE VELZO DEAL STUDIO</span>
+      <h2 id="vz-deal-title">YOUR FIT.<br><em>YOUR DEAL.</em></h2>
+      <p>Choose any two pieces from the collection and negotiate your combo price with the VELZO bargain assistant — right here on the store.</p>
+      <button type="button" class="vz-deal-reveal" id="vz-deal-reveal">UNLOCK YOUR DEAL <span aria-hidden="true">↗</span></button>
+      <small>No WhatsApp redirect. Choose your products and sizes, then chat with the bargain assistant on this page.</small>
+    </div>
+    <div class="vz-deal-panel" id="vz-deal-panel" hidden>
+      <div class="vz-deal-panel-head"><span>01 / BUILD YOUR DEAL</span><span>VELZO BARGAIN</span></div>
+      <div id="vz-deal-selection-step">
+      <label for="vz-deal-product-one">PRODUCT ONE</label>
+      <select id="vz-deal-product-one"><option value="">Loading collection…</option></select>
+      <label for="vz-deal-size-one">SIZE — PRODUCT ONE</label>
+      <select id="vz-deal-size-one"><option value="">Select product first</option></select>
+      <label for="vz-deal-product-two">PRODUCT TWO</label>
+      <select id="vz-deal-product-two"><option value="">Choose your second product</option></select>
+      <label for="vz-deal-size-two">SIZE — PRODUCT TWO</label>
+      <select id="vz-deal-size-two"><option value="">Select product first</option></select>
+      <div class="vz-deal-summary" aria-live="polite"><span>Current combo total</span><strong id="vz-deal-total">Choose two products</strong></div>
+      <button type="button" id="vz-deal-continue" class="vz-deal-primary vz-deal-continue" disabled>CONTINUE TO BARGAIN ASSISTANT ↗</button>
+      <p class="vz-deal-note" id="vz-deal-message">Choose two different products and their sizes, then continue to the assistant.</p>
+      </div>
+      <div id="vz-deal-assistant" class="vz-deal-assistant" hidden>
+        <div class="vz-assistant-head"><div><span>02 / YOUR PERSONAL DEAL CHAT</span><h3>VELZO <em>ASSISTANT</em></h3></div><button type="button" id="vz-deal-back" class="vz-deal-back">← EDIT PRODUCTS</button></div>
+        <div class="vz-selected-combo" id="vz-selected-combo" aria-live="polite"></div>
+        <div class="vz-chat" id="vz-deal-chat" aria-live="polite">
+          <div class="vz-chat-bubble vz-chat-bot">Welcome to the VELZO deal desk. I have your two selected products and sizes. What price would you like to offer?</div>
+        </div>
+        <label for="vz-deal-message-input">YOUR BARGAIN MESSAGE</label>
+        <div class="vz-chat-compose"><input id="vz-deal-message-input" type="text" maxlength="180" placeholder="Example: Can I get both for ₹999?"><button type="button" id="vz-deal-send" class="vz-deal-primary">SEND ↗</button></div>
+        <p class="vz-deal-note">The assistant can suggest a deal. Final discount approval and checkout price are confirmed by VELZO.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="shop">
       <div class="velzo-shop-kicker"><span class="velzo-shop-kicker-line"></span> THE COMPLETE COLLECTION <span class="velzo-shop-kicker-number">/ VELZO 2026</span></div>
       <div class="section-heading">
         <div>
@@ -5741,6 +5779,83 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
 }
 @media(prefers-reduced-motion:reduce){#shop .product-image{transition:none!important}}
 </style>
+
+
+<style id="vz-deal-studio-styles">
+#vz-deal-studio{padding:58px 6%;background:#111;color:#f7f7f4;position:relative;overflow:hidden}
+#vz-deal-studio:before{content:"";position:absolute;width:440px;height:440px;border:1px solid rgba(255,255,255,.08);border-radius:50%;right:-150px;top:-230px;pointer-events:none}
+#vz-deal-studio .vz-deal-inner{max-width:1250px;margin:auto;display:grid;grid-template-columns:1fr minmax(320px,.9fr);gap:48px;align-items:center;position:relative;z-index:1}
+#vz-deal-studio .vz-deal-kicker{font-size:10px;letter-spacing:3px;color:#bdbdb8;font-weight:700}
+#vz-deal-studio h2{font-size:clamp(42px,6vw,72px);line-height:.94;letter-spacing:-.07em;margin:18px 0;font-weight:900}
+#vz-deal-studio h2 em{font-style:normal;color:#c8ff3d}
+#vz-deal-studio .vz-deal-copy p{max-width:420px;color:#c6c6c1;line-height:1.8;font-size:14px}
+#vz-deal-studio .vz-deal-reveal,#vz-deal-studio .vz-deal-primary{border:1px solid #c8ff3d;background:#c8ff3d;color:#111;font-weight:900;letter-spacing:1px;padding:14px 18px;cursor:pointer}
+#vz-deal-studio .vz-deal-reveal{margin:12px 0 15px;min-width:205px}
+#vz-deal-studio .vz-deal-copy small{display:block;color:#a8a8a3;font-size:11px;line-height:1.6;max-width:360px}
+#vz-deal-studio .vz-deal-panel{background:#f7f7f4;color:#171717;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+#vz-deal-studio .vz-deal-panel[hidden]{display:none}
+#vz-deal-studio .vz-deal-panel-head{display:flex;justify-content:space-between;gap:10px;font-size:9px;letter-spacing:1.3px;font-weight:900;margin-bottom:18px;color:#666}
+#vz-deal-studio label{display:block;font-size:9px;letter-spacing:1.2px;font-weight:900;margin:13px 0 6px}
+#vz-deal-studio select,#vz-deal-studio input{width:100%;min-height:44px;border:1px solid #d8d8d2;background:white;color:#171717;padding:11px;font:inherit;border-radius:0}
+#vz-deal-studio select:disabled{opacity:.55}
+#vz-deal-studio .vz-deal-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin:16px 0;padding:13px 0;font-size:12px;color:#555}
+#vz-deal-studio .vz-deal-summary strong{font-size:18px;color:#111}
+#vz-deal-studio .vz-chat{height:190px;overflow:auto;background:#eee;padding:13px;display:flex;flex-direction:column;gap:10px;border:1px solid #e0e0dc}
+#vz-deal-studio .vz-chat-bubble{max-width:88%;padding:10px 12px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+#vz-deal-studio .vz-chat-bot{align-self:flex-start;background:#fff;border:1px solid #e1e1dc;color:#222}
+#vz-deal-studio .vz-chat-user{align-self:flex-end;background:#171717;color:#fff}
+#vz-deal-studio .vz-chat-compose{display:grid;grid-template-columns:1fr auto;gap:8px}
+#vz-deal-studio .vz-chat-compose input{min-width:0}
+#vz-deal-studio .vz-chat-compose .vz-deal-primary{padding:10px 15px;font-size:10px}
+#vz-deal-studio .vz-deal-note{font-size:10px;color:#777;line-height:1.6;margin:11px 0 0}
+#vz-deal-studio .vz-deal-continue{width:100%;min-height:48px;margin:4px 0 2px;background:#171717;color:#fff;border:1px solid #171717;letter-spacing:1px;font-weight:800;cursor:pointer}
+#vz-deal-studio .vz-deal-continue:disabled{opacity:.35;cursor:not-allowed}
+#vz-deal-studio .vz-deal-assistant[hidden]{display:none}
+#vz-deal-studio .vz-deal-assistant{margin-top:22px;padding-top:20px;border-top:1px solid #d8d8d2;scroll-margin-top:30px}
+#vz-deal-studio .vz-assistant-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+#vz-deal-studio .vz-assistant-head span{font-size:9px;letter-spacing:1.2px;color:#777;font-weight:800}
+#vz-deal-studio .vz-assistant-head h3{font-size:24px;margin:6px 0 0;letter-spacing:-1px}
+#vz-deal-studio .vz-assistant-head h3 em{font-style:normal}
+#vz-deal-studio .vz-deal-back{border:1px solid #aaa;background:transparent;padding:10px 12px;font-size:9px;font-weight:800;letter-spacing:.7px;cursor:pointer}
+#vz-deal-studio .vz-selected-combo{font-size:11px;line-height:1.7;background:#fff;border:1px solid #ddd;padding:12px;margin-bottom:12px;color:#333}
+
+@media(max-width:760px){#vz-deal-studio{padding:45px 5%}#vz-deal-studio .vz-deal-inner{grid-template-columns:1fr;gap:25px}#vz-deal-studio .vz-deal-panel{padding:20px 16px}#vz-deal-studio h2{font-size:clamp(45px,13vw,65px)}#vz-deal-studio .vz-chat{height:175px}}
+@media(prefers-reduced-motion:no-preference){#vz-deal-studio .vz-deal-panel{animation:vzDealIn .3s ease both}@keyframes vzDealIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
+</style>
+
+<script id="vz-deal-studio-script">
+(function(){
+  const $=id=>document.getElementById(id);
+  const one=$('vz-deal-product-one'),two=$('vz-deal-product-two'),sizeOne=$('vz-deal-size-one'),sizeTwo=$('vz-deal-size-two'),total=$('vz-deal-total'),chat=$('vz-deal-chat'),input=$('vz-deal-message-input'),continueBtn=$('vz-deal-continue'),assistant=$('vz-deal-assistant'),selectionStep=$('vz-deal-selection-step');
+  const products=()=>typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)?PRODUCTS.filter(p=>p&&p.active!==false&&!p.out_of_stock):[];
+  const price=p=>typeof discountedPrice==='function'?Number(discountedPrice(p)):Number(p.price||0);
+  const rupees=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+  const get=id=>products().find(p=>String(p.id)===String(id));
+  function addBubble(text,who){const b=document.createElement('div');b.className='vz-chat-bubble '+(who==='user'?'vz-chat-user':'vz-chat-bot');b.textContent=text;chat.appendChild(b);chat.scrollTop=chat.scrollHeight;}
+  function fillProducts(sel,exclude){const old=sel.value;sel.replaceChildren(new Option(sel===one?'Choose first product':'Choose second product',''));products().filter(p=>String(p.id)!==String(exclude||'')).forEach(p=>sel.add(new Option(`${p.name} — ${rupees(price(p))}`,String(p.id))));if([...sel.options].some(o=>o.value===old))sel.value=old;}
+  function fillSizes(sel,p){sel.replaceChildren();if(!p){sel.add(new Option('Select product first',''));sel.disabled=true;return;}if(p.has_sizes&&Array.isArray(p.sizes)&&p.sizes.length){sel.add(new Option('Choose size',''));p.sizes.forEach(sz=>{const stock=typeof availableStockForSize==='function'?availableStockForSize(p,sz):null;const opt=new Option(`${sz}${stock!==null?(stock<=0?' — Sold out':stock<=5?` — Only ${stock} left`:' — In stock'):''}`,sz);if(stock!==null&&stock<=0)opt.disabled=true;sel.add(opt);});sel.disabled=false;}else{sel.add(new Option('One size / no size required',''));sel.disabled=true;}}
+  function refresh(){fillProducts(one,'');fillProducts(two,one.value);fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));const a=get(one.value),b=get(two.value);total.textContent=a&&b?rupees(price(a)+price(b)):'Choose two products';if(continueBtn)continueBtn.disabled=!ready();}
+  function ready(){const a=get(one.value),b=get(two.value);if(!a||!b||String(a.id)===String(b.id))return false;if(a.has_sizes&&Array.isArray(a.sizes)&&a.sizes.length&&(!sizeOne.value||sizeOne.disabled))return false;if(b.has_sizes&&Array.isArray(b.sizes)&&b.sizes.length&&(!sizeTwo.value||sizeTwo.disabled))return false;return true;}
+  function chosen(){return {a:get(one.value),b:get(two.value),sa:sizeOne.value,sb:sizeTwo.value};}
+  function assistantReply(raw){if(!ready())return 'First select two different available products and choose a size for each product that has size options.';const {a,b,sa,sb}=chosen();const sum=price(a)+price(b);const text=raw.toLowerCase();const match=raw.replace(/,/g,'').match(/(?:₹|rs\.?\s*)?(\d{2,6})(?:\s*(?:rupees|rs))?/i);const amount=match?Number(match[1]):null;
+    if(/^(hi|hello|hey|hii)\b/.test(text))return `Hey! Your combo is ${a.name} (${sa||'one size'}) + ${b.name} (${sb||'one size'}), currently ${rupees(sum)}. Tell me your target price and I’ll check a combo offer.`;
+    if(/(size|sizing|fit)/.test(text))return `Your selected sizes are ${sa||'one size'} for ${a.name} and ${sb||'one size'} for ${b.name}. Please check the product size chart before ordering if you are between sizes.`;
+    if(/(price|total|cost)/.test(text)&&amount===null)return `The current combo total for ${a.name} and ${b.name} is ${rupees(sum)}. You can send a target like “Can I get both for ₹999?”`;
+    if(amount!==null){if(amount>=sum)return `That works — your offer of ${rupees(amount)} is already at or above the current combo total of ${rupees(sum)}. You can continue with the listed price.`;const floor=Math.ceil(sum*.95);if(amount>=floor)return `That’s a close offer! I can suggest ${rupees(amount)} as your requested deal price (about ${Math.round((1-amount/sum)*100)}% off). This is a bargain suggestion, not yet a checkout discount.`;return `I can’t match ${rupees(amount)} automatically, but I can counter at ${rupees(floor)} for both pieces (about 5% off). Would you like to try that amount?`;}
+    if(/(discount|less|lower|deal|bargain|offer|cheap)/.test(text))return `For your ${a.name} + ${b.name} combo, the current total is ${rupees(sum)}. My opening suggestion is ${rupees(Math.ceil(sum*.95))} — around 5% off. You can counter with a price.`;
+    return `I’ve got your message. For ${a.name} + ${b.name}, the current combo total is ${rupees(sum)}. Send a target amount (for example, “₹999”) and I’ll respond with a counter-offer.`;
+  }
+  function send(){const raw=input.value.trim();if(!raw)return;if(!ready()){addBubble('Please choose two different products and select their sizes first.','bot');return;}addBubble(raw,'user');input.value='';const reply=assistantReply(raw);setTimeout(()=>addBubble(reply,'bot'),250);}
+  $('vz-deal-reveal').addEventListener('click',()=>{$('vz-deal-panel').hidden=false;$('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});refresh();});
+  one.addEventListener('change',()=>{fillProducts(two,one.value);fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();});
+  two.addEventListener('change',()=>{fillSizes(sizeTwo,get(two.value));refresh();});
+  sizeOne.addEventListener('change',refresh);sizeTwo.addEventListener('change',refresh);
+  continueBtn.addEventListener('click',()=>{if(!ready()){ $('vz-deal-message').textContent='Please select two different products and choose both sizes before continuing.';return;}const {a,b,sa,sb}=chosen();$('vz-selected-combo').textContent=`YOUR COMBO: ${a.name} — ${sa||'One size'}  +  ${b.name} — ${sb||'One size'}  |  CURRENT TOTAL: ${rupees(price(a)+price(b))}`;assistant.hidden=false;selectionStep.hidden=true;assistant.scrollIntoView({behavior:'smooth',block:'start'});input.focus({preventScroll:true});});
+  $('vz-deal-back').addEventListener('click',()=>{assistant.hidden=true;selectionStep.hidden=false;$('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});});
+  $('vz-deal-send').addEventListener('click',send);input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  let tries=0;const timer=setInterval(()=>{tries++;if(products().length||tries>=80){clearInterval(timer);refresh();}},250);if(products().length)refresh();
+})();
+</script>
 
 </body>
 </html>
