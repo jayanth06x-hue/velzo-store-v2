@@ -5864,7 +5864,7 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
   const input=$('vz-deal-message-input'),continueBtn=$('vz-deal-continue');
   const assistant=$('vz-deal-assistant'),selectionStep=$('vz-deal-selection-step');
   const buyBtn=$('vz-deal-buy-now');
-  let pendingCounterPrice=null, acceptedPrice=null;
+  let pendingCounterPrice=null, acceptedPrice=null, bargainRound=0;
   const products=()=>typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)
     ? PRODUCTS.filter(p=>p&&p.active!==false&&!p.out_of_stock) : [];
   const price=p=>typeof discountedPrice==='function'?Number(discountedPrice(p)):Number(p.price||0);
@@ -5880,7 +5880,7 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
   }
   function hasSizes(p){return !!p&&(p.has_sizes===true||p.has_sizes==='true'||sizesFor(p).length>0)&&sizesFor(p).length>0;}
   function resetAccepted(){
-    pendingCounterPrice=null;acceptedPrice=null;buyBtn.hidden=true;
+    pendingCounterPrice=null;acceptedPrice=null;bargainRound=0;buyBtn.hidden=true;
     window.velzoBargainDeal=null;
   }
   function addBubble(text,who){
@@ -5945,24 +5945,45 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
   function assistantReply(raw){
     if(!ready())return 'First select two different available products and choose a size for each product that has size options.';
     const {a,b,sa,sb}=chosen(),sum=price(a)+price(b),text=raw.toLowerCase().trim();
+    const firstOffer=Math.ceil(sum*.95);
+    const finalOffer=Math.ceil(sum*.90);
     const match=raw.replace(/,/g,'').match(/(?:₹|rs\.?\s*)?(\d{2,6})(?:\s*(?:rupees|rs))?/i);
     const amount=match?Number(match[1]):null;
-    if(/^(hi|hello|hey|hii)\b/.test(text))return `Hey! Your combo is ${a.name} (${sa}) + ${b.name} (${sb}), currently ${rupees(sum)}. Tell me your target price and I’ll check a combo offer.`;
+    if(/^(hi|hello|hey|hii)\b/.test(text))return `Hey! Your combo is ${a.name} (${sa}) + ${b.name} (${sb}), currently ${rupees(sum)}. I can start with a 5% combo offer.`;
     if(/(size|sizing|fit)/.test(text))return `Your selected sizes are ${sa} for ${a.name} and ${sb} for ${b.name}. Please check the product size chart before ordering if you are between sizes.`;
     if(/(yes|yeah|yep|accept|deal|okay|ok|confirm|sounds good|done)/i.test(text)&&pendingCounterPrice!==null){
       const offer=pendingCounterPrice;window.setTimeout(()=>acceptDeal(offer,'counter'),260);
-      return `Perfect. I’m accepting the counter-offer of ${rupees(offer)} for both products.`;
+      return `Perfect. I’m accepting the ${bargainRound>=2?'final 10%':'first 5%'} counter-offer of ${rupees(offer)} for both products.`;
     }
     if(amount!==null){
       if(amount>=sum){window.setTimeout(()=>acceptDeal(sum,'regular'),260);return `Your offer is at or above the current combo total. I can confirm the regular combo price of ${rupees(sum)}.`;}
-      const floor=Math.ceil(sum*.90);
-      if(amount>=floor){window.setTimeout(()=>acceptDeal(amount,'customer'),260);return `That works. Your offer of ${rupees(amount)} is within our automatic 10% bargain limit. I’m confirming it now.`;}
-      pendingCounterPrice=floor;
-      return `I can’t match ${rupees(amount)} automatically, but I can counter at ${rupees(floor)} for both pieces (up to 10% off). Reply YES to accept this deal.`;
+      if(bargainRound<=1 && amount>=firstOffer){
+        bargainRound=1;window.setTimeout(()=>acceptDeal(amount,'customer'),260);
+        return `That works! Your offer is within our first 5% deal. I’m confirming ${rupees(amount)} for both products.`;
+      }
+      if(bargainRound>=2 && amount>=finalOffer){
+        window.setTimeout(()=>acceptDeal(amount,'customer'),260);
+        return `That works. Your offer is within our final 10% limit. I’m confirming ${rupees(amount)} for both products.`;
+      }
+      bargainRound=2;pendingCounterPrice=finalOffer;
+      return `Thanks for bargaining! My final offer is ${rupees(finalOffer)} for both products — 10% off the combo total. This is my best and final price. Reply YES to accept.`;
     }
-    if(/(price|total|cost)/.test(text))return `The current combo total for ${a.name} and ${b.name} is ${rupees(sum)}. The best automatic deal is ${rupees(Math.ceil(sum*.90))}.`;
-    if(/(discount|less|lower|deal|bargain|offer|cheap)/.test(text)){pendingCounterPrice=Math.ceil(sum*.90);return `For your ${a.name} + ${b.name} combo, the current total is ${rupees(sum)}. My offer is ${rupees(pendingCounterPrice)} — around 10% off. Reply YES to accept or send your counter price.`;}
-    return `I’ve got your message. For ${a.name} + ${b.name}, the current combo total is ${rupees(sum)}. Send a target amount (for example, “₹999”) and I’ll respond with a counter-offer.`;
+    if(/(price|total|cost)/.test(text)){
+      return bargainRound>=2
+        ? `The combo total is ${rupees(sum)}. Your final bargain price is ${rupees(finalOffer)} (10% off).`
+        : `The combo total is ${rupees(sum)}. My first offer is ${rupees(firstOffer)} (5% off). If you bargain again, I can offer up to 10% off as the final deal.`;
+    }
+    if(/(discount|less|lower|deal|bargain|offer|cheap)/.test(text)){
+      if(bargainRound===0){
+        bargainRound=1;pendingCounterPrice=firstOffer;
+        return `Let’s start with ${rupees(firstOffer)} for both products — that’s 5% off. Reply YES to accept, or bargain once more for my final offer.`;
+      }
+      bargainRound=2;pendingCounterPrice=finalOffer;
+      return `Okay, here is my final offer: ${rupees(finalOffer)} for both products — 10% off. This is the maximum bargain. Reply YES to accept.`;
+    }
+    return bargainRound>=2
+      ? `My final offer remains ${rupees(finalOffer)} for both products (10% off). Reply YES if you want to accept.`
+      : `I can start with a 5% offer at ${rupees(firstOffer)}. Tell me your target price and I’ll check it.`;
   }
   function send(){
     const raw=input.value.trim();if(!raw)return;
