@@ -2042,7 +2042,8 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
         </div>
         <label for="vz-deal-message-input">YOUR BARGAIN MESSAGE</label>
         <div class="vz-chat-compose"><input id="vz-deal-message-input" type="text" maxlength="180" placeholder="Example: Can I get both for ₹999?"><button type="button" id="vz-deal-send" class="vz-deal-primary">SEND ↗</button></div>
-        <p class="vz-deal-note">The assistant can suggest a deal. Final discount approval and checkout price are confirmed by VELZO.</p>
+        <button type="button" id="vz-deal-buy-now" class="vz-deal-primary vz-deal-buy-now" hidden>BUY NOW</button>
+        <p class="vz-deal-note" id="vz-deal-accepted-note">The assistant can negotiate up to 10% off the selected product subtotal. Your accepted price will be verified again at checkout.</p>
       </div>
     </div>
   </div>
@@ -2413,6 +2414,9 @@ function discountMarkup(p) {
 let appliedCoupon = "";
 let quotedTotal = null;
 let displayedPaymentTotal = null;
+// Set only by the two-product bargain assistant after an offer is accepted.
+window.velzoBargainDeal = null;
+window.velzoBargainOriginalExpected = null;
 // Delivery is charged once per unique clothing variant, not per quantity.
 // A combo contains TWO garments: one T-shirt and one pair of sweatpants.
 function velzoDeliveryUnits(items = cart) {
@@ -2994,7 +2998,15 @@ async function showCheckout() {
     return;
   }
   const deliveryCharge = velzoDeliveryTotal();
-  const checkoutAmount = Math.round((Number(quote.total) + deliveryCharge) * 100) / 100;
+  const originalCheckoutAmount = Math.round((Number(quote.total) + deliveryCharge) * 100) / 100;
+  const bargain = window.velzoBargainDeal;
+  const bargainDiscount = bargain ? Number(bargain.discount || 0) : 0;
+  if (bargain && (!Number.isFinite(bargainDiscount) || bargainDiscount < 0 || bargainDiscount > Math.round(cartTotal() * 0.10 * 100) / 100)) {
+    target.innerHTML = '<h2>Checkout unavailable</h2><p>The bargain amount could not be verified. Please return to the deal assistant.</p><button onclick="renderCart()">BACK TO BAG</button>';
+    return;
+  }
+  const checkoutAmount = Math.round((originalCheckoutAmount - bargainDiscount) * 100) / 100;
+  window.velzoBargainOriginalExpected = originalCheckoutAmount;
   displayedPaymentTotal = checkoutAmount;
   const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
   // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
@@ -3007,11 +3019,11 @@ async function showCheckout() {
     <h2 id="cart-title">Delivery details</h2>
     <p style="display:block!important;visibility:visible!important;opacity:1!important;padding:12px!important;background:#ffffff!important;color:#17251b!important;border:2px solid #7d9e83!important;font-size:15px!important;font-weight:700!important"><strong style="color:#17251b!important">🚚 ${escapeHTML(deliveryEstimateText())}</strong><br><small style="color:#344b38!important">Estimate only. Courier delays may affect arrival.</small></p>
     <p class="subtext">Your order will be saved before you notify the store.</p>
-    <div style="margin:12px 0;padding:12px;border:1px solid #aaa">
+    ${bargain ? `<div style="margin:12px 0;padding:12px;border:1px solid #aaa"><strong>VELZO BARGAIN APPLIED</strong><p class="subtext">Original products total: ${money(quote.total)}<br>Accepted bargain discount: −${money(bargainDiscount)}</p></div>` : `<div style="margin:12px 0;padding:12px;border:1px solid #aaa">
       <label for="checkout-coupon">Coupon code (optional)</label>
       <div style="display:flex;gap:8px"><input id="checkout-coupon" value="${escapeHTML(appliedCoupon)}" placeholder="Enter coupon code" style="min-width:0;flex:1"><button type="button" onclick="applyCheckoutCoupon()">APPLY</button></div>
       <p id="checkout-coupon-message" class="subtext">${appliedCoupon ? `Coupon ${escapeHTML(appliedCoupon)} applied.` : "Enter a code and select Apply before paying."}</p>
-    </div>
+    </div>`}
     <form class="checkout-fields" onsubmit="submitOrder(event)">
       <input id="customer-name" autocomplete="name"
         placeholder="Full name" maxlength="100" required>
@@ -3029,7 +3041,7 @@ async function showCheckout() {
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
       ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery: ${money(VELZO_DELIVERY_CHARGE)} × ${velzoDeliveryUnits()} distinct product/size/colour combination(s) = ${money(deliveryCharge)}</strong></p>`}
-      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span id="velzo-final-payable">Final payable total: ${money(checkoutAmount + (!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0))}</span></div><div id="velzo-cod-fee-line" style="color:#111!important;font-weight:700">Cash on Delivery fee: ${money(!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0)}</div></div>
+      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(Number(quote.total) - bargainDiscount)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span id="velzo-final-payable">Final payable total: ${money(checkoutAmount + (!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0))}</span></div><div id="velzo-cod-fee-line" style="color:#111!important;font-weight:700">Cash on Delivery fee: ${money(!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0)}</div></div>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -3156,7 +3168,19 @@ async function submitOrder(event) {
       }
     }
     const freshQuote = await quoteOrder();
-    if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal() + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    const bargain = window.velzoBargainDeal;
+    const freshOriginalExpected = Math.round((Number(freshQuote.total) + velzoDeliveryTotal()) * 100) / 100;
+    if (Math.abs((freshOriginalExpected - Number(bargain?.discount || 0) + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    if (bargain) {
+      const ids = cart.map(item => String(item.id)).sort();
+      const expectedIds = [String(bargain.productOne), String(bargain.productTwo)].sort();
+      if (cart.length !== 2 || ids[0] !== expectedIds[0] || ids[1] !== expectedIds[1] || cart.some(item => Number(item.qty) !== 1)) {
+        throw new Error("The bargain basket changed. Please return to the assistant and confirm your two products again.");
+      }
+      if (Number(bargain.discount) < 0 || Number(bargain.discount) > Math.round(Number(freshQuote.total) * 0.10 * 100) / 100) {
+        throw new Error("The accepted bargain discount is outside the allowed limit.");
+      }
+    }
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
@@ -3171,7 +3195,8 @@ async function submitOrder(event) {
     // The database validates the products and calculates the actual total.
     // Save the chosen method atomically with the order on the server.
     // Requires VELZO_storefront_payment_method_setup.sql in Supabase.
-    const { data, error } = await db.rpc("place_order_with_shipping_stock", {
+    const rpcName = bargain ? "place_order_with_bargain" : "place_order_with_shipping_stock";
+    const rpcArgs = {
       p_customer_name: name,
       p_customer_phone: phone,
       p_customer_email: email,
@@ -3179,8 +3204,11 @@ async function submitOrder(event) {
       p_items: orderItems,
       p_payment_method: paymentMethod,
       p_coupon_code: appliedCoupon || null,
-      p_expected_total: checkoutAmountForPayment()
-    });
+      // The bargain SQL first validates the undiscounted total, then applies the bargain discount.
+      p_expected_total: bargain ? Math.round((freshOriginalExpected + velzoCodFee()) * 100) / 100 : checkoutAmountForPayment()
+    };
+    if (bargain) rpcArgs.p_bargain_discount = Number(bargain.discount);
+    const { data, error } = await db.rpc(rpcName, rpcArgs);
 
     if (error) throw error;
 
@@ -3231,6 +3259,8 @@ async function submitOrder(event) {
 
     cart = [];
     saveCart();
+    window.velzoBargainDeal = null;
+    window.velzoBargainOriginalExpected = null;
 
     const isUpiPayment = /upi|phonepe/i.test(String(paymentMethod));
     window.velzoPendingPaymentOrderId = String(order.order_id);
@@ -5810,6 +5840,8 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
 #vz-deal-studio .vz-deal-note{font-size:10px;color:#777;line-height:1.6;margin:11px 0 0}
 #vz-deal-studio .vz-deal-continue{width:100%;min-height:48px;margin:4px 0 2px;background:#171717;color:#fff;border:1px solid #171717;letter-spacing:1px;font-weight:800;cursor:pointer}
 #vz-deal-studio .vz-deal-continue:disabled{opacity:.35;cursor:not-allowed}
+#vz-deal-studio .vz-deal-buy-now{display:block;width:100%;margin-top:12px;min-height:50px;background:#171717;color:#c8ff3d;border:1px solid #171717;font-weight:900}
+#vz-deal-studio .vz-deal-buy-now[hidden]{display:none}
 #vz-deal-studio .vz-deal-assistant[hidden]{display:none}
 #vz-deal-studio .vz-deal-assistant{margin-top:22px;padding-top:20px;border-top:1px solid #d8d8d2;scroll-margin-top:30px}
 #vz-deal-studio .vz-assistant-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
@@ -5831,7 +5863,8 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
   const total=$('vz-deal-total'),chat=$('vz-deal-chat');
   const input=$('vz-deal-message-input'),continueBtn=$('vz-deal-continue');
   const assistant=$('vz-deal-assistant'),selectionStep=$('vz-deal-selection-step');
-
+  const buyBtn=$('vz-deal-buy-now');
+  let pendingCounterPrice=null, acceptedPrice=null;
   const products=()=>typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)
     ? PRODUCTS.filter(p=>p&&p.active!==false&&!p.out_of_stock) : [];
   const price=p=>typeof discountedPrice==='function'?Number(discountedPrice(p)):Number(p.price||0);
@@ -5846,6 +5879,10 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
     return Array.isArray(sizes)?sizes.map(x=>String(x).trim()).filter(Boolean):[];
   }
   function hasSizes(p){return !!p&&(p.has_sizes===true||p.has_sizes==='true'||sizesFor(p).length>0)&&sizesFor(p).length>0;}
+  function resetAccepted(){
+    pendingCounterPrice=null;acceptedPrice=null;buyBtn.hidden=true;
+    window.velzoBargainDeal=null;
+  }
   function addBubble(text,who){
     const b=document.createElement('div');
     b.className='vz-chat-bubble '+(who==='user'?'vz-chat-user':'vz-chat-bot');
@@ -5892,30 +5929,48 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
     continueBtn.disabled=!ready();
   }
   function chosen(){return {a:get(one.value),b:get(two.value),sa:hasSizes(get(one.value))?sizeOne.value:'One size',sb:hasSizes(get(two.value))?sizeTwo.value:'One size'};}
+  function acceptDeal(amount,source){
+    const {a,b,sa,sb}=chosen(),sum=price(a)+price(b);
+    const finalPrice=Math.min(sum,Math.max(0,Number(amount)));
+    const discount=Math.round((sum-finalPrice)*100)/100;
+    const maxDiscount=Math.round(sum*.10*100)/100;
+    if(discount>maxDiscount+.001){addBubble('That price is below the automatic bargain limit. The best available deal is '+rupees(Math.ceil(sum*.90))+'.','bot');pendingCounterPrice=Math.ceil(sum*.90);return;}
+    acceptedPrice=finalPrice;pendingCounterPrice=null;
+    window.velzoBargainDeal={productOne:String(a.id),productTwo:String(b.id),sizeOne:sa,sizeTwo:sb,discount:discount,acceptedPrice:finalPrice};
+    buyBtn.textContent='BUY NOW — '+rupees(finalPrice);
+    buyBtn.hidden=false;
+    $('vz-deal-accepted-note').textContent='Deal accepted: '+rupees(finalPrice)+' for both products. Delivery and any COD fee are calculated separately at checkout.';
+    addBubble('Deal accepted! '+a.name+' ('+sa+') + '+b.name+' ('+sb+') for '+rupees(finalPrice)+'. Your bargain discount is '+rupees(discount)+'. Tap BUY NOW to continue to secure checkout.','bot');
+  }
   function assistantReply(raw){
     if(!ready())return 'First select two different available products and choose a size for each product that has size options.';
-    const {a,b,sa,sb}=chosen(),sum=price(a)+price(b),text=raw.toLowerCase();
+    const {a,b,sa,sb}=chosen(),sum=price(a)+price(b),text=raw.toLowerCase().trim();
     const match=raw.replace(/,/g,'').match(/(?:₹|rs\.?\s*)?(\d{2,6})(?:\s*(?:rupees|rs))?/i);
     const amount=match?Number(match[1]):null;
     if(/^(hi|hello|hey|hii)\b/.test(text))return `Hey! Your combo is ${a.name} (${sa}) + ${b.name} (${sb}), currently ${rupees(sum)}. Tell me your target price and I’ll check a combo offer.`;
     if(/(size|sizing|fit)/.test(text))return `Your selected sizes are ${sa} for ${a.name} and ${sb} for ${b.name}. Please check the product size chart before ordering if you are between sizes.`;
-    if(/(price|total|cost)/.test(text)&&amount===null)return `The current combo total for ${a.name} and ${b.name} is ${rupees(sum)}. You can send a target like “Can I get both for ₹999?”`;
-    if(amount!==null){
-      if(amount>=sum)return `That works — your offer of ${rupees(amount)} is at or above the current combo total of ${rupees(sum)}.`;
-      const floor=Math.ceil(sum*.95);
-      if(amount>=floor)return `That’s a close offer! I can suggest ${rupees(amount)} as your requested deal price (about ${Math.round((1-amount/sum)*100)}% off). This is a bargain suggestion, not yet a checkout discount.`;
-      return `I can’t match ${rupees(amount)} automatically, but I can counter at ${rupees(floor)} for both pieces (about 5% off). Would you like to try that amount?`;
+    if(/(yes|yeah|yep|accept|deal|okay|ok|confirm|sounds good|done)/i.test(text)&&pendingCounterPrice!==null){
+      const offer=pendingCounterPrice;window.setTimeout(()=>acceptDeal(offer,'counter'),260);
+      return `Perfect. I’m accepting the counter-offer of ${rupees(offer)} for both products.`;
     }
-    if(/(discount|less|lower|deal|bargain|offer|cheap)/.test(text))return `For your ${a.name} + ${b.name} combo, the current total is ${rupees(sum)}. My opening suggestion is ${rupees(Math.ceil(sum*.95))} — around 5% off. You can counter with a price.`;
+    if(amount!==null){
+      if(amount>=sum){window.setTimeout(()=>acceptDeal(sum,'regular'),260);return `Your offer is at or above the current combo total. I can confirm the regular combo price of ${rupees(sum)}.`;}
+      const floor=Math.ceil(sum*.90);
+      if(amount>=floor){window.setTimeout(()=>acceptDeal(amount,'customer'),260);return `That works. Your offer of ${rupees(amount)} is within our automatic 10% bargain limit. I’m confirming it now.`;}
+      pendingCounterPrice=floor;
+      return `I can’t match ${rupees(amount)} automatically, but I can counter at ${rupees(floor)} for both pieces (up to 10% off). Reply YES to accept this deal.`;
+    }
+    if(/(price|total|cost)/.test(text))return `The current combo total for ${a.name} and ${b.name} is ${rupees(sum)}. The best automatic deal is ${rupees(Math.ceil(sum*.90))}.`;
+    if(/(discount|less|lower|deal|bargain|offer|cheap)/.test(text)){pendingCounterPrice=Math.ceil(sum*.90);return `For your ${a.name} + ${b.name} combo, the current total is ${rupees(sum)}. My offer is ${rupees(pendingCounterPrice)} — around 10% off. Reply YES to accept or send your counter price.`;}
     return `I’ve got your message. For ${a.name} + ${b.name}, the current combo total is ${rupees(sum)}. Send a target amount (for example, “₹999”) and I’ll respond with a counter-offer.`;
   }
   function send(){
     const raw=input.value.trim();if(!raw)return;
     if(!ready()){addBubble('Please choose two different products and select their sizes first.','bot');return;}
+    if(acceptedPrice!==null){addBubble('Your deal is already accepted. Tap BUY NOW to continue, or edit your products to start a new bargain.','bot');input.value='';return;}
     addBubble(raw,'user');input.value='';
     const reply=assistantReply(raw);window.setTimeout(()=>addBubble(reply,'bot'),250);
   }
-
   $('vz-deal-reveal').addEventListener('click',()=>{
     $('vz-deal-panel').hidden=false;
     $('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});
@@ -5923,28 +5978,49 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
     fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();
   });
   one.addEventListener('change',()=>{
-    fillProducts(two,one.value);
+    resetAccepted();fillProducts(two,one.value);
     if(two.value===one.value)two.value='';
     fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();
   });
-  two.addEventListener('change',()=>{fillSizes(sizeTwo,get(two.value));refresh();});
-  sizeOne.addEventListener('change',refresh);
-  sizeTwo.addEventListener('change',refresh);
+  two.addEventListener('change',()=>{resetAccepted();fillSizes(sizeTwo,get(two.value));refresh();});
+  sizeOne.addEventListener('change',()=>{resetAccepted();refresh();});
+  sizeTwo.addEventListener('change',()=>{resetAccepted();refresh();});
   continueBtn.addEventListener('click',()=>{
     if(!ready()){$('vz-deal-message').textContent='Please select two different products and choose both sizes before continuing.';return;}
+    resetAccepted();
     const {a,b,sa,sb}=chosen();
     $('vz-selected-combo').textContent=`YOUR COMBO: ${a.name} — ${sa}  +  ${b.name} — ${sb}  |  CURRENT TOTAL: ${rupees(price(a)+price(b))}`;
     assistant.hidden=false;selectionStep.hidden=true;
     assistant.scrollIntoView({behavior:'smooth',block:'start'});input.focus({preventScroll:true});
+    if(!chat.dataset.greeted){addBubble(`Welcome to the VELZO deal assistant. Your two selected products total ${rupees(price(a)+price(b))}. Ask for a deal or send your target price.`,'bot');chat.dataset.greeted='1';}
   });
   $('vz-deal-back').addEventListener('click',()=>{
-    assistant.hidden=true;selectionStep.hidden=false;
+    resetAccepted();assistant.hidden=true;selectionStep.hidden=false;
     $('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  buyBtn.addEventListener('click',async()=>{
+    if(!ready()||acceptedPrice===null||!window.velzoBargainDeal)return;
+    const {a,b,sa,sb}=chosen();
+    const deal=window.velzoBargainDeal;
+    if(String(a.id)!==deal.productOne||String(b.id)!==deal.productTwo||deal.sizeOne!==sa||deal.sizeTwo!==sb){resetAccepted();addBubble('Your selection changed. Please confirm a new deal.','bot');return;}
+    if(typeof loadProducts==='function')await loadProducts();
+    const freshA=get(a.id),freshB=get(b.id);
+    if(!freshA||!freshB){addBubble('One of these products is no longer available. Please edit your selection.','bot');return;}
+    for(const [p,sz] of [[freshA,sa],[freshB,sb]]){
+      if(hasSizes(p)&&typeof availableStockForSize==='function'){
+        const stock=availableStockForSize(p,sz);
+        if(stock!==null&&stock<1){addBubble(`${p.name} size ${sz} is now sold out. Please edit your selection.`,'bot');return;}
+      }
+    }
+    cart=[{id:freshA.id,qty:1,...(hasSizes(freshA)?{size:sa}:{})},{id:freshB.id,qty:1,...(hasSizes(freshB)?{size:sb}:{})}];
+    if(typeof saveCart==='function')saveCart();
+    appliedCoupon='';
+    window.velzoBargainDeal={...deal,productOne:String(freshA.id),productTwo:String(freshB.id)};
+    if(typeof openCart==='function')openCart();
+    if(typeof showCheckout==='function')await showCheckout();
   });
   $('vz-deal-send').addEventListener('click',send);
   input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
-
-  // Wait for the async Supabase product catalogue, then populate selectors once.
   let tries=0;
   const timer=window.setInterval(()=>{
     tries++;
