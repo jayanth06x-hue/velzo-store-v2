@@ -143,6 +143,11 @@ button.danger { background:#8d302b; color:#fff; }
 #loginPanel { border-top-color:#c5a16b; }
 
 .admin-size-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.admin-size-buttons label{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:9px 12px;border:1px solid #555;border-radius:7px;cursor:pointer;background:#171717;color:#eee}.admin-size-buttons label:has(input:checked){background:#d4b16a;color:#111;border-color:#d4b16a}.admin-size-buttons input{position:absolute;opacity:0;width:1px;height:1px}.field-label{display:block;font-size:13px;margin:8px 0;color:inherit}
+
+.product-code-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.product-code-field label{font-size:12px;letter-spacing:.06em;color:var(--gold,#d4b16a)}
+.product-code-field input{width:100%;box-sizing:border-box}
+.product-code-field small{font-size:11px;line-height:1.45;opacity:.75}
 </style>
 <style id="vz-drop-admin-css">
 .vz-drop-product-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;max-height:300px;overflow:auto;padding:8px}
@@ -355,7 +360,7 @@ td,th{padding:13px 12px;border-bottom:1px solid var(--shop-line)!important}
         <form id="productForm" class="form">
           <input id="productId" type="hidden">
           <input id="productName" placeholder="Product name" required maxlength="150">
-          <input id="productCode" placeholder="Product code / SKU (e.g. VZ-CAP-001)" maxlength="60" autocomplete="off">
+          <div class="product-code-field"><label for="productCode"><strong>PRODUCT CODE / SKU (ADMIN ONLY)</strong></label><input id="productCode" type="text" placeholder="Example: VZ-CAP-001" maxlength="60" autocomplete="off"><small>Visible in your admin panel and order items. Customers will not see it on product pages.</small></div>
           <select id="productCategory" required aria-label="Product category">
             <option value="">Choose product category</option>
             <option value="Accessories">Accessories</option>
@@ -1250,6 +1255,26 @@ $("productForm").addEventListener("submit", async event => {
   }
 });
 
+function getOrderItemProductCode(item) {
+  const direct = item?.product_code || item?.productCode || item?.sku || item?.product_sku;
+  if (direct) return direct;
+
+  const possibleIds = [
+    item?.product_id, item?.productId, item?.product?.id, item?.id
+  ].filter(value => value !== undefined && value !== null && String(value).trim() !== "");
+
+  let product = allProducts.find(p =>
+    possibleIds.some(id => String(p.id) === String(id))
+  );
+
+  if (!product && item?.name) {
+    const itemName = String(item.name).trim().toLowerCase();
+    product = allProducts.find(p => String(p.name || "").trim().toLowerCase() === itemName);
+  }
+
+  return product?.product_code || "";
+}
+
 function renderOrders() {
   $("orderRows").innerHTML = allOrders.map(o => {
     let items = [];
@@ -1271,9 +1296,10 @@ function renderOrders() {
           ${esc(o.customer_phone)}<br>
           <small>${esc(o.customer_address)}</small>
         </td>
-        <td>${items.map(i =>
-          `${esc(i.name)}${i.product_code || i.productCode ? ` (Product No: ${esc(i.product_code || i.productCode)})` : ""}${i.size ? ` (Size: ${esc(i.size)})` : ""}${i.shirt_color || i.shirtColor ? ` (Shirt: ${esc(i.shirt_color || i.shirtColor)})` : ""}${i.pant_color || i.pantColor ? ` (Pants: ${esc(i.pant_color || i.pantColor)})` : ""} × ${esc(i.qty)}`
-        ).join("<br>")}</td>
+        <td>${items.map(i => {
+          const productCode = getOrderItemProductCode(i);
+          return `<strong>${esc(i.name || i.product_name || "Product")}</strong>${productCode ? `<br><small><strong>Product No: ${esc(productCode)}</strong></small>` : `<br><small>Product No: not assigned</small>`}${i.size ? `<br><small>Size: ${esc(i.size)}</small>` : ""}${i.shirt_color || i.shirtColor ? `<br><small>Shirt: ${esc(i.shirt_color || i.shirtColor)}</small>` : ""}${i.pant_color || i.pantColor ? `<br><small>Pants: ${esc(i.pant_color || i.pantColor)}</small>` : ""}<br><small>Quantity: ${esc(i.qty)}</small>`;
+        }).join("<hr style='border:0;border-top:1px solid #ddd;margin:8px 0'>")}</td>
         <td>${money(o.total)}</td>
         <td><select aria-label="Payment method for order ${esc(o.id)}" data-payment-method="${esc(o.id)}">
           <option value="" ${!o.payment_method ? "selected" : ""}>Not set</option>
