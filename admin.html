@@ -152,6 +152,67 @@ button.danger { background:#8d302b; color:#fff; }
 .vz-drop-admin-item{border:1px solid #7776;padding:14px}.vz-drop-admin-item strong{display:block;margin-bottom:6px}.vz-drop-admin-item p{font-size:12px}
 .vz-drops-admin .form input[type="checkbox"]{width:auto;margin-right:5px}
 </style>
+
+<style id="velzo-shopify-admin-theme">
+:root{--shop-bg:#f6f6f7;--shop-surface:#fff;--shop-ink:#202223;--shop-muted:#6d7175;--shop-line:#e1e3e5;--shop-green:#008060;--shop-green-dark:#006e52}
+body{background:var(--shop-bg);color:var(--shop-ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.header{display:none}
+.wrap{max-width:none;margin:0;padding:0}
+#message{position:fixed;z-index:100;top:14px;left:50%;transform:translateX(-50%);width:min(680px,calc(100% - 28px));box-shadow:0 5px 24px #0002;border:1px solid var(--shop-line);background:#fff;color:var(--shop-ink)}
+#loginPanel{margin:8vh auto!important;background:#fff;border:1px solid var(--shop-line);border-top:4px solid var(--shop-green);border-radius:12px;box-shadow:0 12px 40px #20222312;padding:32px}
+#loginPanel h1{font-family:inherit;font-weight:700;letter-spacing:-.04em;font-size:30px}
+#loginPanel .gold{background:var(--shop-green);color:white;border-radius:8px}
+#dashboard{min-height:100vh}
+.admin-shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.admin-sidebar{background:#1a1c1d;color:#e3e5e7;padding:22px 14px;display:flex;flex-direction:column;gap:7px;position:sticky;top:0;height:100vh}
+.sidebar-brand{font-size:22px;font-weight:800;letter-spacing:3px;padding:7px 12px 26px;color:#fff}
+.sidebar-brand span{color:#c8a96b}
+.sidebar-brand small{display:block;font-size:9px;letter-spacing:2.5px;color:#9da2a5;margin-top:5px}
+.sidebar-caption{font-size:10px;font-weight:700;letter-spacing:1.4px;color:#8c9296;padding:12px}
+.side-link{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:8px;background:transparent;color:#c9cccf;text-decoration:none;text-align:left;font-size:13px;font-weight:500}
+.side-link span{width:18px;text-align:center;font-size:17px;color:#aeb3b6}
+.side-link:hover,.side-link.active{background:#303536;color:#fff}
+.side-link.active{box-shadow:inset 3px 0 #c8a96b}
+.sidebar-bottom{margin-top:auto;border-top:1px solid #383d3f;padding-top:12px}
+.admin-main{min-width:0;padding:28px clamp(16px,3vw,42px) 50px}
+.admin-topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px;padding:18px 22px!important;border-radius:12px!important}
+.admin-topbar h1{font-family:inherit;font-weight:700;font-size:25px;letter-spacing:-.7px}
+.admin-topbar .muted{font-size:12px;margin:5px 0 0}
+.panel,.stat{background:var(--shop-surface)!important;color:var(--shop-ink)!important;border:1px solid var(--shop-line)!important;border-radius:12px!important;box-shadow:0 1px 2px #2022230a!important}
+.panel{padding:22px;margin-bottom:18px}
+h1,h2,h3{font-family:inherit;letter-spacing:-.4px}
+h2{font-size:20px;font-weight:650;margin:0 0 14px}
+h3{font-weight:650}
+.muted,.note,.stat span{color:var(--shop-muted)!important}
+.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.stat{padding:20px 22px;min-height:105px}
+.stat:after{display:none}
+.stat span{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600}
+.stat strong{font-family:inherit;font-size:28px;font-weight:700;color:var(--shop-ink)}
+input,textarea,select{background:#fff!important;color:var(--shop-ink)!important;border:1px solid #c9cccf!important;border-radius:8px!important;padding:11px 12px}
+input:focus,textarea:focus,select:focus{border-color:var(--shop-green)!important;box-shadow:0 0 0 2px #00806020!important}
+button{border-radius:8px!important;font-weight:600}
+button.primary{background:#303536!important;color:#fff!important}
+button.gold{background:var(--shop-green)!important;color:#fff!important;letter-spacing:0}
+button.gold:hover{background:var(--shop-green-dark)!important}
+button.secondary{background:#fff!important;color:var(--shop-ink)!important;border:1px solid #c9cccf!important}
+button.danger{background:#c52828!important}
+.tabs{display:flex;gap:8px;border:0;padding:0 0 15px;margin-bottom:18px}
+.tabs button{padding:10px 15px!important}
+.tabs button.active{background:#e3f1ed!important;color:#006e52!important;border:1px solid #b7ded2}
+.table-wrap{border:1px solid var(--shop-line);border-radius:9px;overflow-x:auto}
+table{min-width:720px;background:#fff}
+th{background:#f6f6f7!important;color:#5c6064!important;letter-spacing:.4px;font-size:10px}
+td,th{padding:13px 12px;border-bottom:1px solid var(--shop-line)!important}
+.product-thumb{border-radius:6px}
+.status{border-left:3px solid var(--shop-green);border-radius:8px}
+.vz-drop-admin-item{border:1px solid var(--shop-line);border-radius:9px;background:#fff}
+.vz-drop-product-list label{border:1px solid var(--shop-line);border-radius:8px}
+#deliveryEstimatePanel,#couponAdminPanel,#vzDropsAdminPanel,#productOrdersPanel{scroll-margin-top:20px}
+@media(max-width:900px){.admin-shell{grid-template-columns:76px minmax(0,1fr)}.admin-sidebar{padding:18px 8px}.sidebar-brand{font-size:0;padding:8px 5px 22px;text-align:center}.sidebar-brand:before{content:"V";font-size:22px}.sidebar-brand span,.sidebar-brand small,.sidebar-caption{display:none}.side-link{justify-content:center;padding:12px 5px;font-size:0;gap:0}.side-link span{font-size:18px}.sidebar-bottom .side-link{font-size:0}.admin-main{padding:20px 14px 36px}}
+@media(max-width:600px){.admin-shell{grid-template-columns:1fr}.admin-sidebar{position:sticky;top:0;z-index:30;height:auto;flex-direction:row;align-items:center;padding:7px;overflow-x:auto;gap:4px}.sidebar-brand,.sidebar-caption,.sidebar-bottom{display:none}.side-link{min-width:48px;width:auto;flex:1;padding:10px 8px}.admin-main{padding:14px 10px 28px}.admin-topbar{padding:15px!important}.admin-topbar h1{font-size:21px}.stats{grid-template-columns:1fr 1fr;gap:9px}.stat{padding:14px;min-height:90px}.stat strong{font-size:23px}.panel{padding:15px}.form{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+
 </head>
 <body>
 
@@ -175,7 +236,23 @@ button.danger { background:#8d302b; color:#fff; }
   </section>
 
   <section id="dashboard" class="hidden">
-    <div class="panel">
+    <div class="admin-shell">
+      <aside class="admin-sidebar" aria-label="Admin navigation">
+        <div class="sidebar-brand">VEL<span>ZO</span><small>COMMERCE</small></div>
+        <div class="sidebar-caption">MANAGEMENT</div>
+        <a class="side-link active" href="#adminOverview"><span>⌂</span> Overview</a>
+        <a class="side-link" href="#vzDropsAdminPanel"><span>▦</span> Collections</a>
+        <a class="side-link" href="#deliveryEstimatePanel"><span>↗</span> Delivery settings</a>
+        <a class="side-link" href="#couponAdminPanel"><span>％</span> Discounts</a>
+        <button class="side-link" type="button" data-admin-tab="products"><span>▣</span> Products</button>
+        <button class="side-link" type="button" data-admin-tab="orders"><span>▤</span> Orders</button>
+        <div class="sidebar-bottom">
+          <a class="side-link" href="/" target="_blank" rel="noopener"><span>↗</span> View store</a>
+          <button class="side-link" type="button" id="sidebarLogout"><span>⇥</span> Sign out</button>
+        </div>
+      </aside>
+      <div class="admin-main">
+    <div class="panel admin-topbar" id="adminOverview">
       <div class="actions" style="justify-content:space-between">
         <div>
           <h1 style="margin:0">Store dashboard</h1>
@@ -219,35 +296,7 @@ button.danger { background:#8d302b; color:#fff; }
         <button type="submit" class="gold">SAVE DELIVERY ESTIMATE</button>
       </form>
     </section>
-    <section class="panel" id="featuredProductPanel">
-      <h2>Homepage Concave Carousel</h2>
-      <p class="muted">Choose and order up to three active products for the curved 3D-style gallery. Priority 1 is the centre product. This does not change product prices, stock, or orders.</p>
-      <div class="form">
-        <label class="field-label" for="featuredProductSelect1">Priority 1 — Centre product</label>
-        <select id="featuredProductSelect1" class="full featured-product-select" aria-label="Priority 1 centre product"><option value="">No product</option></select>
-        <label class="field-label" for="featuredProductSelect2">Priority 2 — Left product</label>
-        <select id="featuredProductSelect2" class="full featured-product-select" aria-label="Priority 2 left product"><option value="">No product</option></select>
-        <label class="field-label" for="featuredProductSelect3">Priority 3 — Right product</label>
-        <select id="featuredProductSelect3" class="full featured-product-select" aria-label="Priority 3 right product"><option value="">No product</option></select>
-        <button class="gold full" type="button" id="saveFeaturedProduct">SAVE 3 PRIORITY PRODUCTS</button>
-      </div>
-      <p class="note">Select up to three different active products. Priority 1 appears in the centre. You can change the order anytime.</p>
-    </section>
-
-    <section class="panel" id="velzoHeroAdminPanel">
-      <h2>Homepage Sale Slideshow</h2>
-      <p class="muted">Set the slide duration, banner images, headlines, descriptions and button links. Saved changes appear on the storefront without a new Vercel deployment.</p>
-      <div class="form">
-        <label>Automatic slide duration (seconds)
-          <input type="number" id="vzHeroSeconds" min="2" max="20" step="1" value="3" required>
-        </label>
-        <div id="vzHeroEditor"></div>
-        <button type="button" class="secondary" id="vzHeroAdd">+ ADD SLIDE</button>
-        <button type="button" class="gold" id="vzHeroSave">SAVE HOMEPAGE SLIDES</button>
-        <p class="note" id="vzHeroStatus" role="status">You may add up to six slides. Click UPLOAD IMAGE on a slide to choose a PNG, JPG or WebP from your device (maximum 5 MB). The image will upload to Supabase and save to your live slideshow automatically.</p>
-      </div>
-    </section>
-    <section class="panel" id="couponAdminPanel">
+<section class="panel" id="couponAdminPanel">
       <h2>Coupon codes & product targeting</h2>
       <p class="note">Create and manage coupons here. Enable flat ₹ coupons only after deploying the server-side coupon pricing and redemption SQL and testing checkout.</p>
       <form id="couponForm" class="form">
@@ -295,7 +344,7 @@ button.danger { background:#8d302b; color:#fff; }
       <div id="couponMessage" class="note" role="status" style="margin:12px 0"></div>
       <div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Expiry</th><th>Enabled</th><th>Show near</th><th>Action</th></tr></thead><tbody id="couponRows"></tbody></table></div>
     </section>
-    <section class="panel">
+    <section class="panel" id="productOrdersPanel">
       <div class="tabs">
         <button class="primary active" data-tab="products">Products</button>
         <button class="primary" data-tab="orders">Orders</button>
@@ -415,7 +464,8 @@ button.danger { background:#8d302b; color:#fff; }
           </table>
         </div>
       </div>
-    </section>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -652,7 +702,6 @@ $("logoutBtn").addEventListener("click", async () => {
 async function refreshAll() {
   clearMessage();
   await Promise.all([loadProducts(), loadOrders(), loadPaymentConfirmations()]);
-  await loadFeaturedProductSetting();
   await loadDeliveryEstimateSetting();
   renderStats();
 }
@@ -675,56 +724,6 @@ $("deliveryEstimateForm").addEventListener("submit",async event=>{
   message(error ? "Could not save delivery estimate: "+error.message : "Delivery estimate saved. Refresh the storefront.");
 });
 
-async function loadFeaturedProductSetting() {
-  const {data, error} = await db.from("store_settings").select("featured_product_id").eq("id", 1).maybeSingle();
-  if (error) throw error;
-  let ids = [];
-  const raw = data?.featured_product_id;
-  if (Array.isArray(raw)) ids = raw.map(String).slice(0,3);
-  else if (typeof raw === "string" && raw.trim().startsWith("[")) {
-    try { ids = JSON.parse(raw).map(String).slice(0,3); } catch (_) { ids = raw ? [raw] : []; }
-  } else if (raw) ids = [String(raw)];
-  [1,2,3].forEach((n,i) => { const el = $("featuredProductSelect"+n); if (el) el.value = ids[i] || ""; });
-  updateFeaturedProductSelectOptions();
-}
-function updateFeaturedProductSelectOptions() {
-  const selects = [1,2,3].map(n => $("featuredProductSelect"+n));
-  const selected = selects.map(el => el.value);
-  selects.forEach((select, i) => {
-    if (!select) return;
-    const previous = selected[i];
-    select.innerHTML = '<option value="">No product</option>' + allProducts.filter(p => p.active).map(p =>
-      `<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.price)}</option>`
-    ).join("");
-    if ([...select.options].some(o => o.value === previous)) select.value = previous;
-  });
-  const unique = new Set();
-  selects.forEach((select, i) => {
-    const chosen = select.value;
-    [...select.options].forEach(option => {
-      if (!option.value) return;
-      option.disabled = option.value !== chosen && unique.has(option.value);
-    });
-    if (chosen) unique.add(chosen);
-  });
-}
-[1,2,3].forEach(n => $("featuredProductSelect"+n).addEventListener("change", updateFeaturedProductSelectOptions));
-$("saveFeaturedProduct").addEventListener("click", async () => {
-  const button = $("saveFeaturedProduct");
-  button.disabled = true;
-  try {
-    const ids = [1,2,3].map(n => $("featuredProductSelect"+n).value).filter(Boolean);
-    if (new Set(ids).size !== ids.length) throw new Error("Choose three different products, or leave a priority blank.");
-    const storedValue = ids.length ? JSON.stringify(ids) : null;
-    const {error} = await db.from("store_settings").upsert({id:1,featured_product_id:storedValue},{onConflict:"id"});
-    if (error) throw error;
-    message("Three priority products saved. Refresh the storefront to see the carousel.");
-  } catch (error) {
-    console.error(error);
-    message("Could not save priority products: " + error.message + ". Check the store_settings table policies in Supabase.");
-  } finally { button.disabled = false; }
-});
-
 async function loadProducts() {
   const {data, error} = await db.from("products")
     .select("id,name,category,price,compare_at_price,discount_percent,tag,description,image_url,image_urls,active,created_at,has_sizes,sizes,size_chart_url,meesho_url,out_of_stock,colors,combo_options,color_image_map,stock_by_size")
@@ -734,7 +733,6 @@ async function loadProducts() {
 
   allProducts = data || [];
   if (typeof window.vzRefreshDropProductChoices === "function") window.vzRefreshDropProductChoices();
-  updateFeaturedProductSelectOptions();
   renderProducts();
   renderStats();
 }
@@ -1418,103 +1416,6 @@ db.auth.onAuthStateChange((_event, session) => {
 })();
 
 </script>
-<script id="vz-hero-admin-settings">
-(function(){
-  const $el=id=>document.getElementById(id);
-  const defaults=[
-    {eyebrow:'VELZO COLLECTIONS · FESTIVE EDIT',title:'DIWALI SALE',description:'Fresh fits for the festive season. Explore available offers on your favorite styles.',button_text:'SHOP THE COLLECTION →',button_link:'#shop',image:'velzo-diwali-hero.jpg'},
-    {eyebrow:'VELZO COLLECTIONS · YOUR STYLE, YOUR DEAL',title:'COUPON DEALS',description:'Have a VELZO coupon? Apply your valid code at checkout to see eligible savings before placing your order.',button_text:'EXPLORE PRODUCTS →',button_link:'#shop',image:'velzo-diwali-hero.jpg'}
-  ];
-  let slides=defaults.map(x=>({...x}));
-  const fields=[['eyebrow','Small heading',110],['title','Large heading',75],['description','Description',300],['button_text','Button text',65],['button_link','Button link (#shop or https://...)',500],['image','Image URL (HTTPS) or deployed filename',700]];
-  function status(t){$el('vzHeroStatus').textContent=t}
-  function render(){
-    const root=$el('vzHeroEditor');root.replaceChildren();
-    slides.forEach((data,i)=>{
-      const item=document.createElement('fieldset');item.style.cssText='border:1px solid #7775;margin:12px 0;padding:15px;border-radius:8px;min-width:0';
-      const legend=document.createElement('legend');legend.textContent=`Slide ${i+1}`;item.append(legend);
-      fields.forEach(([key,label,max])=>{
-        const wrapper=document.createElement('label');wrapper.style.cssText='display:block;margin-bottom:10px;font-size:12px';wrapper.textContent=label;
-        const field=key==='description'?document.createElement('textarea'):document.createElement('input');
-        if(field.tagName==='INPUT')field.type='text';field.maxLength=max;field.value=data[key]||'';
-        field.style.cssText='display:block;width:100%;margin-top:4px;padding:10px';if(key==='image')field.dataset.vzImageField='true';
-        field.addEventListener('input',()=>{data[key]=field.value});wrapper.append(field);item.append(wrapper);
-      });
-      // Local file upload: Supabase Storage RLS allows only verified VELZO admins.
-      const imageTools=document.createElement('div');
-      imageTools.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0 15px';
-      const upload=document.createElement('button');upload.type='button';upload.className='secondary';upload.textContent='UPLOAD IMAGE';
-      const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/png,image/jpeg,image/webp';fileInput.style.display='none';
-      const feedback=document.createElement('small');feedback.style.cssText='display:block;overflow-wrap:anywhere';feedback.textContent='PNG / JPG / WebP · max 5 MB';
-      const preview=document.createElement('img');preview.alt=`Slide ${i+1} banner preview`;preview.loading='lazy';preview.style.cssText='width:min(280px,100%);max-height:130px;object-fit:cover;display:block;border-radius:5px;margin:7px 0 10px';
-      if(data.image){preview.src=data.image; preview.onerror=()=>{preview.style.display='none'}} else preview.style.display='none';
-      upload.addEventListener('click',()=>fileInput.click());
-      fileInput.addEventListener('change',async()=>{
-        const file=fileInput.files?.[0]; if(!file)return;
-        const allowedTypes={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'};
-        const ext=allowedTypes[file.type];
-        if(!ext || file.size>5*1024*1024 || !file.size){feedback.textContent='Choose a PNG, JPG or WebP image smaller than 5 MB.';fileInput.value='';return}
-        upload.disabled=true;feedback.textContent='Uploading image...';
-        try {
-          const {data:authorized,error:authError}=await db.rpc('is_velzo_admin');
-          if(authError||authorized!==true)throw new Error('Sign in with your VELZO administrator account.');
-          const bytes=crypto.getRandomValues(new Uint8Array(12));
-          const token=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
-          const path=`banners/${Date.now()}-${token}.${ext}`;
-          const {error}=await db.storage.from('velzo-hero').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
-          if(error)throw error;
-          const {data:urlData}=db.storage.from('velzo-hero').getPublicUrl(path);
-          if(!urlData?.publicUrl||!urlData.publicUrl.startsWith('https://'))throw new Error('Could not create image URL.');
-          // Save the image immediately; keep other slide edits as currently entered.
-          const imageBefore=data.image;
-          data.image=urlData.publicUrl;
-          try {await saveSlides('Image uploaded and saved! Refresh the storefront to see it.')} catch(saveError){
-            data.image=imageBefore;throw new Error('Image uploaded but slideshow was not saved: '+saveError.message);
-          }
-          preview.style.display='block';preview.src=data.image;
-          const imageField=item.querySelector('[data-vz-image-field]');if(imageField)imageField.value=data.image;
-          feedback.textContent='Image uploaded and saved to the live slideshow.';
-        }catch(e){feedback.textContent='Upload failed: '+(e.message||'Please try again.');status(feedback.textContent)}
-        finally{upload.disabled=false;fileInput.value=''}
-      });
-      imageTools.append(upload,fileInput,feedback);item.append(imageTools,preview);
-      const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='REMOVE SLIDE';
-      remove.disabled=slides.length<=1;
-      remove.addEventListener('click',()=>{if(slides.length>1){slides.splice(i,1);render()}});item.append(remove);root.append(item);
-    });
-    $el('vzHeroAdd').disabled=slides.length>=6;
-  }
-  function safeLink(s){return s.startsWith('#')||s.startsWith('/')&&!s.startsWith('//')||/^https:\/\/[^\s]+$/i.test(s)}
-  function safeImage(s){return /^https:\/\/[^\s]+$/i.test(s)|| /^\/?[a-zA-Z0-9_./-]+\.(png|jpg|jpeg|webp|avif)$/i.test(s)&&!s.startsWith('//')&&!s.includes('..')}
-  async function load(){
-    const {data,error}=await db.from('velzo_hero_settings').select('interval_ms,slides').eq('id',1).maybeSingle();
-    if(error){status('Slider settings table is not ready. Run the included SQL setup first. '+error.message);return}
-    if(data){$el('vzHeroSeconds').value=String(data.interval_ms/1000);if(Array.isArray(data.slides)&&data.slides.length)slides=data.slides.map(x=>({...x}))}
-    render();
-  }
-  $el('vzHeroAdd').addEventListener('click',()=>{if(slides.length<6){slides.push({eyebrow:'VELZO COLLECTIONS',title:'NEW COLLECTION',description:'Discover our latest styles.',button_text:'SHOP NOW →',button_link:'#shop',image:'velzo-diwali-hero.jpg'});render()}});
-  async function saveSlides(successMessage='Saved! Refresh your VELZO storefront to see the changes.') {
-    const seconds=Number($el('vzHeroSeconds').value);
-    if(!Number.isInteger(seconds)||seconds<2||seconds>20)throw new Error('Choose a duration between 2 and 20 seconds.');
-    if(!slides.length||slides.length>6||slides.some(x=>!x.title?.trim()||!safeLink(String(x.button_link||''))||!safeImage(String(x.image||''))))throw new Error('Check every slide heading, button link and image URL.');
-    const {data:allowed,error:authError}=await db.rpc('is_velzo_admin');
-    if(authError||allowed!==true)throw new Error('Administrator authorization required.');
-    const {error}=await db.from('velzo_hero_settings').upsert({id:1,interval_ms:seconds*1000,slides},{onConflict:'id'});
-    if(error)throw error;
-    status(successMessage);
-  }
-  $el('vzHeroSave').addEventListener('click',async()=>{
-    const btn=$el('vzHeroSave');btn.disabled=true;status('Saving slideshow...');
-    try{await saveSlides()}catch(e){status('Could not save: '+(e.message||'Unknown error'))}finally{btn.disabled=false}
-  });
-  render();
-  // Admin authentication may initialize asynchronously; load only after authorized dashboard appears.
-  const dashboard=$el('dashboard');
-  const observer=new MutationObserver(()=>{if(!dashboard.classList.contains('hidden'))load()});
-  observer.observe(dashboard,{attributes:true,attributeFilter:['class']});
-  if(!dashboard.classList.contains('hidden'))load();
-})();
-</script>
 <script id="vz-drop-admin-functionality">
 (function(){
   'use strict';
@@ -1586,5 +1487,24 @@ db.auth.onAuthStateChange((_event, session) => {
   e('refreshProducts')?.addEventListener('click',()=>setTimeout(productChoices,500));
 })();
 </script>
+
+<script id="vz-shopify-admin-navigation">
+document.getElementById('sidebarLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click());
+document.querySelectorAll('[data-admin-tab]').forEach(button=>{
+  button.addEventListener('click',()=>{
+    const tab=button.dataset.adminTab;
+    const target=document.querySelector(`.tabs button[data-tab="${tab}"]`);
+    target?.click();
+    document.getElementById('productOrdersPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.side-link').forEach(link=>link.classList.toggle('active',link===button));
+  });
+});
+document.querySelectorAll('.admin-sidebar a[href^="#"]').forEach(link=>{
+  link.addEventListener('click',()=>{
+    document.querySelectorAll('.side-link').forEach(item=>item.classList.toggle('active',item===link));
+  });
+});
+</script>
+
 </body>
 </html>
