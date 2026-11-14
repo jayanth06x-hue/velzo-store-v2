@@ -1915,14 +1915,31 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
 @media(prefers-reduced-motion:reduce){.vz-orbit-card,.vz-orbit-shell *{animation:none!important;transition:none!important}}
 </style>
 
+
+<style id="velzo-brand-identity-phase1">
+  /* Phase 1 brand identity: preserve the existing white editorial layout. */
+  .announcement { background:#111!important; color:#fff!important; }
+  .vz-brand-logo { display:flex!important; align-items:center!important; justify-content:center!important; gap:9px!important; text-decoration:none!important; color:#111!important; }
+  .vz-brand-eagle { display:block!important; width:42px!important; height:42px!important; object-fit:contain!important; flex:0 0 auto!important; }
+  .vz-brand-wordmark { display:flex!important; flex-direction:column!important; color:#111!important; font-family:Arial,Helvetica,sans-serif!important; font-size:25px!important; line-height:.92!important; font-weight:900!important; letter-spacing:1.5px!important; }
+  .vz-brand-wordmark small { display:block!important; margin-top:5px!important; color:#555!important; font-family:Arial,Helvetica,sans-serif!important; font-size:8px!important; line-height:1!important; font-weight:800!important; letter-spacing:3px!important; }
+  .vz-orbit-overline { letter-spacing:2px!important; }
+  @media(max-width:650px) {
+    .vz-brand-logo { gap:6px!important; }
+    .vz-brand-eagle { width:34px!important; height:34px!important; }
+    .vz-brand-wordmark { font-size:20px!important; }
+    .vz-brand-wordmark small { font-size:7px!important; letter-spacing:2.4px!important; }
+  }
+</style>
+
 </head>
 
 <body>
-  <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎</a></div>
+  <div class="announcement">VELZO COLLECTIONS · BUILT DIFFERENT. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎</a></div>
 
   <header class="header vz-icon-header">
     <button class="vz-menu-trigger vz-header-icon" type="button" onclick="vzOpenMenu()" aria-label="Open sidebar menu" title="Menu" aria-expanded="false" aria-controls="vz-side-menu">☰</button>
-    <a class="logo" href="#" aria-label="Velzo Collections home">VEL<span>ZO</span><small>COLLECTIONS</small></a>
+    <a class="logo vz-brand-logo" href="#" aria-label="Velzo Collections home"><img src="assets/velzo-eagle-mark.png" alt="" class="vz-brand-eagle" width="42" height="42"><span class="vz-brand-wordmark">VELZO<small>COLLECTIONS</small></span></a>
     <nav class="nav" aria-label="Main navigation">
       <a class="vz-header-icon vz-search-shortcut" href="#shop" aria-label="Browse products" title="Shop">⌕</a>
       <button class="vz-wishlist-nav vz-header-icon" type="button" onclick="vzOpenWishlist()" aria-label="Open wishlist" title="Wishlist">♡<span class="vz-count" id="vz-wishlist-count">0</span></button>
@@ -1942,9 +1959,9 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
     <!-- VELZO PRODUCT ORBIT HERO: dynamic live-catalogue showcase -->
     <section class="vz-orbit-shell" id="vz-product-orbit" aria-label="Explore featured VELZO products in an interactive orbit">
       <div class="vz-orbit-copy">
-        <span class="vz-orbit-overline">VELZO COLLECTIONS / THE NEW ROTATION</span>
-        <h1>YOUR STYLE.<br><em>IN MOTION.</em></h1>
-        <p>Explore the collection in 360°. Drag to rotate, then choose a piece to see its full details.</p>
+        <span class="vz-orbit-overline">VELZO COLLECTIONS / BUILT DIFFERENT.</span>
+        <h1>BUILT<br><em>DIFFERENT.</em></h1>
+        <p>Distinctive streetwear. Made to move with your own style. Explore the collection and find your next fit.</p>
         <div class="vz-orbit-actions">
           <button id="vz-orbit-discover" type="button" class="vz-orbit-primary">VIEW THIS PRODUCT <span aria-hidden="true">↗</span></button>
           <a class="vz-orbit-secondary" href="#shop">SHOP ALL PRODUCTS ↗</a>
