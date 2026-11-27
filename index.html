@@ -1802,9 +1802,9 @@ body main>.hero.vz-sale-carousel .vz-sale-cta{color:#1d1d1d!important;background
   </style>
 <style id="vz-product-orbit-style">
 /* Hero is isolated from historic banner styles. The old carousel remains a fallback. */
-.vz-orbit-shell{display:none;position:relative;isolation:isolate;min-height:clamp(490px,45vw,670px);overflow:hidden;background:radial-gradient(ellipse at 75% 45%,#2f3433 0%,#171b1b 43%,#101313 75%);color:#f6f3ea;font-family:Arial,Helvetica,sans-serif}
+.vz-orbit-shell{display:grid;grid-template-columns:minmax(300px,42%) minmax(0,58%);grid-template-rows:1fr auto;position:relative;isolation:isolate;min-height:clamp(490px,45vw,670px);overflow:hidden;background:radial-gradient(ellipse at 75% 45%,#2f3433 0%,#171b1b 43%,#101313 75%);color:#f6f3ea;font-family:Arial,Helvetica,sans-serif}
 body.vz-orbit-ready .vz-orbit-shell{display:grid;grid-template-columns:minmax(300px,42%) minmax(0,58%);grid-template-rows:1fr auto}
-body.vz-orbit-ready main>.hero.vz-sale-carousel{display:none!important}
+/* Keep the existing promotional slideshow directly below the orbit hero. */
 .vz-orbit-copy{position:relative;z-index:6;align-self:center;padding:clamp(26px,5vw,90px);padding-right:12px;pointer-events:none}
 .vz-orbit-overline{font-size:11px;font-weight:700;letter-spacing:.28em;color:#d6b774}
 .vz-orbit-copy h1{font-weight:850;letter-spacing:-.055em;font-size:clamp(43px,5.1vw,84px);line-height:.98;margin:22px 0 24px;color:#fff}
@@ -1915,69 +1915,9 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
 @media(prefers-reduced-motion:reduce){.vz-orbit-card,.vz-orbit-shell *{animation:none!important;transition:none!important}}
 </style>
 
-
-<style id="velzo-luxury-experience">
-/* VELZO logo reveal preloader */
-#velzo-luxury-preloader{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#090909;color:#f5e7c4;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
-#velzo-luxury-preloader.vz-preloader-hidden{opacity:0;visibility:hidden;pointer-events:none}
-.vz-loader-inner{text-align:center;padding:24px;animation:vzLogoReveal 1.1s cubic-bezier(.2,.75,.25,1) both}
-.vz-loader-wordmark{font-family:Georgia,'Times New Roman',serif;font-size:clamp(48px,10vw,76px);font-weight:700;letter-spacing:.16em;color:#f4e6c4;text-shadow:0 0 28px #c8a45a44}
-.vz-loader-wordmark span{color:#c9a45c}
-.vz-loader-caption{margin-top:12px;font-size:10px;letter-spacing:.42em;color:#bca77e}
-.vz-loader-line{height:2px;width:min(210px,58vw);margin:28px auto 0;background:#ffffff20;overflow:hidden}
-.vz-loader-line:after{content:"";display:block;height:100%;width:38%;background:linear-gradient(90deg,transparent,#e0c17c,transparent);animation:vzLoaderSweep 1.35s ease-in-out infinite}
-@keyframes vzLoaderSweep{from{transform:translateX(-110%)}to{transform:translateX(300%)}}
-@keyframes vzLogoReveal{from{opacity:0;transform:translateY(16px);letter-spacing:.28em}to{opacity:1;transform:translateY(0);letter-spacing:normal}}
-/* Luxury order confirmation */
-.vz-order-success{position:relative;isolation:isolate;overflow:hidden;margin:-2px;padding:clamp(20px,5vw,34px);border-radius:18px;background:radial-gradient(circle at 50% 0%,#3b3020 0,#171512 42%,#090909 100%);color:#f7f0e2;text-align:center;border:1px solid #b9944f66;box-shadow:0 18px 55px #0003}
-.vz-order-success:before,.vz-order-success:after{content:"✦";position:absolute;color:#d7b66d;opacity:.5;font-size:22px;animation:vzSparkle 2.8s ease-in-out infinite;z-index:-1}
-.vz-order-success:before{top:22px;left:11%}.vz-order-success:after{right:12%;top:55px;animation-delay:1s}
-@keyframes vzSparkle{0%,100%{transform:scale(.65) rotate(0);opacity:.25}50%{transform:scale(1.2) rotate(35deg);opacity:.85}}
-.vz-success-check{width:76px;height:76px;margin:0 auto 18px;border:1px solid #d8b76e;border-radius:50%;display:grid;place-items:center;background:#d4b16a14;box-shadow:0 0 0 8px #d4b16a0d,0 0 32px #d4b16a33;animation:vzCheckPop .65s cubic-bezier(.2,1.5,.5,1) both}
-.vz-success-check svg{width:38px;height:38px;stroke:#e5c77f;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:55;stroke-dashoffset:55;animation:vzDrawCheck .65s .25s ease forwards}
-@keyframes vzCheckPop{from{transform:scale(.35);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes vzDrawCheck{to{stroke-dashoffset:0}}
-.vz-order-eyebrow{font-size:10px;letter-spacing:.34em;color:#c8a967;margin:0 0 9px;text-transform:uppercase}
-.vz-order-success h2{color:#f7e8c5!important;font-family:Georgia,'Times New Roman',serif;font-size:clamp(25px,6vw,34px);font-weight:500;letter-spacing:.02em;margin:0 0 10px}
-.vz-order-success p{color:#e5dccb!important;line-height:1.6}
-.vz-order-meta{margin:22px 0;padding:16px;border:1px solid #c7a45b55;border-radius:12px;background:#ffffff08;text-align:left}
-.vz-order-meta div{display:flex;justify-content:space-between;gap:14px;padding:7px 0;color:#e9dfcc;font-size:13px}
-.vz-order-meta strong{color:#f3d995;text-align:right;overflow-wrap:anywhere}
-.vz-tracking{margin:24px 0 20px;text-align:left}
-.vz-tracking h3{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#d8b66d;margin:0 0 18px}
-.vz-track-step{display:grid;grid-template-columns:22px 1fr;gap:12px;position:relative;min-height:48px}
-.vz-track-step:not(:last-child):before{content:"";position:absolute;left:9px;top:20px;bottom:-2px;width:1px;background:#78643f}
-.vz-track-dot{width:19px;height:19px;border:1px solid #8e784c;border-radius:50%;background:#171512;z-index:1}
-.vz-track-step.is-current .vz-track-dot{background:#d4b16a;border:4px solid #5d4826;box-shadow:0 0 0 2px #d4b16a55}
-.vz-track-copy strong{display:block;color:#f0e5d0;font-size:13px;font-weight:600}
-.vz-track-copy small{display:block;color:#b8ad9a;font-size:11px;line-height:1.5;margin:3px 0 13px}
-.vz-order-success .full-button{border-radius:9px!important;letter-spacing:.08em;font-weight:700}
-.vz-order-success .vz-gold-button{background:linear-gradient(135deg,#f0d99e,#b58b43)!important;color:#17120a!important;border:0!important}
-.vz-order-success .vz-outline-button{background:transparent!important;color:#f0d99e!important;border:1px solid #b9944f!important}
-@media(prefers-reduced-motion:reduce){#velzo-luxury-preloader,.vz-loader-inner,.vz-loader-line:after,.vz-success-check,.vz-success-check svg,.vz-order-success:before,.vz-order-success:after{animation:none!important;transition:none!important}.vz-success-check svg{stroke-dashoffset:0}}
-</style>
-
 </head>
 
-<body>
-<div id="velzo-luxury-preloader" role="status" aria-label="Loading VELZO Collections">
-  <div class="vz-loader-inner">
-    <div class="vz-loader-wordmark">VEL<span>ZO</span></div>
-    <div class="vz-loader-caption">COLLECTIONS</div>
-    <div class="vz-loader-line" aria-hidden="true"></div>
-  </div>
-</div>
-<script>
-(function(){
-  var loader=document.getElementById('velzo-luxury-preloader');
-  if(!loader)return;
-  var hide=function(){loader.classList.add('vz-preloader-hidden');window.setTimeout(function(){if(loader.parentNode)loader.parentNode.removeChild(loader);},750);};
-  if(document.readyState==='complete')window.setTimeout(hide,450);
-  else window.addEventListener('load',function(){window.setTimeout(hide,450);},{once:true});
-  window.setTimeout(hide,9000);
-})();
-</script>
-
+<body class="vz-orbit-ready">
   <div class="announcement">VELZO COLLECTIONS · YOUR STREET. YOUR STYLE. <a class="velzo-page-announcement" href="https://www.instagram.com/velzocollections/" target="_blank" rel="noopener noreferrer">◎</a></div>
 
   <header class="header vz-icon-header">
@@ -2069,7 +2009,46 @@ html body main section.hero.vz-sale-carousel .vz-sale-shade{background:linear-gr
 
     <!-- Priority trio removed: products remain available in the main shop grid. -->
 
-    <section class="section" id="shop">
+    <!-- VELZO IN-PAGE BARGAIN STUDIO -->
+<section id="vz-deal-studio" aria-labelledby="vz-deal-title">
+  <div class="vz-deal-inner">
+    <div class="vz-deal-copy">
+      <span class="vz-deal-kicker">THE VELZO DEAL STUDIO</span>
+      <h2 id="vz-deal-title">YOUR FIT.<br><em>YOUR DEAL.</em></h2>
+      <p>Choose any two pieces from the collection and negotiate your combo price with the VELZO bargain assistant — right here on the store.</p>
+      <button type="button" class="vz-deal-reveal" id="vz-deal-reveal">UNLOCK YOUR DEAL <span aria-hidden="true">↗</span></button>
+      <small>No WhatsApp redirect. Choose your products and sizes, then chat with the bargain assistant on this page.</small>
+    </div>
+    <div class="vz-deal-panel" id="vz-deal-panel" hidden>
+      <div class="vz-deal-panel-head"><span>01 / BUILD YOUR DEAL</span><span>VELZO BARGAIN</span></div>
+      <div id="vz-deal-selection-step">
+      <label for="vz-deal-product-one">PRODUCT ONE</label>
+      <select id="vz-deal-product-one"><option value="">Loading collection…</option></select>
+      <label for="vz-deal-size-one">SIZE — PRODUCT ONE</label>
+      <select id="vz-deal-size-one"><option value="">Select product first</option></select>
+      <label for="vz-deal-product-two">PRODUCT TWO</label>
+      <select id="vz-deal-product-two"><option value="">Choose your second product</option></select>
+      <label for="vz-deal-size-two">SIZE — PRODUCT TWO</label>
+      <select id="vz-deal-size-two"><option value="">Select product first</option></select>
+      <div class="vz-deal-summary" aria-live="polite"><span>Current combo total</span><strong id="vz-deal-total">Choose two products</strong></div>
+      <button type="button" id="vz-deal-continue" class="vz-deal-primary vz-deal-continue" disabled>CONTINUE TO BARGAIN ASSISTANT ↗</button>
+      <p class="vz-deal-note" id="vz-deal-message">Choose two different products and their sizes, then continue to the assistant.</p>
+      </div>
+      <div id="vz-deal-assistant" class="vz-deal-assistant" hidden>
+        <div class="vz-assistant-head"><div><span>02 / YOUR PERSONAL DEAL CHAT</span><h3>VELZO <em>ASSISTANT</em></h3></div><button type="button" id="vz-deal-back" class="vz-deal-back">← EDIT PRODUCTS</button></div>
+        <div class="vz-selected-combo" id="vz-selected-combo" aria-live="polite"></div>
+        <div class="vz-chat" id="vz-deal-chat" aria-live="polite">
+          <div class="vz-chat-bubble vz-chat-bot">Welcome to the VELZO deal desk. I have your two selected products and sizes. What price would you like to offer?</div>
+        </div>
+        <label for="vz-deal-message-input">YOUR BARGAIN MESSAGE</label>
+        <div class="vz-chat-compose"><input id="vz-deal-message-input" type="text" maxlength="180" placeholder="Example: Can I get both for ₹999?"><button type="button" id="vz-deal-send" class="vz-deal-primary">SEND ↗</button></div>
+        <button type="button" id="vz-deal-buy-now" class="vz-deal-primary vz-deal-buy-now" hidden>BUY NOW</button>
+        <p class="vz-deal-note" id="vz-deal-accepted-note">The assistant can negotiate up to 10% off the selected product subtotal. Your accepted price will be verified again at checkout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="shop">
       <div class="velzo-shop-kicker"><span class="velzo-shop-kicker-line"></span> THE COMPLETE COLLECTION <span class="velzo-shop-kicker-number">/ VELZO 2026</span></div>
       <div class="section-heading">
         <div>
@@ -2435,6 +2414,9 @@ function discountMarkup(p) {
 let appliedCoupon = "";
 let quotedTotal = null;
 let displayedPaymentTotal = null;
+// Set only by the two-product bargain assistant after an offer is accepted.
+window.velzoBargainDeal = null;
+window.velzoBargainOriginalExpected = null;
 // Delivery is charged once per unique clothing variant, not per quantity.
 // A combo contains TWO garments: one T-shirt and one pair of sweatpants.
 function velzoDeliveryUnits(items = cart) {
@@ -3016,7 +2998,15 @@ async function showCheckout() {
     return;
   }
   const deliveryCharge = velzoDeliveryTotal();
-  const checkoutAmount = Math.round((Number(quote.total) + deliveryCharge) * 100) / 100;
+  const originalCheckoutAmount = Math.round((Number(quote.total) + deliveryCharge) * 100) / 100;
+  const bargain = window.velzoBargainDeal;
+  const bargainDiscount = bargain ? Number(bargain.discount || 0) : 0;
+  if (bargain && (!Number.isFinite(bargainDiscount) || bargainDiscount < 0 || bargainDiscount > Math.round(cartTotal() * 0.10 * 100) / 100)) {
+    target.innerHTML = '<h2>Checkout unavailable</h2><p>The bargain amount could not be verified. Please return to the deal assistant.</p><button onclick="renderCart()">BACK TO BAG</button>';
+    return;
+  }
+  const checkoutAmount = Math.round((originalCheckoutAmount - bargainDiscount) * 100) / 100;
+  window.velzoBargainOriginalExpected = originalCheckoutAmount;
   displayedPaymentTotal = checkoutAmount;
   const upiAvailable = PAYMENT_SETTINGS.upi_enabled && !!PAYMENT_SETTINGS.upi_id && Number.isFinite(checkoutAmount) && checkoutAmount > 0;
   // Build a fresh UPI payment intent for this basket amount. Static QR images cannot change amount.
@@ -3029,11 +3019,11 @@ async function showCheckout() {
     <h2 id="cart-title">Delivery details</h2>
     <p style="display:block!important;visibility:visible!important;opacity:1!important;padding:12px!important;background:#ffffff!important;color:#17251b!important;border:2px solid #7d9e83!important;font-size:15px!important;font-weight:700!important"><strong style="color:#17251b!important">🚚 ${escapeHTML(deliveryEstimateText())}</strong><br><small style="color:#344b38!important">Estimate only. Courier delays may affect arrival.</small></p>
     <p class="subtext">Your order will be saved before you notify the store.</p>
-    <div style="margin:12px 0;padding:12px;border:1px solid #aaa">
+    ${bargain ? `<div style="margin:12px 0;padding:12px;border:1px solid #aaa"><strong>VELZO BARGAIN APPLIED</strong><p class="subtext">Original products total: ${money(quote.total)}<br>Accepted bargain discount: −${money(bargainDiscount)}</p></div>` : `<div style="margin:12px 0;padding:12px;border:1px solid #aaa">
       <label for="checkout-coupon">Coupon code (optional)</label>
       <div style="display:flex;gap:8px"><input id="checkout-coupon" value="${escapeHTML(appliedCoupon)}" placeholder="Enter coupon code" style="min-width:0;flex:1"><button type="button" onclick="applyCheckoutCoupon()">APPLY</button></div>
       <p id="checkout-coupon-message" class="subtext">${appliedCoupon ? `Coupon ${escapeHTML(appliedCoupon)} applied.` : "Enter a code and select Apply before paying."}</p>
-    </div>
+    </div>`}
     <form class="checkout-fields" onsubmit="submitOrder(event)">
       <input id="customer-name" autocomplete="name"
         placeholder="Full name" maxlength="100" required>
@@ -3051,7 +3041,7 @@ async function showCheckout() {
       <input id="customer-pincode" inputmode="numeric" autocomplete="postal-code" placeholder="PIN code" pattern="[0-9]{6}" maxlength="6" required>
       <div style="display:grid;gap:9px;margin-top:8px"><strong>Payment method</strong>${paymentOptions || '<p class="subtext">Contact the store to arrange payment.</p>'}</div>
       ${VELZO_FREE_SHIPPING_ENABLED ? '<p class="velzo-free-shipping" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 FREE SHIPPING · Delivery ₹0</strong></p>' : `<p class="velzo-shipping-notice" style="background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important"><strong style="color:#111!important;-webkit-text-fill-color:#111!important">🚚 Delivery: ${money(VELZO_DELIVERY_CHARGE)} × ${velzoDeliveryUnits()} distinct product/size/colour combination(s) = ${money(deliveryCharge)}</strong></p>`}
-      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(quote.total)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span id="velzo-final-payable">Final payable total: ${money(checkoutAmount + (!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0))}</span></div><div id="velzo-cod-fee-line" style="color:#111!important;font-weight:700">Cash on Delivery fee: ${money(!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0)}</div></div>
+      <div class="velzo-checkout-total" style="background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;padding:16px!important;border:2px solid #c5a16b!important;border-radius:10px!important;line-height:1.9!important;font-size:16px!important"><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Products after discounts: ${money(Number(quote.total) - bargainDiscount)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-weight:700!important">Delivery: ${money(deliveryCharge)}</div><div style="color:#111111!important;-webkit-text-fill-color:#111111!important;font-size:18px!important;font-weight:900!important;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span id="velzo-final-payable">Final payable total: ${money(checkoutAmount + (!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0))}</span></div><div id="velzo-cod-fee-line" style="color:#111!important;font-weight:700">Cash on Delivery fee: ${money(!upiAvailable && PAYMENT_SETTINGS.cod_enabled ? 20 : 0)}</div></div>
       
       <button class="gold-button full-button" type="submit">
         PLACE ORDER
@@ -3144,7 +3134,7 @@ async function submitOrder(event) {
   const button = event.submitter;
   if (button) {
     button.disabled = true;
-    button.textContent = "SECURELY PLACING ORDER…";
+    button.textContent = "SAVING ORDER…";
   }
 
   const name = document.getElementById("customer-name").value.trim();
@@ -3178,7 +3168,19 @@ async function submitOrder(event) {
       }
     }
     const freshQuote = await quoteOrder();
-    if (Math.abs((Number(freshQuote.total) + velzoDeliveryTotal() + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    const bargain = window.velzoBargainDeal;
+    const freshOriginalExpected = Math.round((Number(freshQuote.total) + velzoDeliveryTotal()) * 100) / 100;
+    if (Math.abs((freshOriginalExpected - Number(bargain?.discount || 0) + velzoCodFee()) - checkoutAmountForPayment()) > .009) throw new Error("Your order amount changed. Please reopen checkout and pay the updated amount.");
+    if (bargain) {
+      const ids = cart.map(item => String(item.id)).sort();
+      const expectedIds = [String(bargain.productOne), String(bargain.productTwo)].sort();
+      if (cart.length !== 2 || ids[0] !== expectedIds[0] || ids[1] !== expectedIds[1] || cart.some(item => Number(item.qty) !== 1)) {
+        throw new Error("The bargain basket changed. Please return to the assistant and confirm your two products again.");
+      }
+      if (Number(bargain.discount) < 0 || Number(bargain.discount) > Math.round(Number(freshQuote.total) * 0.10 * 100) / 100) {
+        throw new Error("The accepted bargain discount is outside the allowed limit.");
+      }
+    }
     const orderItems = cart.map(item => ({
       id: item.id,
       qty: item.qty,
@@ -3193,7 +3195,8 @@ async function submitOrder(event) {
     // The database validates the products and calculates the actual total.
     // Save the chosen method atomically with the order on the server.
     // Requires VELZO_storefront_payment_method_setup.sql in Supabase.
-    const { data, error } = await db.rpc("place_order_with_shipping_stock", {
+    const rpcName = bargain ? "place_order_with_bargain" : "place_order_with_shipping_stock";
+    const rpcArgs = {
       p_customer_name: name,
       p_customer_phone: phone,
       p_customer_email: email,
@@ -3201,8 +3204,11 @@ async function submitOrder(event) {
       p_items: orderItems,
       p_payment_method: paymentMethod,
       p_coupon_code: appliedCoupon || null,
-      p_expected_total: checkoutAmountForPayment()
-    });
+      // The bargain SQL first validates the undiscounted total, then applies the bargain discount.
+      p_expected_total: bargain ? Math.round((freshOriginalExpected + velzoCodFee()) * 100) / 100 : checkoutAmountForPayment()
+    };
+    if (bargain) rpcArgs.p_bargain_discount = Number(bargain.discount);
+    const { data, error } = await db.rpc(rpcName, rpcArgs);
 
     if (error) throw error;
 
@@ -3253,33 +3259,33 @@ async function submitOrder(event) {
 
     cart = [];
     saveCart();
+    window.velzoBargainDeal = null;
+    window.velzoBargainOriginalExpected = null;
 
     const isUpiPayment = /upi|phonepe/i.test(String(paymentMethod));
     window.velzoPendingPaymentOrderId = String(order.order_id);
     window.velzoPendingPaymentAmount = Number(order.total || cartTotal());
     document.getElementById("cart-content").innerHTML = `
-      <section class="vz-order-success" aria-live="polite">
-        <div class="vz-success-check" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M10 25l9 9L38 14"/></svg></div>
-        <p class="vz-order-eyebrow">VELZO COLLECTIONS · ORDER CONFIRMED</p>
-        <h2 id="cart-title">A great choice. It's yours.</h2>
-        <p>Your order has been successfully saved. Thank you for shopping with VELZO.</p>
-        <div class="vz-order-meta">
-          <div><span>Order ID</span><strong>${escapeHTML(order.order_id)}</strong></div>
-          <div><span>Order total</span><strong>${money(order.total)}</strong></div>
-          <div><span>Payment method</span><strong>${escapeHTML(paymentMethod)}</strong></div>
-        </div>
-        <div class="vz-tracking">
-          <h3>Order journey</h3>
-          <div class="vz-track-step is-current"><span class="vz-track-dot"></span><div class="vz-track-copy"><strong>Order confirmed</strong><small>Your order has been received by VELZO</small></div></div>
-          <div class="vz-track-step"><span class="vz-track-dot"></span><div class="vz-track-copy"><strong>Processing</strong><small>We will update this stage when your order is prepared</small></div></div>
-          <div class="vz-track-step"><span class="vz-track-dot"></span><div class="vz-track-copy"><strong>Shipped</strong><small>Courier and tracking details will be shared when available</small></div></div>
-          <div class="vz-track-step"><span class="vz-track-dot"></span><div class="vz-track-copy"><strong>Delivered</strong><small>Enjoy your VELZO order</small></div></div>
-        </div>
-        ${isUpiPayment ? `<p class="subtext">${escapeHTML(utrSaveMessage || "The store must verify payment receipt manually.")}</p>` : ""}
-        <p class="subtext">${validWhatsApp ? "You can notify the store about your order through WhatsApp." : "Your order is saved. The store's WhatsApp number has not been configured."}</p>
-        ${validWhatsApp ? `<a class="black-button full-button vz-gold-button" style="display:block;text-align:center;text-decoration:none;padding:14px" href="${escapeHTML(waUrl)}" target="_blank" rel="noopener noreferrer">NOTIFY STORE ON WHATSAPP</a>` : ""}
-        <button class="full-button vz-outline-button" style="margin-top:12px;padding:14px" onclick="closeCart()">CONTINUE SHOPPING</button>
-      </section>`;
+      <h2 id="cart-title">Order placed successfully</h2>
+      <p>Your order has been saved.</p>
+      <p><strong>Order ID:</strong><br>${escapeHTML(order.order_id)}</p>
+      <p><strong>Total:</strong> ${money(order.total)}</p>
+      <p><strong>Payment method:</strong> ${escapeHTML(paymentMethod)}</p>
+      ${isUpiPayment ? `<p class="subtext">${escapeHTML(utrSaveMessage || "The store must verify payment receipt manually.")}</p>` : ""}
+      <p class="subtext">
+        ${validWhatsApp
+          ? "You can also notify the store through WhatsApp."
+          : "Your order is saved. The store's WhatsApp number has not been configured."}
+      </p>
+      ${validWhatsApp ? `
+        <a class="black-button full-button"
+          style="display:block;text-align:center;text-decoration:none"
+          href="${escapeHTML(waUrl)}"
+          target="_blank" rel="noopener noreferrer">
+          NOTIFY STORE ON WHATSAPP
+        </a>` : ""}
+      <button class="full-button" style="margin-top:12px"
+        onclick="closeCart()">CONTINUE SHOPPING</button>`;
 
     // Refresh prices and catalogue in case stock or products changed.
     await loadProducts();
@@ -3474,13 +3480,8 @@ body { background:#fff; color:#151515; }
         <input id="velzo-account-name" type="text" autocomplete="name" placeholder="Full name" maxlength="100">
         <input id="velzo-account-email" type="email" autocomplete="email" placeholder="Email address" required>
         <input id="velzo-account-password" type="password" autocomplete="new-password" placeholder="Password (at least 6 characters)" minlength="6" required>
+        <input id="velzo-account-otp" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit email verification code" maxlength="6" pattern="[0-9]{6}" style="display:none">
         <button id="velzo-account-submit" type="submit">CREATE ACCOUNT</button>
-      </form>
-      <form id="velzo-account-otp-form" style="display:none" autocomplete="one-time-code">
-        <p class="subtext">Enter the 6-digit verification code sent to your email.</p>
-        <input id="velzo-account-otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit email code" aria-label="6-digit email verification code" required>
-        <button id="velzo-account-verify" type="submit" style="width:100%;padding:14px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900;margin:6px 0">VERIFY EMAIL</button>
-        <button type="button" onclick="velzoResendSignupOtp()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515">Resend code</button>
       </form>
       <div class="velzo-account-actions" id="velzo-auth-actions">
         <button type="button" onclick="velzoSetAccountMode('register')">Register</button>
@@ -3532,11 +3533,13 @@ body { background:#fff; color:#151515; }
 (function(){
   let mode = 'register';
   let currentUser = null;
+  let pendingSignupEmail = '';
   const $ = id => document.getElementById(id);
   const overlay = $('velzo-account-overlay');
   const msg = $('velzo-account-message');
   const emailInput = $('velzo-account-email');
   const passwordInput = $('velzo-account-password');
+  const otpInput = $('velzo-account-otp');
   const nameInput = $('velzo-account-name');
   const submit = $('velzo-account-submit');
   const title = $('velzo-account-title');
@@ -3552,7 +3555,7 @@ body { background:#fff; color:#151515; }
     accountButton.setAttribute('aria-label', signedIn ? 'My account' : 'Login or register');
     accountButton.title = signedIn ? 'My Account' : 'Login / Register';
     title.textContent = signedIn ? 'My Account' : (mode === 'login' ? 'Welcome back' : 'Create your Velzo account');
-    intro.textContent = signedIn ? 'Manage your orders and saved delivery addresses.' : (mode === 'login' ? 'Sign in using your registered email and password.' : 'Register with your name, email and password.');
+    intro.textContent = signedIn ? 'Manage your orders and saved delivery addresses.' : (mode === 'login' ? 'Sign in using your registered email and password.' : 'Create an account with your name, email and password, then verify your email with a code.');
     $('velzo-signed-in-email').textContent = signedIn ? 'Logged in as ' + (currentUser.email || 'your account') : '';
     if (signedIn) velzoShowAccountSection('orders');
   }
@@ -3577,17 +3580,19 @@ body { background:#fff; color:#151515; }
   window.velzoCloseAccount = function(){overlay.style.display='none';};
   window.velzoSetAccountMode = function(nextMode){
     mode = nextMode === 'login' ? 'login' : 'register';
+    otpInput.style.display = 'none';
+    otpInput.required = false;
+    emailInput.disabled = false;
+    passwordInput.style.display = 'block';
+    passwordInput.required = true;
     title.textContent = mode === 'register' ? 'Create your Velzo account' : 'Welcome back';
-    intro.textContent = mode === 'register' ? 'Register with your name, email and password.' : 'Sign in using your registered email and password.';
+    intro.textContent = mode === 'register' ? 'Create your account with email and password. We will send a verification code to your email.' : 'Sign in using your registered email and password.';
     nameInput.style.display = mode === 'register' ? 'block' : 'none';
     nameInput.required = mode === 'register';
     passwordInput.style.display = 'block';
     passwordInput.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
     submit.style.display = 'block';
     submit.textContent = mode === 'register' ? 'CREATE ACCOUNT' : 'LOGIN';
-    $('velzo-account-otp-form').style.display = 'none';
-    $('velzo-account-form').style.display = 'block';
-    $('velzo-auth-actions').style.display = 'flex';
     $('velzo-auth-view').style.display = 'block';
     $('velzo-customer-view').style.display = 'none';
     msg.textContent = '';
@@ -3759,34 +3764,60 @@ body { background:#fff; color:#151515; }
     e.preventDefault();
     submit.disabled = true;
     submit.style.opacity = '.65';
-    msg.textContent = mode === 'register' ? 'Creating account and sending verification code…' : 'Signing in…';
     try {
       let result;
-      if(mode === 'register'){
+      if(mode === 'verify') {
+        msg.textContent = 'Verifying your email code…';
+        result = await db.auth.verifyOtp({ email: pendingSignupEmail, token: otpInput.value.trim(), type: 'signup' });
+        if(result.error) throw result.error;
+        const {data:{session}} = await db.auth.getSession();
+        if(session) {
+          msg.textContent = 'Email verified successfully.';
+          setSignedInView(session);
+          await velzoLoadOrders();
+        } else {
+          msg.textContent = 'Email verified. Please log in with your email and password.';
+          velzoSetAccountMode('login');
+        }
+      } else if(mode === 'register') {
+        msg.textContent = 'Creating account and sending verification code…';
         result = await db.auth.signUp({
           email: emailInput.value.trim(),
           password: passwordInput.value,
           options: { data: {full_name: nameInput.value.trim()} }
         });
         if(result.error) throw result.error;
-        if(!result.data.session) {
-          $('velzo-account-form').style.display = 'none';
-          $('velzo-auth-actions').style.display = 'none';
-          $('velzo-account-otp-form').style.display = 'block';
-          $('velzo-account-otp').value = '';
-          msg.textContent = 'A 6-digit verification code has been sent to ' + emailInput.value.trim() + '. Enter it below to activate your account.';
-          $('velzo-account-otp').focus();
-          return;
+        if(result.data.session) {
+          msg.textContent = 'Account created successfully.';
+          setSignedInView(result.data.session);
+          await velzoLoadOrders();
+        } else {
+          pendingSignupEmail = emailInput.value.trim();
+          mode = 'verify';
+          emailInput.disabled = true;
+          nameInput.style.display = 'none';
+          nameInput.required = false; // Hidden name field must not block OTP form submission.
+          passwordInput.style.display = 'none';
+          passwordInput.required = false;
+          otpInput.style.display = 'block';
+          otpInput.required = true;
+          otpInput.value = '';
+          title.textContent = 'Verify your email';
+          intro.textContent = 'Enter the 6-digit verification code sent to ' + pendingSignupEmail + '.';
+          submit.textContent = 'VERIFY EMAIL';
+          msg.textContent = 'Verification code sent. Check your inbox and spam folder.';
+          otpInput.focus();
         }
       } else {
+        msg.textContent = 'Signing in…';
         result = await db.auth.signInWithPassword({email:emailInput.value.trim(),password:passwordInput.value});
         if(result.error) throw result.error;
-      }
-      msg.textContent = mode === 'register' ? 'Account created successfully.' : 'Login successful.';
-      const {data:{session}} = await db.auth.getSession();
-      if(session) {
-        setSignedInView(session);
-        await velzoLoadOrders();
+        msg.textContent = 'Login successful.';
+        const {data:{session}} = await db.auth.getSession();
+        if(session) {
+          setSignedInView(session);
+          await velzoLoadOrders();
+        }
       }
     } catch(err) {
       msg.textContent = err.message || 'Something went wrong. Please try again.';
@@ -3795,54 +3826,6 @@ body { background:#fff; color:#151515; }
       submit.style.opacity = '1';
     }
   });
-
-  $('velzo-account-otp-form').addEventListener('submit', async function(e){
-    e.preventDefault();
-    const token = $('velzo-account-otp').value.trim();
-    if(!/^\\d{6}$/.test(token)) {
-      msg.textContent = 'Enter the 6-digit code from your email.';
-      return;
-    }
-    const verifyButton = $('velzo-account-verify');
-    verifyButton.disabled = true;
-    msg.textContent = 'Verifying your email…';
-    try {
-      const {data,error} = await db.auth.verifyOtp({
-        email: emailInput.value.trim(),
-        token,
-        type: 'signup'
-      });
-      if(error) throw error;
-      msg.textContent = 'Email verified. Your account is ready.';
-      if(data.session) {
-        setSignedInView(data.session);
-        await velzoLoadOrders();
-      } else {
-        $('velzo-account-otp-form').style.display = 'none';
-        $('velzo-account-form').style.display = 'block';
-        $('velzo-auth-actions').style.display = 'flex';
-        velzoSetAccountMode('login');
-        msg.textContent = 'Email verified. Please log in with your email and password.';
-      }
-    } catch(err) {
-      msg.textContent = err.message || 'Could not verify the code. Check it and try again.';
-    } finally {
-      verifyButton.disabled = false;
-    }
-  });
-
-  window.velzoResendSignupOtp = async function(){
-    const email = emailInput.value.trim();
-    if(!email){msg.textContent='Enter your email address first.';return;}
-    msg.textContent='Sending a new verification code…';
-    try {
-      const {error} = await db.auth.resend({type:'signup',email});
-      if(error) throw error;
-      msg.textContent='A new 6-digit code has been sent. Check your inbox and spam folder.';
-    } catch(err) {
-      msg.textContent=err.message || 'Could not resend the code.';
-    }
-  };
 
   window.velzoForgotPassword = async function(){
     const email = emailInput.value.trim();
@@ -5868,29 +5851,253 @@ html body main section.hero.vz-sale-carousel .vz-sale-arrow,html body main secti
 </style>
 
 
-<style id="velzo-order-success-contrast-fix">
-/* Keep the luxury confirmation readable against every legacy cart/modal theme. */
-#cart-overlay #cart-content .vz-order-success,
-#cart-overlay #cart-content .vz-order-success *{box-sizing:border-box!important}
-#cart-overlay #cart-content .vz-order-success{background:radial-gradient(ellipse at 50% 0%,#4b3a20 0%,#211b12 42%,#101010 100%)!important;color:#fff8e9!important;border:1px solid #c9a45c!important}
-#cart-overlay #cart-content .vz-order-success .vz-order-eyebrow,
-#cart-overlay #cart-content .vz-order-success .vz-tracking h3{color:#f0cf83!important;-webkit-text-fill-color:#f0cf83!important}
-#cart-overlay #cart-content .vz-order-success h2{color:#fff1cf!important;-webkit-text-fill-color:#fff1cf!important;text-shadow:0 2px 12px #0009!important}
-#cart-overlay #cart-content .vz-order-success p,
-#cart-overlay #cart-content .vz-order-success .subtext{color:#f0e7d7!important;-webkit-text-fill-color:#f0e7d7!important}
-#cart-overlay #cart-content .vz-order-success .vz-order-meta{background:#ffffff12!important;border-color:#d8b76d88!important}
-#cart-overlay #cart-content .vz-order-success .vz-order-meta div,
-#cart-overlay #cart-content .vz-order-success .vz-order-meta span{color:#f5ead6!important;-webkit-text-fill-color:#f5ead6!important}
-#cart-overlay #cart-content .vz-order-success .vz-order-meta strong{color:#ffe09a!important;-webkit-text-fill-color:#ffe09a!important}
-#cart-overlay #cart-content .vz-order-success .vz-track-copy strong{color:#fff0d0!important;-webkit-text-fill-color:#fff0d0!important}
-#cart-overlay #cart-content .vz-order-success .vz-track-copy small{color:#d9cdb8!important;-webkit-text-fill-color:#d9cdb8!important}
-#cart-overlay #cart-content .vz-order-success .vz-track-step:not(:last-child):before{background:#b99a5b!important}
-#cart-overlay #cart-content .vz-order-success .vz-track-dot{border-color:#d1ae68!important}
-#cart-overlay #cart-content .vz-order-success .vz-outline-button{background:transparent!important;color:#ffe3a4!important;-webkit-text-fill-color:#ffe3a4!important;border:1px solid #d6b66f!important}
-#cart-overlay #cart-content .vz-order-success .vz-gold-button{background:linear-gradient(135deg,#f5dfa8,#c49a4e)!important;color:#17120a!important;-webkit-text-fill-color:#17120a!important}
-#cart-overlay #cart-content .vz-order-success button{min-height:48px!important}
-@media(max-width:560px){#cart-overlay #cart-content .vz-order-success{padding:22px 17px!important;border-radius:14px!important}#cart-overlay #cart-content .vz-order-meta div{font-size:12px!important;gap:8px!important}}
+<style id="vz-deal-studio-styles">
+#vz-deal-studio{padding:58px 6%;background:#111;color:#f7f7f4;position:relative;overflow:hidden}
+#vz-deal-studio:before{content:"";position:absolute;width:440px;height:440px;border:1px solid rgba(255,255,255,.08);border-radius:50%;right:-150px;top:-230px;pointer-events:none}
+#vz-deal-studio .vz-deal-inner{max-width:1250px;margin:auto;display:grid;grid-template-columns:1fr minmax(320px,.9fr);gap:48px;align-items:center;position:relative;z-index:1}
+#vz-deal-studio .vz-deal-kicker{font-size:10px;letter-spacing:3px;color:#bdbdb8;font-weight:700}
+#vz-deal-studio h2{font-size:clamp(42px,6vw,72px);line-height:.94;letter-spacing:-.07em;margin:18px 0;font-weight:900}
+#vz-deal-studio h2 em{font-style:normal;color:#c8ff3d}
+#vz-deal-studio .vz-deal-copy p{max-width:420px;color:#c6c6c1;line-height:1.8;font-size:14px}
+#vz-deal-studio .vz-deal-reveal,#vz-deal-studio .vz-deal-primary{border:1px solid #c8ff3d;background:#c8ff3d;color:#111;font-weight:900;letter-spacing:1px;padding:14px 18px;cursor:pointer}
+#vz-deal-studio .vz-deal-reveal{margin:12px 0 15px;min-width:205px}
+#vz-deal-studio .vz-deal-copy small{display:block;color:#a8a8a3;font-size:11px;line-height:1.6;max-width:360px}
+#vz-deal-studio .vz-deal-panel{background:#f7f7f4;color:#171717;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+#vz-deal-studio .vz-deal-panel[hidden]{display:none}
+#vz-deal-studio .vz-deal-panel-head{display:flex;justify-content:space-between;gap:10px;font-size:9px;letter-spacing:1.3px;font-weight:900;margin-bottom:18px;color:#666}
+#vz-deal-studio label{display:block;font-size:9px;letter-spacing:1.2px;font-weight:900;margin:13px 0 6px}
+#vz-deal-studio select,#vz-deal-studio input{width:100%;min-height:44px;border:1px solid #d8d8d2;background:white;color:#171717;padding:11px;font:inherit;border-radius:0}
+#vz-deal-studio select:disabled{opacity:.55}
+#vz-deal-studio .vz-deal-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin:16px 0;padding:13px 0;font-size:12px;color:#555}
+#vz-deal-studio .vz-deal-summary strong{font-size:18px;color:#111}
+#vz-deal-studio .vz-chat{height:190px;overflow:auto;background:#eee;padding:13px;display:flex;flex-direction:column;gap:10px;border:1px solid #e0e0dc}
+#vz-deal-studio .vz-chat-bubble{max-width:88%;padding:10px 12px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+#vz-deal-studio .vz-chat-bot{align-self:flex-start;background:#fff;border:1px solid #e1e1dc;color:#222}
+#vz-deal-studio .vz-chat-user{align-self:flex-end;background:#171717;color:#fff}
+#vz-deal-studio .vz-chat-compose{display:grid;grid-template-columns:1fr auto;gap:8px}
+#vz-deal-studio .vz-chat-compose input{min-width:0}
+#vz-deal-studio .vz-chat-compose .vz-deal-primary{padding:10px 15px;font-size:10px}
+#vz-deal-studio .vz-deal-note{font-size:10px;color:#777;line-height:1.6;margin:11px 0 0}
+#vz-deal-studio .vz-deal-continue{width:100%;min-height:48px;margin:4px 0 2px;background:#171717;color:#fff;border:1px solid #171717;letter-spacing:1px;font-weight:800;cursor:pointer}
+#vz-deal-studio .vz-deal-continue:disabled{opacity:.35;cursor:not-allowed}
+#vz-deal-studio .vz-deal-buy-now{display:block;width:100%;margin-top:12px;min-height:50px;background:#171717;color:#c8ff3d;border:1px solid #171717;font-weight:900}
+#vz-deal-studio .vz-deal-buy-now[hidden]{display:none}
+#vz-deal-studio .vz-deal-assistant[hidden]{display:none}
+#vz-deal-studio .vz-deal-assistant{margin-top:22px;padding-top:20px;border-top:1px solid #d8d8d2;scroll-margin-top:30px}
+#vz-deal-studio .vz-assistant-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+#vz-deal-studio .vz-assistant-head span{font-size:9px;letter-spacing:1.2px;color:#777;font-weight:800}
+#vz-deal-studio .vz-assistant-head h3{font-size:24px;margin:6px 0 0;letter-spacing:-1px}
+#vz-deal-studio .vz-assistant-head h3 em{font-style:normal}
+#vz-deal-studio .vz-deal-back{border:1px solid #aaa;background:transparent;padding:10px 12px;font-size:9px;font-weight:800;letter-spacing:.7px;cursor:pointer}
+#vz-deal-studio .vz-selected-combo{font-size:11px;line-height:1.7;background:#fff;border:1px solid #ddd;padding:12px;margin-bottom:12px;color:#333}
+
+@media(max-width:760px){#vz-deal-studio{padding:45px 5%}#vz-deal-studio .vz-deal-inner{grid-template-columns:1fr;gap:25px}#vz-deal-studio .vz-deal-panel{padding:20px 16px}#vz-deal-studio h2{font-size:clamp(45px,13vw,65px)}#vz-deal-studio .vz-chat{height:175px}}
+@media(prefers-reduced-motion:no-preference){#vz-deal-studio .vz-deal-panel{animation:vzDealIn .3s ease both}@keyframes vzDealIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
 </style>
+
+<script id="vz-deal-studio-script">
+(function(){
+  const $=id=>document.getElementById(id);
+  const one=$('vz-deal-product-one'),two=$('vz-deal-product-two');
+  const sizeOne=$('vz-deal-size-one'),sizeTwo=$('vz-deal-size-two');
+  const total=$('vz-deal-total'),chat=$('vz-deal-chat');
+  const input=$('vz-deal-message-input'),continueBtn=$('vz-deal-continue');
+  const assistant=$('vz-deal-assistant'),selectionStep=$('vz-deal-selection-step');
+  const buyBtn=$('vz-deal-buy-now');
+  let pendingCounterPrice=null, acceptedPrice=null, bargainRound=0;
+  const products=()=>typeof PRODUCTS!=='undefined'&&Array.isArray(PRODUCTS)
+    ? PRODUCTS.filter(p=>p&&p.active!==false&&!p.out_of_stock) : [];
+  const price=p=>typeof discountedPrice==='function'?Number(discountedPrice(p)):Number(p.price||0);
+  const rupees=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+  const get=id=>products().find(p=>String(p.id)===String(id));
+  function sizesFor(p){
+    if(!p)return [];
+    let sizes=p.sizes;
+    if(typeof sizes==='string'){
+      try{sizes=JSON.parse(sizes)}catch(_){sizes=sizes.split(/[,;|]/).map(x=>x.trim()).filter(Boolean)}
+    }
+    return Array.isArray(sizes)?sizes.map(x=>String(x).trim()).filter(Boolean):[];
+  }
+  function hasSizes(p){return !!p&&(p.has_sizes===true||p.has_sizes==='true'||sizesFor(p).length>0)&&sizesFor(p).length>0;}
+  function resetAccepted(){
+    pendingCounterPrice=null;acceptedPrice=null;bargainRound=0;buyBtn.hidden=true;
+    window.velzoBargainDeal=null;
+  }
+  function addBubble(text,who){
+    const b=document.createElement('div');
+    b.className='vz-chat-bubble '+(who==='user'?'vz-chat-user':'vz-chat-bot');
+    b.textContent=text;chat.appendChild(b);chat.scrollTop=chat.scrollHeight;
+  }
+  function fillProducts(sel,exclude){
+    const old=sel.value;
+    sel.replaceChildren(new Option(sel===one?'Choose first product':'Choose second product',''));
+    products().filter(p=>String(p.id)!==String(exclude||'')).forEach(p=>
+      sel.add(new Option(`${p.name} — ${rupees(price(p))}`,String(p.id)))
+    );
+    if([...sel.options].some(o=>o.value===old))sel.value=old;
+  }
+  function fillSizes(sel,p){
+    const old=sel.value;
+    sel.replaceChildren();
+    if(!p){sel.add(new Option('Select product first',''));sel.disabled=true;return;}
+    const sizes=sizesFor(p);
+    if(hasSizes(p)){
+      sel.add(new Option('Choose size',''));
+      sizes.forEach(sz=>{
+        const stock=typeof availableStockForSize==='function'?availableStockForSize(p,sz):null;
+        const opt=new Option(`${sz}${stock!==null?(stock<=0?' — Sold out':stock<=5?` — Only ${stock} left`:' — In stock'):''}`,sz);
+        if(stock!==null&&stock<=0)opt.disabled=true;
+        sel.add(opt);
+      });
+      sel.disabled=false;
+      if([...sel.options].some(o=>o.value===old&&!o.disabled))sel.value=old;
+    }else{
+      sel.add(new Option('One size / no size required','ONE_SIZE'));
+      sel.value='ONE_SIZE';sel.disabled=true;
+    }
+  }
+  function ready(){
+    const a=get(one.value),b=get(two.value);
+    if(!a||!b||String(a.id)===String(b.id))return false;
+    if(hasSizes(a)&&(!sizeOne.value||sizeOne.disabled))return false;
+    if(hasSizes(b)&&(!sizeTwo.value||sizeTwo.disabled))return false;
+    return true;
+  }
+  function refresh(){
+    const a=get(one.value),b=get(two.value);
+    total.textContent=a&&b?rupees(price(a)+price(b)):'Choose two products';
+    continueBtn.disabled=!ready();
+  }
+  function chosen(){return {a:get(one.value),b:get(two.value),sa:hasSizes(get(one.value))?sizeOne.value:'One size',sb:hasSizes(get(two.value))?sizeTwo.value:'One size'};}
+  function acceptDeal(amount,source){
+    const {a,b,sa,sb}=chosen(),sum=price(a)+price(b);
+    const finalPrice=Math.min(sum,Math.max(0,Number(amount)));
+    const discount=Math.round((sum-finalPrice)*100)/100;
+    const maxDiscount=Math.round(sum*.10*100)/100;
+    if(discount>maxDiscount+.001){addBubble('That price is below the automatic bargain limit. The best available deal is '+rupees(Math.ceil(sum*.90))+'.','bot');pendingCounterPrice=Math.ceil(sum*.90);return;}
+    acceptedPrice=finalPrice;pendingCounterPrice=null;
+    window.velzoBargainDeal={productOne:String(a.id),productTwo:String(b.id),sizeOne:sa,sizeTwo:sb,discount:discount,acceptedPrice:finalPrice};
+    buyBtn.textContent='BUY NOW — '+rupees(finalPrice);
+    buyBtn.hidden=false;
+    $('vz-deal-accepted-note').textContent='Deal accepted: '+rupees(finalPrice)+' for both products. Delivery and any COD fee are calculated separately at checkout.';
+    addBubble('Deal accepted! '+a.name+' ('+sa+') + '+b.name+' ('+sb+') for '+rupees(finalPrice)+'. Your bargain discount is '+rupees(discount)+'. Tap BUY NOW to continue to secure checkout.','bot');
+  }
+  function assistantReply(raw){
+    if(!ready())return 'First select two different available products and choose a size for each product that has size options.';
+    const {a,b,sa,sb}=chosen(),sum=price(a)+price(b),text=raw.toLowerCase().trim();
+    const firstOffer=Math.ceil(sum*.95);
+    const finalOffer=Math.ceil(sum*.90);
+    const match=raw.replace(/,/g,'').match(/(?:₹|rs\.?\s*)?(\d{2,6})(?:\s*(?:rupees|rs))?/i);
+    const amount=match?Number(match[1]):null;
+
+    if(/^(hi|hello|hey|hii)\b/.test(text))
+      return `Hey! Your combo is ${a.name} (${sa}) + ${b.name} (${sb}), currently ${rupees(sum)}. Ask me for a deal and I’ll start with 5% off.`;
+    if(/(size|sizing|fit)/.test(text))
+      return `Your selected sizes are ${sa} for ${a.name} and ${sb} for ${b.name}. Please check the product size chart before ordering if you are between sizes.`;
+
+    // Only an explicit acceptance accepts the currently displayed offer.
+    if(/^(yes|yeah|yep|accept|okay|ok|confirm|sounds good|i accept|done)$/i.test(text)&&pendingCounterPrice!==null){
+      const offer=pendingCounterPrice;window.setTimeout(()=>acceptDeal(offer,'counter'),260);
+      return `Perfect! Your ${bargainRound>=2?'final 10%':'first 5%'} offer of ${rupees(offer)} is accepted. BUY NOW will appear below.`;
+    }
+
+    // A first request always receives 5%, including a numeric price request.
+    // Asking again unlocks the final 10%; never jump straight to 10% on the first request.
+    const isBargainRequest=amount!==null||/(discount|less|lower|deal|bargain|offer|cheap|more|better price|reduce)/.test(text);
+    if(isBargainRequest){
+      if(bargainRound===0){
+        bargainRound=1;pendingCounterPrice=firstOffer;
+        return `Let’s start with ${rupees(firstOffer)} for both products — that’s 5% off the combo total. Reply YES to accept and get BUY NOW, or ask me for a better price to unlock one final offer.`;
+      }
+      if(bargainRound===1){
+        bargainRound=2;pendingCounterPrice=finalOffer;
+        return `Alright, I can improve it once: ${rupees(finalOffer)} for both products — 10% off. This is my final offer. Reply YES to accept and get BUY NOW.`;
+      }
+      pendingCounterPrice=finalOffer;
+      return `My final offer remains ${rupees(finalOffer)} for both products — 10% off. Reply YES to accept and get BUY NOW.`;
+    }
+
+    if(/(price|total|cost)/.test(text)){
+      return bargainRound>=2
+        ? `The combo total is ${rupees(sum)}. Your final offer is ${rupees(finalOffer)} (10% off).`
+        : bargainRound===1
+          ? `The combo total is ${rupees(sum)}. Your current offer is ${rupees(firstOffer)} (5% off). Ask once more for my final 10% offer.`
+          : `The combo total is ${rupees(sum)}. Ask me for a deal and I’ll start with 5% off.`;
+    }
+    return bargainRound>=2
+      ? `My final offer is ${rupees(finalOffer)} for both products (10% off). Reply YES if you want to accept.`
+      : bargainRound===1
+        ? `Your first offer is ${rupees(firstOffer)} (5% off). Reply YES to accept, or ask for a better price to unlock the final 10% offer.`
+        : `Ask me for a discount and I’ll start with a 5% offer at ${rupees(firstOffer)}.`;
+  }
+  function send(){
+    const raw=input.value.trim();if(!raw)return;
+    if(!ready()){addBubble('Please choose two different products and select their sizes first.','bot');return;}
+    if(acceptedPrice!==null){addBubble('Your deal is already accepted. Tap BUY NOW to continue, or edit your products to start a new bargain.','bot');input.value='';return;}
+    addBubble(raw,'user');input.value='';
+    const reply=assistantReply(raw);window.setTimeout(()=>addBubble(reply,'bot'),250);
+  }
+  $('vz-deal-reveal').addEventListener('click',()=>{
+    $('vz-deal-panel').hidden=false;
+    $('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});
+    fillProducts(one,'');fillProducts(two,one.value);
+    fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();
+  });
+  one.addEventListener('change',()=>{
+    resetAccepted();fillProducts(two,one.value);
+    if(two.value===one.value)two.value='';
+    fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();
+  });
+  two.addEventListener('change',()=>{resetAccepted();fillSizes(sizeTwo,get(two.value));refresh();});
+  sizeOne.addEventListener('change',()=>{resetAccepted();refresh();});
+  sizeTwo.addEventListener('change',()=>{resetAccepted();refresh();});
+  continueBtn.addEventListener('click',()=>{
+    if(!ready()){$('vz-deal-message').textContent='Please select two different products and choose both sizes before continuing.';return;}
+    resetAccepted();
+    const {a,b,sa,sb}=chosen();
+    $('vz-selected-combo').textContent=`YOUR COMBO: ${a.name} — ${sa}  +  ${b.name} — ${sb}  |  CURRENT TOTAL: ${rupees(price(a)+price(b))}`;
+    assistant.hidden=false;selectionStep.hidden=true;
+    assistant.scrollIntoView({behavior:'smooth',block:'start'});input.focus({preventScroll:true});
+    if(!chat.dataset.greeted){addBubble(`Welcome to the VELZO deal assistant. Your two selected products total ${rupees(price(a)+price(b))}. Ask for a deal or send your target price.`,'bot');chat.dataset.greeted='1';}
+  });
+  $('vz-deal-back').addEventListener('click',()=>{
+    resetAccepted();assistant.hidden=true;selectionStep.hidden=false;
+    $('vz-deal-panel').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  buyBtn.addEventListener('click',async()=>{
+    if(!ready()||acceptedPrice===null||!window.velzoBargainDeal)return;
+    const {a,b,sa,sb}=chosen();
+    const deal=window.velzoBargainDeal;
+    if(String(a.id)!==deal.productOne||String(b.id)!==deal.productTwo||deal.sizeOne!==sa||deal.sizeTwo!==sb){resetAccepted();addBubble('Your selection changed. Please confirm a new deal.','bot');return;}
+    if(typeof loadProducts==='function')await loadProducts();
+    const freshA=get(a.id),freshB=get(b.id);
+    if(!freshA||!freshB){addBubble('One of these products is no longer available. Please edit your selection.','bot');return;}
+    for(const [p,sz] of [[freshA,sa],[freshB,sb]]){
+      if(hasSizes(p)&&typeof availableStockForSize==='function'){
+        const stock=availableStockForSize(p,sz);
+        if(stock!==null&&stock<1){addBubble(`${p.name} size ${sz} is now sold out. Please edit your selection.`,'bot');return;}
+      }
+    }
+    cart=[{id:freshA.id,qty:1,...(hasSizes(freshA)?{size:sa}:{})},{id:freshB.id,qty:1,...(hasSizes(freshB)?{size:sb}:{})}];
+    if(typeof saveCart==='function')saveCart();
+    appliedCoupon='';
+    window.velzoBargainDeal={...deal,productOne:String(freshA.id),productTwo:String(freshB.id)};
+    if(typeof openCart==='function')openCart();
+    if(typeof showCheckout==='function')await showCheckout();
+  });
+  $('vz-deal-send').addEventListener('click',send);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  let tries=0;
+  const timer=window.setInterval(()=>{
+    tries++;
+    if(products().length||tries>=80){
+      window.clearInterval(timer);
+      fillProducts(one,'');fillProducts(two,one.value);
+      fillSizes(sizeOne,get(one.value));fillSizes(sizeTwo,get(two.value));refresh();
+    }
+  },250);
+})();
+</script>
 
 </body>
 </html>
