@@ -3476,6 +3476,12 @@ body { background:#fff; color:#151515; }
         <input id="velzo-account-password" type="password" autocomplete="new-password" placeholder="Password (at least 6 characters)" minlength="6" required>
         <button id="velzo-account-submit" type="submit">CREATE ACCOUNT</button>
       </form>
+      <form id="velzo-account-otp-form" style="display:none" autocomplete="one-time-code">
+        <p class="subtext">Enter the 6-digit verification code sent to your email.</p>
+        <input id="velzo-account-otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit email code" aria-label="6-digit email verification code" required>
+        <button id="velzo-account-verify" type="submit" style="width:100%;padding:14px;border:0;border-radius:999px;background:#c8ff3d;color:#151515;font-weight:900;margin:6px 0">VERIFY EMAIL</button>
+        <button type="button" onclick="velzoResendSignupOtp()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:999px;background:#f4f4f4;color:#151515">Resend code</button>
+      </form>
       <div class="velzo-account-actions" id="velzo-auth-actions">
         <button type="button" onclick="velzoSetAccountMode('register')">Register</button>
         <button type="button" onclick="velzoSetAccountMode('login')">Login</button>
@@ -3579,6 +3585,9 @@ body { background:#fff; color:#151515; }
     passwordInput.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
     submit.style.display = 'block';
     submit.textContent = mode === 'register' ? 'CREATE ACCOUNT' : 'LOGIN';
+    $('velzo-account-otp-form').style.display = 'none';
+    $('velzo-account-form').style.display = 'block';
+    $('velzo-auth-actions').style.display = 'flex';
     $('velzo-auth-view').style.display = 'block';
     $('velzo-customer-view').style.display = 'none';
     msg.textContent = '';
@@ -3750,28 +3759,34 @@ body { background:#fff; color:#151515; }
     e.preventDefault();
     submit.disabled = true;
     submit.style.opacity = '.65';
-    msg.textContent = mode === 'register' ? 'Creating account…' : 'Signing in…';
+    msg.textContent = mode === 'register' ? 'Creating account and sending verification code…' : 'Signing in…';
     try {
       let result;
       if(mode === 'register'){
         result = await db.auth.signUp({
           email: emailInput.value.trim(),
           password: passwordInput.value,
-          options: { data: {full_name: nameInput.value.trim()}, emailRedirectTo: window.location.origin }
+          options: { data: {full_name: nameInput.value.trim()} }
         });
+        if(result.error) throw result.error;
+        if(!result.data.session) {
+          $('velzo-account-form').style.display = 'none';
+          $('velzo-auth-actions').style.display = 'none';
+          $('velzo-account-otp-form').style.display = 'block';
+          $('velzo-account-otp').value = '';
+          msg.textContent = 'A 6-digit verification code has been sent to ' + emailInput.value.trim() + '. Enter it below to activate your account.';
+          $('velzo-account-otp').focus();
+          return;
+        }
       } else {
         result = await db.auth.signInWithPassword({email:emailInput.value.trim(),password:passwordInput.value});
+        if(result.error) throw result.error;
       }
-      if(result.error) throw result.error;
-      if(mode === 'register' && !result.data.session) {
-        msg.textContent = 'Registration submitted. Check your email to confirm your account, then log in.';
-      } else {
-        msg.textContent = mode === 'register' ? 'Account created successfully.' : 'Login successful.';
-        const {data:{session}} = await db.auth.getSession();
-        if(session) {
-          setSignedInView(session);
-          await velzoLoadOrders();
-        }
+      msg.textContent = mode === 'register' ? 'Account created successfully.' : 'Login successful.';
+      const {data:{session}} = await db.auth.getSession();
+      if(session) {
+        setSignedInView(session);
+        await velzoLoadOrders();
       }
     } catch(err) {
       msg.textContent = err.message || 'Something went wrong. Please try again.';
@@ -3780,6 +3795,54 @@ body { background:#fff; color:#151515; }
       submit.style.opacity = '1';
     }
   });
+
+  $('velzo-account-otp-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const token = $('velzo-account-otp').value.trim();
+    if(!/^\\d{6}$/.test(token)) {
+      msg.textContent = 'Enter the 6-digit code from your email.';
+      return;
+    }
+    const verifyButton = $('velzo-account-verify');
+    verifyButton.disabled = true;
+    msg.textContent = 'Verifying your email…';
+    try {
+      const {data,error} = await db.auth.verifyOtp({
+        email: emailInput.value.trim(),
+        token,
+        type: 'signup'
+      });
+      if(error) throw error;
+      msg.textContent = 'Email verified. Your account is ready.';
+      if(data.session) {
+        setSignedInView(data.session);
+        await velzoLoadOrders();
+      } else {
+        $('velzo-account-otp-form').style.display = 'none';
+        $('velzo-account-form').style.display = 'block';
+        $('velzo-auth-actions').style.display = 'flex';
+        velzoSetAccountMode('login');
+        msg.textContent = 'Email verified. Please log in with your email and password.';
+      }
+    } catch(err) {
+      msg.textContent = err.message || 'Could not verify the code. Check it and try again.';
+    } finally {
+      verifyButton.disabled = false;
+    }
+  });
+
+  window.velzoResendSignupOtp = async function(){
+    const email = emailInput.value.trim();
+    if(!email){msg.textContent='Enter your email address first.';return;}
+    msg.textContent='Sending a new verification code…';
+    try {
+      const {error} = await db.auth.resend({type:'signup',email});
+      if(error) throw error;
+      msg.textContent='A new 6-digit code has been sent. Check your inbox and spam folder.';
+    } catch(err) {
+      msg.textContent=err.message || 'Could not resend the code.';
+    }
+  };
 
   window.velzoForgotPassword = async function(){
     const email = emailInput.value.trim();
